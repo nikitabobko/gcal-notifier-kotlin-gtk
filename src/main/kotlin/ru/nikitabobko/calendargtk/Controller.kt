@@ -58,6 +58,6 @@ class ControllerImpl : Controller {
         Thread(Runnable {
             Thread.sleep(settings.refreshFrequencyInMinutes*60*1000)
             refresh()
-        })
+        }).start()
     }
 }
