@@ -42,12 +42,14 @@ class EventTrackerImpl(private val controller: Controller) : EventTracker{
     private fun buildEventTrackerThread(): Thread {
         val thread = Thread {
             while(true) {
+                val currentTimeMillis = System.currentTimeMillis()
                 if (nextEventToNotify == null || nextEventToNotifyUNIXTime == null) {
-                    initNextEventToNotify()
-                    if (nextEventToNotify == null) {
+                    initNextEventToNotify(currentTimeMillis)
+                    if (nextEventToNotify == null || nextEventToNotifyUNIXTime == null) {
                         break
                     }
-                } else if (nextEventToNotifyUNIXTime!! - EPS < System.currentTimeMillis()) {
+                }
+                if (nextEventToNotifyUNIXTime!! - EPS < currentTimeMillis) {
                     controller.eventReminderTriggered(nextEventToNotify!!)
                     lastNotifiedEvent = nextEventToNotify
                     lastNotifiedEventUNIXTime = nextEventToNotifyUNIXTime
@@ -57,10 +59,10 @@ class EventTrackerImpl(private val controller: Controller) : EventTracker{
                     continue
                 }
                 try {
-                    Thread.sleep(nextEventToNotifyUNIXTime!! - System.currentTimeMillis())
+                    Thread.sleep(nextEventToNotifyUNIXTime!! - currentTimeMillis)
                 } catch (ex: InterruptedException) {
                     // Thread was interrupted, let's check whether nextEventToNotify changed
-                    initNextEventToNotify()
+                    initNextEventToNotify(System.currentTimeMillis())
                 }
             }
         }
@@ -68,7 +70,7 @@ class EventTrackerImpl(private val controller: Controller) : EventTracker{
         return thread
     }
 
-    private fun initNextEventToNotify() {
+    private fun initNextEventToNotify(currentTimeMillis: Long) {
         var curTime = Date(Long.MAX_VALUE)
         var curEvent: Event? = null
         val cal = java.util.Calendar.getInstance()
@@ -83,13 +85,15 @@ class EventTrackerImpl(private val controller: Controller) : EventTracker{
                 }) {
                     cal.time = Date(event.start.timeIfAvaliableOrDate.value)
                     cal.add(java.util.Calendar.MINUTE, -eventReminder.minutes)
-                    if (
-                            cal.time <= curTime &&
-                            (lastNotifiedEvent == null || lastNotifiedEventUNIXTime == null
-                                    || (cal.time.time > lastNotifiedEventUNIXTime!! ||
+
+                    val condition = cal.time <= curTime
+                    val firstSubCondition = lastNotifiedEvent == null && cal.time.time >= currentTimeMillis
+                    val secondSubCondition = lastNotifiedEvent != null &&
+                            (cal.time.time > lastNotifiedEventUNIXTime!! ||
                                     cal.time.time == lastNotifiedEventUNIXTime!! &&
-                                    event != lastNotifiedEvent))
-                    ) {
+                                    event != lastNotifiedEvent)
+
+                    if (condition && (firstSubCondition || secondSubCondition)) {
                         curTime = cal.time
                         curEvent = event
                     }
