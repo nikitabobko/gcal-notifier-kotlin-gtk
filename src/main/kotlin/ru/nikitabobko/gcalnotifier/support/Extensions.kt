@@ -1,4 +1,4 @@
-package ru.nikitabobko.calendargtk.support
+package ru.nikitabobko.gcalnotifier.support
 
 import com.google.api.client.util.DateTime
 import com.google.api.services.calendar.model.EventDateTime

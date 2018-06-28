@@ -1,13 +1,11 @@
-package ru.nikitabobko.calendargtk
+package ru.nikitabobko.gcalnotifier
 
 import com.google.api.services.calendar.model.Event
 import com.google.common.io.Resources
 import org.gnome.gdk.Pixbuf
-import org.gnome.gdk.RGBA
 import org.gnome.gtk.*
 import org.gnome.notify.Notification
-import ru.nikitabobko.calendargtk.support.openURLInDefaultBrowser
-import ru.nikitabobko.calendargtk.support.timeIfAvaliableOrDate
+import ru.nikitabobko.gcalnotifier.support.timeIfAvaliableOrDate
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.math.min

@@ -19,7 +19,7 @@ version '1.0'
 apply plugin: 'kotlin'
 apply plugin: 'application'
 
-mainClassName = 'ru.nikitabobko.calendargtk.MainKt'
+mainClassName = 'ru.nikitabobko.gcalnotifier.MainKt'
 sourceCompatibility = 1.8
 
 repositories {
@@ -40,7 +40,7 @@ dependencies {
 
 jar {
     manifest {
-        attributes('Main-Class': 'ru.nikitabobko.calendargtk.MainKt')
+        attributes('Main-Class': 'ru.nikitabobko.gcalnotifier.MainKt')
     }
     from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
 }

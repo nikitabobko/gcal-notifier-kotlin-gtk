@@ -1,4 +1,4 @@
-package ru.nikitabobko.calendargtk
+package ru.nikitabobko.gcalnotifier
 
 import com.google.api.client.auth.oauth2.Credential
 import com.google.api.client.extensions.jetty.auth.oauth2.LocalServerReceiver
@@ -14,9 +14,9 @@ import com.google.api.services.calendar.CalendarScopes
 import com.google.api.services.calendar.model.CalendarListEntry
 import com.google.api.services.calendar.model.Event
 import com.google.api.services.calendar.model.Events
-import ru.nikitabobko.calendargtk.support.APPLICATION_NAME
-import ru.nikitabobko.calendargtk.support.AuthorizationCodeInstalledAppWorkaround
-import ru.nikitabobko.calendargtk.support.timeIfAvaliableOrDate
+import ru.nikitabobko.gcalnotifier.support.APPLICATION_NAME
+import ru.nikitabobko.gcalnotifier.support.AuthorizationCodeInstalledAppWorkaround
+import ru.nikitabobko.gcalnotifier.support.timeIfAvaliableOrDate
 import sun.awt.Mutex
 import java.io.File
 import java.io.IOException
