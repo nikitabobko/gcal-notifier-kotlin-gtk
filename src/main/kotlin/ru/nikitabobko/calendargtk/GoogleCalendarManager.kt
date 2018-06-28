@@ -1,14 +1,12 @@
 package ru.nikitabobko.calendargtk
 
 import com.google.api.client.auth.oauth2.Credential
-import com.google.api.client.extensions.java6.auth.oauth2.AuthorizationCodeInstalledApp
 import com.google.api.client.extensions.jetty.auth.oauth2.LocalServerReceiver
 import com.google.api.client.googleapis.auth.oauth2.GoogleAuthorizationCodeFlow
 import com.google.api.client.googleapis.auth.oauth2.GoogleClientSecrets
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport
 import com.google.api.client.http.javanet.NetHttpTransport
 import com.google.api.client.json.jackson2.JacksonFactory
-import ru.nikitabobko.calendargtk.support.authorizeWorkaround
 import com.google.api.client.util.DateTime
 import com.google.api.client.util.store.FileDataStoreFactory
 import com.google.api.services.calendar.Calendar
@@ -17,6 +15,7 @@ import com.google.api.services.calendar.model.CalendarListEntry
 import com.google.api.services.calendar.model.Event
 import com.google.api.services.calendar.model.Events
 import ru.nikitabobko.calendargtk.support.APPLICATION_NAME
+import ru.nikitabobko.calendargtk.support.AuthorizationCodeInstalledAppWorkaround
 import ru.nikitabobko.calendargtk.support.timeIfAvaliableOrDate
 import sun.awt.Mutex
 import java.io.File
@@ -64,11 +63,12 @@ class GoogleCalendarManagerImpl : GoogleCalendarManager {
     private fun getUpcomingEvents(calendarId: String): List<Event>? {
         return try {
             val now = DateTime(System.currentTimeMillis())
-            val tomorrowTemp = Date.from(
-                    LocalDate.now().plusDays(settings.daysAhead)
+            // Look 8 weeks ahead
+            val end = Date.from(
+                    LocalDate.now().plusWeeks(8)
                             .atStartOfDay(ZoneId.systemDefault()).toInstant()
             ) // fuck you api designer
-            val tomorrow = DateTime(tomorrowTemp)
+            val tomorrow = DateTime(end)
 
             val events: Events = service.events().list(calendarId)
                     .setTimeMin(now)
@@ -161,8 +161,8 @@ class GoogleCalendarManagerImpl : GoogleCalendarManager {
                 .setDataStoreFactory(FileDataStoreFactory(File(CREDENTIALS_FOLDER)))
                 .setAccessType("offline")
                 .build()
-        val authorizationCodeInstalledApp = AuthorizationCodeInstalledApp(flow, LocalServerReceiver())
-        return authorizationCodeInstalledApp.authorizeWorkaround("user")
+        val authorizationCodeInstalledApp = AuthorizationCodeInstalledAppWorkaround(flow, LocalServerReceiver())
+        return authorizationCodeInstalledApp.authorize("user")
     }
 
     override fun getCredentials(): Credential {
