@@ -1,4 +1,4 @@
-package ru.nikitabobko.calendargtk
+package ru.nikitabobko.gcalnotifier
 
 val settings = Settings()
 

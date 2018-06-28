@@ -1,4 +1,4 @@
-package ru.nikitabobko.calendargtk.support
+package ru.nikitabobko.gcalnotifier.support
 
 import com.google.api.client.auth.oauth2.AuthorizationCodeFlow
 import com.google.api.client.auth.oauth2.AuthorizationCodeRequestUrl

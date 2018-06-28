@@ -1,7 +1,7 @@
-package ru.nikitabobko.calendargtk
+package ru.nikitabobko.gcalnotifier
 
 import com.google.api.services.calendar.model.Event
-import ru.nikitabobko.calendargtk.support.timeIfAvaliableOrDate
+import ru.nikitabobko.gcalnotifier.support.timeIfAvaliableOrDate
 import java.util.*
 
 /**
