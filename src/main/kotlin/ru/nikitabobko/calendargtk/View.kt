@@ -3,8 +3,10 @@ package ru.nikitabobko.calendargtk
 import com.google.api.services.calendar.model.Event
 import com.google.common.io.Resources
 import org.gnome.gdk.Pixbuf
+import org.gnome.gdk.RGBA
 import org.gnome.gtk.*
 import org.gnome.notify.Notification
+import ru.nikitabobko.calendargtk.support.openURLInDefaultBrowser
 import ru.nikitabobko.calendargtk.support.timeIfAvaliableOrDate
 import java.text.SimpleDateFormat
 import java.util.*
@@ -18,7 +20,9 @@ interface View {
     fun update(events: List<Event>)
     fun quit()
     var refreshButtonState: RefreshButtonState
-    fun showNotification(summary: String, body: String)
+    fun showPopupMenu()
+    fun showNotification(summary: String, body: String?,
+                         actionLabel: String? = null, action: ((Notification, String) -> Unit)? = null)
 }
 
 enum class RefreshButtonState {
@@ -43,18 +47,27 @@ class ViewImpl : View {
             if (refreshMenuItem == null) return
             if (field == RefreshButtonState.NORMAL) {
                 refreshMenuItem!!.sensitive = true
-                refreshMenuItem!!.setTooltipText("Refresh")
+                refreshMenuItem!!.name = "Refreshing..."
             } else {
                 refreshMenuItem!!.sensitive = false
-                refreshMenuItem!!.setTooltipText("Refreshing...")
+                refreshMenuItem!!.name = "Refresh"
             }
-            refreshMenuItem!!.show()
+            popupMenu.showAll()
         }
 
-    override fun showNotification(summary: String, body: String) {
+    override fun showNotification(summary: String, body: String?,
+                                  actionLabel: String?,
+                                  action: ((Notification, String) -> Unit)?) {
         val notification = Notification(summary, body, null)
         notification.setIcon(appIcon)
+        if (action != null && actionLabel != null) {
+            notification.addAction("default", actionLabel, action)
+        }
         notification.show()
+    }
+
+    override fun showPopupMenu() {
+        popupMenu.popup(statusIcon ?: return)
     }
 
     override fun update(events: List<Event>) {
@@ -93,7 +106,6 @@ class ViewImpl : View {
 
     override fun quit() {
         Gtk.mainQuit()
-        System.exit(0)
     }
 
     override fun showSettingsWindow() {
@@ -103,13 +115,9 @@ class ViewImpl : View {
     override fun showStatusIcon() {
         statusIcon = StatusIcon(appIcon)
         // left mouse button click
-        statusIcon!!.connect(::onStatusIconClick)
+        statusIcon!!.connect(StatusIcon.Activate { controller.statusIconClicked() })
         // right mouse button click
-        statusIcon!!.connect { a: StatusIcon, _, _ -> onStatusIconClick(a) }
-    }
-
-    private fun onStatusIconClick(statusIcon: StatusIcon) {
-        popupMenu.popup(statusIcon)
+        statusIcon!!.connect { a: StatusIcon, _, _ -> controller.statusIconClicked() }
     }
 
     /**

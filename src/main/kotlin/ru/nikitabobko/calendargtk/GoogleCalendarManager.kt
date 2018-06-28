@@ -22,8 +22,6 @@ import java.io.File
 import java.io.IOException
 import java.io.InputStream
 import java.io.InputStreamReader
-import java.time.LocalDate
-import java.time.ZoneId
 import java.util.*
 import kotlin.Comparator
 
@@ -35,7 +33,6 @@ private const val CLIENT_SECRET_DIR = "/client_secret.json"
 private val SCOPES: List<String> = Collections.singletonList(CalendarScopes.CALENDAR_READONLY)
 
 interface GoogleCalendarManager {
-    fun getCredentials(): Credential
     fun getUpcomingEventsAsync(onRefreshedListener: (events: List<Event>?) -> Unit)
     fun getUpcomingEventsAsync(calendarId: String, onRefreshedListener: (events: List<Event>?) -> Unit)
     fun getUserCalendarListAsync(
@@ -62,17 +59,18 @@ class GoogleCalendarManagerImpl : GoogleCalendarManager {
 
     private fun getUpcomingEvents(calendarId: String): List<Event>? {
         return try {
-            val now = DateTime(System.currentTimeMillis())
+            val cal: java.util.Calendar = java.util.Calendar.getInstance()
+            cal.time = Date(System.currentTimeMillis())
+            cal.add(java.util.Calendar.MINUTE, -30)
+            val start = DateTime(cal.time)
+            cal.add(java.util.Calendar.MINUTE, 30)
             // Look 8 weeks ahead
-            val end = Date.from(
-                    LocalDate.now().plusWeeks(8)
-                            .atStartOfDay(ZoneId.systemDefault()).toInstant()
-            ) // fuck you api designer
-            val tomorrow = DateTime(end)
+            cal.add(java.util.Calendar.WEEK_OF_YEAR, 8)
+            val end = DateTime(cal.time)
 
             val events: Events = service.events().list(calendarId)
-                    .setTimeMin(now)
-                    .setTimeMax(tomorrow)
+                    .setTimeMin(start)
+                    .setTimeMax(end)
                     .setOrderBy("startTime")
                     .setSingleEvents(true)
                     .execute()
@@ -95,20 +93,20 @@ class GoogleCalendarManagerImpl : GoogleCalendarManager {
     }
 
     override fun getUpcomingEventsAsync(onRefreshedListener: (List<Event>?) -> Unit) {
-        Thread(Runnable {
+        Thread {
             var retList: List<Event>? = null
             try {
                 mutex.lock()
                 val list = mutableListOf<Event>()
-                val calendars: List<CalendarListEntry> = getUserCalendarList() ?: return@Runnable
+                val calendars: List<CalendarListEntry> = getUserCalendarList() ?: return@Thread
                 for (calendar: CalendarListEntry in calendars) {
-                    val events: List<Event> = getUpcomingEvents(calendar.id) ?: return@Runnable
+                    val events: List<Event> = getUpcomingEvents(calendar.id) ?: return@Thread
                     list.addAll(events)
                 }
                 list.sortWith(Comparator { a: Event, b: Event ->
                     val x: Long = a.start.timeIfAvaliableOrDate.value
                     val y: Long = b.start.timeIfAvaliableOrDate.value
-                    if (x != y) return@Comparator (x - y).toInt()
+                    if (x != y) return@Comparator if (x > y) 1 else -1
                     return@Comparator a.summary.compareTo(b.summary)
                 })
                 retList = list
@@ -116,7 +114,7 @@ class GoogleCalendarManagerImpl : GoogleCalendarManager {
                 onRefreshedListener(retList)
                 mutex.unlock()
             }
-        }).start()
+        }.start()
     }
 
     override fun getUserCalendarListAsync(
@@ -161,11 +159,10 @@ class GoogleCalendarManagerImpl : GoogleCalendarManager {
                 .setDataStoreFactory(FileDataStoreFactory(File(CREDENTIALS_FOLDER)))
                 .setAccessType("offline")
                 .build()
-        val authorizationCodeInstalledApp = AuthorizationCodeInstalledAppWorkaround(flow, LocalServerReceiver())
+        val authorizationCodeInstalledApp = AuthorizationCodeInstalledAppWorkaround(
+                flow,
+                LocalServerReceiver()
+        )
         return authorizationCodeInstalledApp.authorize("user")
-    }
-
-    override fun getCredentials(): Credential {
-        return getCredentials(GoogleNetHttpTransport.newTrustedTransport())
     }
 }
