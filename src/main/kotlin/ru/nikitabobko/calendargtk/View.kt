@@ -8,6 +8,7 @@ import org.gnome.notify.Notification
 import ru.nikitabobko.calendargtk.support.timeIfAvaliableOrDate
 import java.text.SimpleDateFormat
 import java.util.*
+import kotlin.math.min
 
 val view: View = ViewImpl()
 
@@ -33,7 +34,9 @@ class ViewImpl : View {
      */
     private var firstEventItemIndexInPopupMenu = 0
     private var statusIcon: StatusIcon? = null
-    private val appIcon: Pixbuf = Pixbuf(Resources.toByteArray(Class::class.java.getResource("/gcal-icon.png")))
+    private val appIcon: Pixbuf = Pixbuf(
+            Resources.toByteArray(Class::class.java.getResource("/gcal-icon.png"))
+    )
     override var refreshButtonState: RefreshButtonState = RefreshButtonState.NORMAL
         set(value) {
             field = value
@@ -55,28 +58,34 @@ class ViewImpl : View {
     }
 
     override fun update(events: List<Event>) {
-        removeAllEventsFromPopupMenu(popupMenu)
+        val events = events.subList(0, min(settings.maxNumberOfEventsToShowInPopupMenu, events.size))
+        removeAllEventsFromPopupMenu()
         if (events.isEmpty()) {
             val item = MenuItem("No upcoming events")
             item.sensitive = false
             popupMenu.insert(item, firstEventItemIndexInPopupMenu)
             popupMenu.showAll()
-        } else insertEventsInPopupMenu(popupMenu, events)
+        } else insertEventsInPopupMenu(events)
     }
 
-    private fun insertEventsInPopupMenu(popupMenu: Menu, events: List<Event>) {
+    private fun insertEventsInPopupMenu(events: List<Event>) {
         val dateFormat = SimpleDateFormat("yyyy-MM-dd")
         for (event: Event in events.reversed()) {
             val date = Date(event.start.timeIfAvaliableOrDate.value)
-            popupMenu.insert(
-                    MenuItem(dateFormat.format(date) + "    " + event.summary),
-                    firstEventItemIndexInPopupMenu
+            val item = MenuItem(
+                    dateFormat.format(date) + "    " + event.summary,
+                    MenuItem.Activate { menuItem ->
+                        val indexOf = popupMenu.children.indexOf(menuItem) -
+                                firstEventItemIndexInPopupMenu
+                        controller.eventPopupItemClicked(indexOf)
+                    }
             )
+            popupMenu.insert(item, firstEventItemIndexInPopupMenu)
         }
         popupMenu.showAll()
     }
 
-    private fun removeAllEventsFromPopupMenu(popupMenu: Menu) {
+    private fun removeAllEventsFromPopupMenu() {
         while (popupMenu.children[firstEventItemIndexInPopupMenu] !is SeparatorMenuItem) {
             popupMenu.remove(popupMenu.children[firstEventItemIndexInPopupMenu])
         }
@@ -84,6 +93,7 @@ class ViewImpl : View {
 
     override fun quit() {
         Gtk.mainQuit()
+        System.exit(0)
     }
 
     override fun showSettingsWindow() {

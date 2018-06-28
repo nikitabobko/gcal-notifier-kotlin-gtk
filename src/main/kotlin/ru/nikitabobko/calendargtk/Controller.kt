@@ -12,9 +12,24 @@ interface Controller {
     fun refreshButtonClicked()
     fun settingsButtonClicked()
     fun logoutButtonClicked()
+    fun eventPopupItemClicked(indexOf: Int)
 }
 
 class ControllerImpl : Controller {
+    private val eventTracker: EventTracker = EventTrackerImpl(view)
+    @Volatile
+    private var events: List<Event> = listOf()
+    private val eventsLock = Any()
+    private var lastRefreshWasSucceeded = true
+
+    override fun eventPopupItemClicked(indexOf: Int) {
+        var htmlLink = ""
+        synchronized(eventsLock) {
+            htmlLink = events[indexOf].htmlLink
+        }
+        openURLInDefaultBrowser(htmlLink)
+    }
+
     override fun logoutButtonClicked() {
         googleCalendarManager.removeCredentialsFolder()
         view.quit()
@@ -41,11 +56,16 @@ class ControllerImpl : Controller {
 
     private fun refresh(afterRefreshPerformed: (() -> Unit)? = null) {
         googleCalendarManager.getUpcomingEventsAsync { events: List<Event>? ->
-            if (events == null) {
-                view.showNotification("Error", "Unable to connect to Google Calendar")
-            } else {
+            if (events != null) {
+                eventTracker.upcomingEvents = events
                 view.update(events)
+                synchronized(eventsLock) {
+                    this.events = events
+                }
+            } else if (lastRefreshWasSucceeded) {
+                view.showNotification("Error", "Unable to connect to Google Calendar")
             }
+            lastRefreshWasSucceeded = events != null
 
             if (afterRefreshPerformed != null) afterRefreshPerformed()
         }
