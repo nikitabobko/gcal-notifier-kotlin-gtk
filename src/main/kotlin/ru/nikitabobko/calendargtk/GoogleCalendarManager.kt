@@ -36,7 +36,6 @@ private const val CLIENT_SECRET_DIR = "/client_secret.json"
 private val SCOPES: List<String> = Collections.singletonList(CalendarScopes.CALENDAR_READONLY)
 
 interface GoogleCalendarManager {
-    val doCredentialsExist: Boolean
     fun getCredentials(): Credential
     fun getUpcomingEventsAsync(onRefreshedListener: (events: List<Event>?) -> Unit)
     fun getUpcomingEventsAsync(calendarId: String, onRefreshedListener: (events: List<Event>?) -> Unit)
@@ -47,13 +46,11 @@ interface GoogleCalendarManager {
 }
 
 class GoogleCalendarManagerImpl : GoogleCalendarManager {
-    override val doCredentialsExist: Boolean
-        get() = File(CREDENTIALS_FOLDER).exists()
-
     override fun removeCredentialsFolder() {
         File(CREDENTIALS_FOLDER).deleteRecursively()
     }
 
+    @Volatile
     private var _service: Calendar? = null
     private val service: Calendar
         get() {
