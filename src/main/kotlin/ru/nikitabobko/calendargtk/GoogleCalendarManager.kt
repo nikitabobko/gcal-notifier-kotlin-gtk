@@ -96,25 +96,26 @@ class GoogleCalendarManagerImpl : GoogleCalendarManager {
 
     override fun getUpcomingEventsAsync(onRefreshedListener: (List<Event>?) -> Unit) {
         Thread(Runnable {
-            mutex.lock()
-            run block@ {
+            var retList: List<Event>? = null
+            try {
+                mutex.lock()
                 val list = mutableListOf<Event>()
-                val calendars: List<CalendarListEntry> = getUserCalendarList() ?: return@block
+                val calendars: List<CalendarListEntry> = getUserCalendarList() ?: return@Runnable
                 for (calendar: CalendarListEntry in calendars) {
-                    val events: List<Event> = getUpcomingEvents(calendar.id) ?: return@block
+                    val events: List<Event> = getUpcomingEvents(calendar.id) ?: return@Runnable
                     list.addAll(events)
                 }
                 list.sortWith(Comparator { a: Event, b: Event ->
                     val x: Long = a.start.timeIfAvaliableOrDate.value
                     val y: Long = b.start.timeIfAvaliableOrDate.value
-                    return@Comparator (x - y).toInt()
+                    if (x != y) return@Comparator (x - y).toInt()
+                    return@Comparator a.summary.compareTo(b.summary)
                 })
-                onRefreshedListener(list)
+                retList = list
+            } finally {
+                onRefreshedListener(retList)
                 mutex.unlock()
-                return@Runnable
             }
-            onRefreshedListener(null)
-            mutex.unlock()
         }).start()
     }
 
