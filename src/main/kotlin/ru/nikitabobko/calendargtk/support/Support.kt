@@ -18,7 +18,7 @@ class AuthorizationCodeInstalledAppWorkaround(
 ) : AuthorizationCodeInstalledApp(flow, receiver) {
     override fun onAuthorization(authorizationUrl: AuthorizationCodeRequestUrl?) {
         // Workaround: real onAuthorization method calls some AWT methods which
-        // will lead to program crash in native code as long as we use GTK
+        // will lead to program crash as long as we use GTK
         openURLInDefaultBrowser(authorizationUrl?.build() ?: return)
     }
 }
