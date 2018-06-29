@@ -25,7 +25,6 @@ import java.io.InputStreamReader
 import java.util.*
 import kotlin.Comparator
 
-val googleCalendarManager: GoogleCalendarManager = GoogleCalendarManagerImpl()
 private val USER_HOME_FOLDER = System.getProperty("user.home")
 private val CREDENTIALS_FOLDER: String = "$USER_HOME_FOLDER/.config/$APPLICATION_NAME/credentials"
 private val JSON_FACTORY = JacksonFactory.getDefaultInstance()
@@ -39,13 +38,13 @@ interface GoogleCalendarManager {
             onReceivedUserCalendarListListener: (calendarList: List<CalendarListEntry>?) -> Unit
     )
     fun removeCredentialsFolder()
+    /**
+     * Implementation should be thread safety
+     */
+    var userCalendarList: List<CalendarListEntry>?
 }
 
 class GoogleCalendarManagerImpl : GoogleCalendarManager {
-    override fun removeCredentialsFolder() {
-        File(CREDENTIALS_FOLDER).deleteRecursively()
-    }
-
     @Volatile
     private var _service: Calendar? = null
     private val service: Calendar
@@ -56,6 +55,23 @@ class GoogleCalendarManagerImpl : GoogleCalendarManager {
             return _service!!
         }
     private val mutex: Mutex = Mutex()
+    private val userCalendarListLock = Any()
+    @Volatile
+    override var userCalendarList: List<CalendarListEntry>? = null
+        get() {
+            synchronized(userCalendarListLock) {
+                return field
+            }
+        }
+        set(value) {
+            synchronized(userCalendarListLock) {
+                field = value
+            }
+        }
+
+    override fun removeCredentialsFolder() {
+        File(CREDENTIALS_FOLDER).deleteRecursively()
+    }
 
     private fun getUpcomingEvents(calendarId: String): List<Event>? {
         return try {
@@ -98,7 +114,7 @@ class GoogleCalendarManagerImpl : GoogleCalendarManager {
             try {
                 mutex.lock()
                 val list = mutableListOf<Event>()
-                val calendars: List<CalendarListEntry> = getUserCalendarList() ?: return@Thread
+                val calendars: List<CalendarListEntry> = refreshUserCalendarList() ?: return@Thread
                 for (calendar: CalendarListEntry in calendars) {
                     val events: List<Event> = getUpcomingEvents(calendar.id) ?: return@Thread
                     list.addAll(events)
@@ -122,14 +138,15 @@ class GoogleCalendarManagerImpl : GoogleCalendarManager {
     ) {
         Thread(Runnable {
             mutex.lock()
-            onReceivedUserCalendarListListener(getUserCalendarList())
+            onReceivedUserCalendarListListener(refreshUserCalendarList())
             mutex.unlock()
         }).start()
     }
 
-    private fun getUserCalendarList(): List<CalendarListEntry>? {
+    private fun refreshUserCalendarList(): List<CalendarListEntry>? {
         return try {
-            service.calendarList().list().execute().items
+            userCalendarList = service.calendarList().list().execute().items
+            userCalendarList
         } catch (ex: Exception) {
             _service = null
             null

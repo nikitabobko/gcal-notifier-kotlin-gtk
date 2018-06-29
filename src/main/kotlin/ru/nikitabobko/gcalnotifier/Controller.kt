@@ -22,7 +22,8 @@ interface Controller {
 }
 
 class ControllerImpl : Controller {
-    private val eventTracker: EventTracker = EventTrackerImpl(this)
+    private val googleCalendarManager = GoogleCalendarManagerImpl()
+    private val eventTracker: EventTracker = EventTrackerImpl(this, googleCalendarManager)
     @Volatile
     private var events: List<Event> = listOf()
     private val eventsLock = Any()

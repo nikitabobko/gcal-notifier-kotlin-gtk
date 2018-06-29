@@ -1,6 +1,7 @@
 package ru.nikitabobko.gcalnotifier
 
 import com.google.api.services.calendar.model.Event
+import com.google.api.services.calendar.model.EventReminder
 import ru.nikitabobko.gcalnotifier.support.timeIfAvaliableOrDate
 import java.util.*
 
@@ -11,7 +12,7 @@ interface EventTracker {
     var upcomingEvents: List<Event>
 }
 
-class EventTrackerImpl(private val controller: Controller) : EventTracker{
+class EventTrackerImpl(private val controller: Controller, private val googleCalendarManager: GoogleCalendarManager) : EventTracker{
     private var lastNotifiedEvent: Event? = null
     private var lastNotifiedEventUNIXTime: Long? = null
     private var nextEventToNotify: Event? = null
@@ -77,26 +78,29 @@ class EventTrackerImpl(private val controller: Controller) : EventTracker{
 
         for (event: Event in upcomingEvents) {
             val reminders = event.reminders
-            if (reminders.useDefault) {
+            val remindersList: List<EventReminder> = when {
+                reminders.useDefault -> googleCalendarManager.userCalendarList
+                        ?.find { calendarListEntry ->
+                            calendarListEntry.id == event.organizer?.email
+                        }?.defaultReminders ?: listOf()
+                reminders.overrides != null -> reminders.overrides
+                        .filter { eventReminder -> eventReminder.method == "popup" }
+                else -> listOf()
+            }
+            for (eventReminder in remindersList) {
+                cal.time = Date(event.start.timeIfAvaliableOrDate.value)
+                cal.add(java.util.Calendar.MINUTE, -eventReminder.minutes)
 
-            } else if (reminders.overrides != null) {
-                for (eventReminder in reminders.overrides.filter {
-                    eventReminder -> eventReminder.method == "popup"
-                }) {
-                    cal.time = Date(event.start.timeIfAvaliableOrDate.value)
-                    cal.add(java.util.Calendar.MINUTE, -eventReminder.minutes)
+                val condition = cal.time <= curTime
+                val firstSubCondition = lastNotifiedEvent == null && cal.time.time >= currentTimeMillis
+                val secondSubCondition = lastNotifiedEvent != null &&
+                        (cal.time.time > lastNotifiedEventUNIXTime!! ||
+                                cal.time.time == lastNotifiedEventUNIXTime!! &&
+                                event != lastNotifiedEvent)
 
-                    val condition = cal.time <= curTime
-                    val firstSubCondition = lastNotifiedEvent == null && cal.time.time >= currentTimeMillis
-                    val secondSubCondition = lastNotifiedEvent != null &&
-                            (cal.time.time > lastNotifiedEventUNIXTime!! ||
-                                    cal.time.time == lastNotifiedEventUNIXTime!! &&
-                                    event != lastNotifiedEvent)
-
-                    if (condition && (firstSubCondition || secondSubCondition)) {
-                        curTime = cal.time
-                        curEvent = event
-                    }
+                if (condition && (firstSubCondition || secondSubCondition)) {
+                    curTime = cal.time
+                    curEvent = event
                 }
             }
         }
