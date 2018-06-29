@@ -3,6 +3,9 @@ package ru.nikitabobko.gcalnotifier
 import com.google.api.services.calendar.model.CalendarListEntry
 import com.google.api.services.calendar.model.Event
 import com.google.api.services.calendar.model.EventReminder
+import ru.nikitabobko.gcalnotifier.model.MyCalendarListEntry
+import ru.nikitabobko.gcalnotifier.model.MyEvent
+import ru.nikitabobko.gcalnotifier.model.MyEventReminder
 import ru.nikitabobko.gcalnotifier.support.timeIfAvaliableOrDate
 import sun.awt.Mutex
 import java.util.*
@@ -11,12 +14,12 @@ import java.util.*
  * Tracks upcoming reminders for notifying user about them
  */
 interface EventReminderTracker {
-    fun newDataCame(upcomingEvents: List<Event>, calendars: List<CalendarListEntry>)
+    fun newDataCame(upcomingEvents: List<MyEvent>, calendars: List<MyCalendarListEntry>)
 }
 
 class EventReminderTrackerImpl(private val controller: Controller) : EventReminderTracker {
     private var lastNotifiedEventUNIXTime: Long? = null
-    private var nextEventsToNotify: List<Event> = listOf()
+    private var nextEventsToNotify: List<MyEvent> = listOf()
     private var nextEventsToNotifyUNIXTime: Long? = null
     companion object {
         /**
@@ -27,12 +30,12 @@ class EventReminderTrackerImpl(private val controller: Controller) : EventRemind
 
     private val upcomingEventsAndUserCalendarsMutex = Mutex()
     @Volatile
-    private var upcomingEvents: List<Event> = listOf()
+    private var upcomingEvents: List<MyEvent> = listOf()
     @Volatile
-    private var userCalendarList: List<CalendarListEntry> = listOf()
+    private var userCalendarList: List<MyCalendarListEntry> = listOf()
 
     @Synchronized
-    override fun newDataCame(upcomingEvents: List<Event>, calendars: List<CalendarListEntry>) {
+    override fun newDataCame(upcomingEvents: List<MyEvent>, calendars: List<MyCalendarListEntry>) {
         upcomingEventsAndUserCalendarsMutex.lock()
         this.upcomingEvents = upcomingEvents
         this.userCalendarList = calendars
@@ -86,24 +89,24 @@ class EventReminderTrackerImpl(private val controller: Controller) : EventRemind
     private fun initNextEventsToNotify(currentTimeMillis: Long) {
         upcomingEventsAndUserCalendarsMutex.lock()
         var curTime = Date(Long.MAX_VALUE)
-        val curEvents: MutableList<Event> = mutableListOf()
+        val curEvents: MutableList<MyEvent> = mutableListOf()
         val cal = java.util.Calendar.getInstance()
 
-        for (event: Event in upcomingEvents) {
+        for (event: MyEvent in upcomingEvents) {
             val reminders = event.reminders
-            val remindersList: List<EventReminder> = when {
+            val remindersList: List<MyEventReminder> = when {
 
                 reminders.useDefault -> userCalendarList.find { calendarListEntry ->
-                    calendarListEntry.id == event.organizer?.email
+                    calendarListEntry.id == event.calendarId
                 }?.defaultReminders ?: listOf()
 
-                reminders.overrides != null -> reminders.overrides ?: listOf()
+                reminders.overrides != null -> reminders.overrides
 
                 else -> listOf()
 
             }.filter { eventReminder -> eventReminder.method == "popup" }
             for (eventReminder in remindersList) {
-                cal.time = Date(event.start.timeIfAvaliableOrDate.value)
+                cal.time = Date(event.startUNIXTime)
                 cal.add(java.util.Calendar.MINUTE, -eventReminder.minutes)
                 val reminderTime: Date = cal.time
 
