@@ -1,5 +1,6 @@
 package ru.nikitabobko.gcalnotifier
 
+import com.google.api.services.calendar.model.CalendarListEntry
 import com.google.api.services.calendar.model.Event
 import org.gnome.notify.Notification
 import ru.nikitabobko.gcalnotifier.support.openURLInDefaultBrowser
@@ -23,7 +24,7 @@ interface Controller {
 
 class ControllerImpl : Controller {
     private val googleCalendarManager = GoogleCalendarManagerImpl()
-    private val eventReminderTracker: EventReminderTracker = EventReminderTrackerImpl(this, googleCalendarManager)
+    private val eventReminderTracker: EventReminderTracker = EventReminderTrackerImpl(this)
     /**
      * Use only in [synchronized(eventsLock)] block
      */
@@ -38,7 +39,7 @@ class ControllerImpl : Controller {
         simpleDateFormat = SimpleDateFormat(" - hh:mm")
         body += simpleDateFormat.format(Date(event.end.timeIfAvaliableOrDate.value))
 
-        view.showNotification(
+        view.showInfiniteNotification(
                 event.summary,
                 body,
                 "Open on web"
@@ -83,9 +84,10 @@ class ControllerImpl : Controller {
         if (byExplicitRefreshButtonClick) {
             view.refreshButtonState = RefreshButtonState.REFRESHING
         }
-        googleCalendarManager.getUpcomingEventsAsync { events: List<Event>? ->
-            if (events != null) {
-                eventReminderTracker.upcomingEvents = events
+        googleCalendarManager
+                .getUpcomingEventsAsync { events: List<Event>?, calendarList: List<CalendarListEntry>? ->
+            if (events != null && calendarList != null) {
+                eventReminderTracker.newDataCame(events, calendarList)
                 view.update(events)
                 synchronized(eventsLock) {
                     this.events = events

@@ -1,22 +1,23 @@
 package ru.nikitabobko.gcalnotifier
 
+import com.google.api.services.calendar.model.CalendarListEntry
 import com.google.api.services.calendar.model.Event
 import com.google.api.services.calendar.model.EventReminder
 import ru.nikitabobko.gcalnotifier.support.timeIfAvaliableOrDate
+import sun.awt.Mutex
 import java.util.*
 
 /**
  * Tracks upcoming reminders for notifying user about them
  */
 interface EventReminderTracker {
-    var upcomingEvents: List<Event>
+    fun newDataCame(upcomingEvents: List<Event>, calendars: List<CalendarListEntry>)
 }
 
-class EventReminderTrackerImpl(private val controller: Controller, private val googleCalendarManager: GoogleCalendarManager) : EventReminderTracker{
-    private var lastNotifiedEvent: Event? = null
+class EventReminderTrackerImpl(private val controller: Controller) : EventReminderTracker {
     private var lastNotifiedEventUNIXTime: Long? = null
-    private var nextEventToNotify: Event? = null
-    private var nextEventToNotifyUNIXTime: Long? = null
+    private var nextEventsToNotify: List<Event> = listOf()
+    private var nextEventsToNotifyUNIXTime: Long? = null
     companion object {
         /**
          * 30 seconds in milliseconds
@@ -24,25 +25,26 @@ class EventReminderTrackerImpl(private val controller: Controller, private val g
         private const val EPS: Long = 30*1000
     }
 
-    private val upcomingEventsLock = Any()
+    private val upcomingEventsAndUserCalendarsMutex = Mutex()
     @Volatile
-    override var upcomingEvents: List<Event> = listOf()
-        get() {
-            synchronized(upcomingEventsLock) {
-                return field
-            }
+    private var upcomingEvents: List<Event> = listOf()
+    @Volatile
+    private var userCalendarList: List<CalendarListEntry> = listOf()
+
+    @Synchronized
+    override fun newDataCame(upcomingEvents: List<Event>, calendars: List<CalendarListEntry>) {
+        upcomingEventsAndUserCalendarsMutex.lock()
+        this.upcomingEvents = upcomingEvents
+        this.userCalendarList = calendars
+        upcomingEventsAndUserCalendarsMutex.unlock()
+        if (eventTrackerDaemon.isAlive) {
+            eventTrackerDaemon.interrupt()
+        } else {
+            eventTrackerDaemon = buildEventTrackerThread()
+            eventTrackerDaemon.start()
         }
-        set(value) {
-            synchronized(upcomingEventsLock) {
-                field = value
-                if (eventTrackerDaemon.isAlive) {
-                    eventTrackerDaemon.interrupt()
-                } else {
-                    eventTrackerDaemon = buildEventTrackerThread()
-                    eventTrackerDaemon.start()
-                }
-            }
-        }
+    }
+
     private var eventTrackerDaemon: Thread = buildEventTrackerThread()
 
     init {
@@ -53,26 +55,27 @@ class EventReminderTrackerImpl(private val controller: Controller, private val g
         val thread = Thread {
             while(true) {
                 val currentTimeMillis = System.currentTimeMillis()
-                if (nextEventToNotify == null || nextEventToNotifyUNIXTime == null) {
-                    initNextEventToNotify(currentTimeMillis)
-                    if (nextEventToNotify == null || nextEventToNotifyUNIXTime == null) {
+                if (nextEventsToNotify.isEmpty() || nextEventsToNotifyUNIXTime == null) {
+                    initNextEventsToNotify(currentTimeMillis)
+                    if (nextEventsToNotify.isEmpty() || nextEventsToNotifyUNIXTime == null) {
                         break
                     }
                 }
-                if (nextEventToNotifyUNIXTime!! - EPS < currentTimeMillis) {
-                    controller.eventReminderTriggered(nextEventToNotify!!)
-                    lastNotifiedEvent = nextEventToNotify
-                    lastNotifiedEventUNIXTime = nextEventToNotifyUNIXTime
+                if (nextEventsToNotifyUNIXTime!! - EPS < currentTimeMillis) {
+                    for (event in nextEventsToNotify) {
+                        controller.eventReminderTriggered(event)
+                    }
+                    lastNotifiedEventUNIXTime = nextEventsToNotifyUNIXTime
 
-                    nextEventToNotify = null
-                    nextEventToNotifyUNIXTime = null
+                    nextEventsToNotify = listOf()
+                    nextEventsToNotifyUNIXTime = null
                     continue
                 }
                 try {
-                    Thread.sleep(nextEventToNotifyUNIXTime!! - currentTimeMillis)
+                    Thread.sleep(nextEventsToNotifyUNIXTime!! - currentTimeMillis)
                 } catch (ex: InterruptedException) {
                     // Thread was interrupted, let's check whether nextEventToNotify changed
-                    initNextEventToNotify(System.currentTimeMillis())
+                    initNextEventsToNotify(System.currentTimeMillis())
                 }
             }
         }
@@ -80,42 +83,52 @@ class EventReminderTrackerImpl(private val controller: Controller, private val g
         return thread
     }
 
-    private fun initNextEventToNotify(currentTimeMillis: Long) {
+    private fun initNextEventsToNotify(currentTimeMillis: Long) {
+        upcomingEventsAndUserCalendarsMutex.lock()
         var curTime = Date(Long.MAX_VALUE)
-        var curEvent: Event? = null
+        val curEvents: MutableList<Event> = mutableListOf()
         val cal = java.util.Calendar.getInstance()
-        val userCalendarList = googleCalendarManager.userCalendarList
-        val upcomingEvents = this.upcomingEvents
 
         for (event: Event in upcomingEvents) {
             val reminders = event.reminders
             val remindersList: List<EventReminder> = when {
-                reminders.useDefault -> userCalendarList?.find { calendarListEntry ->
-                            calendarListEntry.id == event.organizer?.email
-                        }?.defaultReminders ?: listOf()
+
+                reminders.useDefault -> userCalendarList.find { calendarListEntry ->
+                    calendarListEntry.id == event.organizer?.email
+                }?.defaultReminders ?: listOf()
+
                 reminders.overrides != null -> reminders.overrides ?: listOf()
+
                 else -> listOf()
+
             }.filter { eventReminder -> eventReminder.method == "popup" }
             for (eventReminder in remindersList) {
                 cal.time = Date(event.start.timeIfAvaliableOrDate.value)
                 cal.add(java.util.Calendar.MINUTE, -eventReminder.minutes)
+                val reminderTime: Date = cal.time
 
-                val condition = cal.time <= curTime
-                val firstSubCondition = lastNotifiedEvent == null && cal.time.time >= currentTimeMillis
-                val secondSubCondition = lastNotifiedEvent != null &&
-                        (cal.time.time > lastNotifiedEventUNIXTime!! ||
-                                cal.time.time == lastNotifiedEventUNIXTime!! &&
-                                event != lastNotifiedEvent)
+
+                val condition = reminderTime <= curTime
+
+                val firstSubCondition = lastNotifiedEventUNIXTime == null &&
+                        reminderTime.time >= currentTimeMillis
+
+                val secondSubCondition = lastNotifiedEventUNIXTime != null &&
+                        reminderTime.time > lastNotifiedEventUNIXTime!!
 
                 if (condition && (firstSubCondition || secondSubCondition)) {
-                    curTime = cal.time
-                    curEvent = event
+                    if (reminderTime < curTime) {
+                        curEvents.clear()
+                    }
+                    curEvents.add(event)
+                    curTime = reminderTime
                 }
             }
         }
-        nextEventToNotify = curEvent
-        if (curEvent != null) {
-            nextEventToNotifyUNIXTime = curTime.time
+        nextEventsToNotify = curEvents
+        if (!curEvents.isEmpty()) {
+            nextEventsToNotifyUNIXTime = curTime.time
         }
+        upcomingEventsAndUserCalendarsMutex.unlock()
     }
 }
