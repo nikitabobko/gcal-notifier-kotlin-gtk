@@ -68,6 +68,7 @@ class ViewImpl : View {
         popupMenu.popup(statusIcon ?: return)
     }
 
+    @Synchronized
     override fun update(events: List<Event>) {
         val events = events.subList(0, min(settings.maxNumberOfEventsToShowInPopupMenu, events.size))
         removeAllEventsFromPopupMenu()
