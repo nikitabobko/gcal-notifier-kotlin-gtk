@@ -31,7 +31,11 @@ enum class RefreshButtonState {
 
 class ViewImpl : View {
     private var popupMenu: Menu = buildEmptySystemTrayPopupMenu()
-    private var refreshMenuItem: MenuItem? = null
+    /**
+     * Initialized in [buildEmptySystemTrayPopupMenu]
+     * @see buildEmptySystemTrayPopupMenu
+     */
+    private lateinit var refreshMenuItem: MenuItem
     /**
      * Initialized in [buildEmptySystemTrayPopupMenu]
      * @see buildEmptySystemTrayPopupMenu
@@ -44,13 +48,12 @@ class ViewImpl : View {
     override var refreshButtonState: RefreshButtonState = RefreshButtonState.NORMAL
         set(value) {
             field = value
-            if (refreshMenuItem == null) return
             if (field == RefreshButtonState.NORMAL) {
-                refreshMenuItem!!.sensitive = true
-                refreshMenuItem!!.name = "Refreshing..."
+                refreshMenuItem.sensitive = true
+                refreshMenuItem.name = "Refreshing..."
             } else {
-                refreshMenuItem!!.sensitive = false
-                refreshMenuItem!!.name = "Refresh"
+                refreshMenuItem.sensitive = false
+                refreshMenuItem.name = "Refresh"
             }
             popupMenu.showAll()
         }
