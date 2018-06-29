@@ -84,9 +84,8 @@ class EventReminderTrackerImpl(private val controller: Controller, private val g
                             calendarListEntry.id == event.organizer?.email
                         }?.defaultReminders ?: listOf()
                 reminders.overrides != null -> reminders.overrides
-                        .filter { eventReminder -> eventReminder.method == "popup" }
                 else -> listOf()
-            }
+            }.filter { eventReminder -> eventReminder.method == "popup" }
             for (eventReminder in remindersList) {
                 cal.time = Date(event.start.timeIfAvaliableOrDate.value)
                 cal.add(java.util.Calendar.MINUTE, -eventReminder.minutes)
