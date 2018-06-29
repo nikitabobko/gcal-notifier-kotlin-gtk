@@ -21,6 +21,9 @@ interface View {
     fun showPopupMenu()
     fun showNotification(summary: String, body: String?,
                          actionLabel: String? = null, action: ((Notification, String) -> Unit)? = null)
+    fun showInfiniteNotification(summary: String, body: String?,
+                                 actionLabel: String? = null,
+                                 action: ((Notification, String) -> Unit)? = null)
 }
 
 enum class RefreshButtonState {
@@ -53,15 +56,32 @@ class ViewImpl : View {
             popupMenu.showAll()
         }
 
-    override fun showNotification(summary: String, body: String?,
-                                  actionLabel: String?,
-                                  action: ((Notification, String) -> Unit)?) {
+    private fun showNotification(summary: String,
+                                 body: String?,
+                                 infinite: Boolean,
+                                 actionLabel: String?,
+                                 action: ((Notification, String) -> Unit)?) {
         val notification = Notification(summary, body, null)
         notification.setIcon(appIcon)
         if (action != null && actionLabel != null) {
             notification.addAction("default", actionLabel, action)
         }
+        if (infinite) notification.setTimeout(Notification.NOTIFY_EXPIRES_NEVER)
         notification.show()
+    }
+
+    override fun showNotification(summary: String,
+                                  body: String?,
+                                  actionLabel: String?,
+                                  action: ((Notification, String) -> Unit)?) {
+        showNotification(summary, body, false, actionLabel, action)
+    }
+
+    override fun showInfiniteNotification(summary: String,
+                                          body: String?,
+                                          actionLabel: String?,
+                                          action: ((Notification, String) -> Unit)?) {
+        showNotification(summary, body, true, actionLabel, action)
     }
 
     override fun showPopupMenu() {
@@ -116,7 +136,7 @@ class ViewImpl : View {
         // left mouse button click
         statusIcon!!.connect(StatusIcon.Activate { controller.statusIconClicked() })
         // right mouse button click
-        statusIcon!!.connect { a: StatusIcon, _, _ -> controller.statusIconClicked() }
+        statusIcon!!.connect { _: StatusIcon, _, _ -> controller.statusIconClicked() }
     }
 
     /**

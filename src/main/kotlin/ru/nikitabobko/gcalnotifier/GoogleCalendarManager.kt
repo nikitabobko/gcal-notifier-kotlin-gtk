@@ -32,13 +32,16 @@ private const val CLIENT_SECRET_DIR = "/client_secret.json"
 private val SCOPES: List<String> = Collections.singletonList(CalendarScopes.CALENDAR_READONLY)
 
 interface GoogleCalendarManager {
-    fun getUpcomingEventsAsync(onRefreshedListener: (events: List<Event>?) -> Unit)
+    fun getUpcomingEventsAsync(
+            onRefreshedListener: (events: List<Event>?, calendarList: List<CalendarListEntry>?) -> Unit
+    )
     fun getUpcomingEventsAsync(calendarId: String, onRefreshedListener: (events: List<Event>?) -> Unit)
     fun getUserCalendarListAsync(
             onReceivedUserCalendarListListener: (calendarList: List<CalendarListEntry>?) -> Unit
     )
     fun removeCredentialsFolder()
-    var userCalendarList: List<CalendarListEntry>?
+    // TODO remove
+//    var userCalendarList: List<CalendarListEntry>?
 }
 
 class GoogleCalendarManagerImpl : GoogleCalendarManager {
@@ -52,19 +55,20 @@ class GoogleCalendarManagerImpl : GoogleCalendarManager {
             return _service!!
         }
     private val mutex: Mutex = Mutex()
-    private val userCalendarListLock = Any()
-    @Volatile
-    override var userCalendarList: List<CalendarListEntry>? = null
-        get() {
-            synchronized(userCalendarListLock) {
-                return field
-            }
-        }
-        set(value) {
-            synchronized(userCalendarListLock) {
-                field = value
-            }
-        }
+    // TODO remove
+//    private val userCalendarListLock = Any()
+//    @Volatile
+//    override var userCalendarList: List<CalendarListEntry>? = null
+//        get() {
+//            synchronized(userCalendarListLock) {
+//                return field
+//            }
+//        }
+//        set(value) {
+//            synchronized(userCalendarListLock) {
+//                field = value
+//            }
+//        }
 
     override fun removeCredentialsFolder() {
         File(CREDENTIALS_FOLDER).deleteRecursively()
@@ -105,13 +109,15 @@ class GoogleCalendarManagerImpl : GoogleCalendarManager {
         }).start()
     }
 
-    override fun getUpcomingEventsAsync(onRefreshedListener: (List<Event>?) -> Unit) {
+    override fun getUpcomingEventsAsync(
+            onRefreshedListener: (events: List<Event>?, calendarList: List<CalendarListEntry>?) -> Unit) {
         Thread {
-            var retList: List<Event>? = null
+            var eventList: List<Event>? = null
+            var calendarList: List<CalendarListEntry>? = null
             try {
                 mutex.lock()
                 val list = mutableListOf<Event>()
-                val calendars: List<CalendarListEntry> = refreshUserCalendarList() ?: return@Thread
+                val calendars: List<CalendarListEntry> = getUserCalendarList() ?: return@Thread
                 for (calendar: CalendarListEntry in calendars) {
                     val events: List<Event> = getUpcomingEvents(calendar.id) ?: return@Thread
                     list.addAll(events)
@@ -122,9 +128,10 @@ class GoogleCalendarManagerImpl : GoogleCalendarManager {
                     if (x != y) return@Comparator if (x > y) 1 else -1
                     return@Comparator a.summary.compareTo(b.summary)
                 })
-                retList = list
+                eventList = list
+                calendarList = calendars
             } finally {
-                onRefreshedListener(retList)
+                onRefreshedListener(eventList, calendarList)
                 mutex.unlock()
             }
         }.start()
@@ -135,16 +142,14 @@ class GoogleCalendarManagerImpl : GoogleCalendarManager {
     ) {
         Thread(Runnable {
             mutex.lock()
-            onReceivedUserCalendarListListener(refreshUserCalendarList())
+            onReceivedUserCalendarListListener(getUserCalendarList())
             mutex.unlock()
         }).start()
     }
 
-    private fun refreshUserCalendarList(): List<CalendarListEntry>? {
+    private fun getUserCalendarList(): List<CalendarListEntry>? {
         return try {
-            val userCalendarList = service.calendarList().list().execute().items
-            this.userCalendarList = userCalendarList
-            userCalendarList
+            service.calendarList().list().execute().items
         } catch (ex: Exception) {
             _service = null
             null
