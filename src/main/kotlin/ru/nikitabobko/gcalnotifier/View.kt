@@ -1,11 +1,10 @@
 package ru.nikitabobko.gcalnotifier
 
-import com.google.api.services.calendar.model.Event
 import com.google.common.io.Resources
 import org.gnome.gdk.Pixbuf
 import org.gnome.gtk.*
 import org.gnome.notify.Notification
-import ru.nikitabobko.gcalnotifier.support.timeIfAvaliableOrDate
+import ru.nikitabobko.gcalnotifier.model.MyEvent
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.math.min
@@ -15,7 +14,7 @@ val view: View = ViewImpl()
 interface View {
     fun showStatusIcon()
     fun showSettingsWindow()
-    fun update(events: List<Event>)
+    fun update(events: List<MyEvent>)
     fun quit()
     var refreshButtonState: RefreshButtonState
     fun showPopupMenu()
@@ -89,7 +88,7 @@ class ViewImpl : View {
     }
 
     @Synchronized
-    override fun update(events: List<Event>) {
+    override fun update(events: List<MyEvent>) {
         val events = events.subList(0, min(settings.maxNumberOfEventsToShowInPopupMenu, events.size))
         removeAllEventsFromPopupMenu()
         if (events.isEmpty()) {
@@ -100,12 +99,12 @@ class ViewImpl : View {
         } else insertEventsInPopupMenu(events)
     }
 
-    private fun insertEventsInPopupMenu(events: List<Event>) {
+    private fun insertEventsInPopupMenu(events: List<MyEvent>) {
         val dateFormat = SimpleDateFormat("yyyy-MM-dd")
-        for (event: Event in events.reversed()) {
-            val date = Date(event.start.timeIfAvaliableOrDate.value)
+        for (event: MyEvent in events.reversed()) {
+            val date = Date(event.startUNIXTime)
             val item = MenuItem(
-                    dateFormat.format(date) + "    " + event.summary,
+                    dateFormat.format(date) + "    " + event.title,
                     MenuItem.Activate { menuItem ->
                         val indexOf = popupMenu.children.indexOf(menuItem) -
                                 firstEventItemIndexInPopupMenu

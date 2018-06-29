@@ -11,12 +11,12 @@ import com.google.api.client.util.DateTime
 import com.google.api.client.util.store.FileDataStoreFactory
 import com.google.api.services.calendar.Calendar
 import com.google.api.services.calendar.CalendarScopes
-import com.google.api.services.calendar.model.CalendarListEntry
-import com.google.api.services.calendar.model.Event
 import com.google.api.services.calendar.model.Events
+import ru.nikitabobko.gcalnotifier.model.MyCalendarListEntry
+import ru.nikitabobko.gcalnotifier.model.MyEvent
 import ru.nikitabobko.gcalnotifier.support.APPLICATION_NAME
 import ru.nikitabobko.gcalnotifier.support.AuthorizationCodeInstalledAppWorkaround
-import ru.nikitabobko.gcalnotifier.support.timeIfAvaliableOrDate
+import ru.nikitabobko.gcalnotifier.support.toInternal
 import sun.awt.Mutex
 import java.io.File
 import java.io.IOException
@@ -33,11 +33,11 @@ private val SCOPES: List<String> = Collections.singletonList(CalendarScopes.CALE
 
 interface GoogleCalendarManager {
     fun getUpcomingEventsAsync(
-            onRefreshedListener: (events: List<Event>?, calendarList: List<CalendarListEntry>?) -> Unit
+            onRefreshedListener: (events: List<MyEvent>?, calendarList: List<MyCalendarListEntry>?) -> Unit
     )
-    fun getUpcomingEventsAsync(calendarId: String, onRefreshedListener: (events: List<Event>?) -> Unit)
+    fun getUpcomingEventsAsync(calendarId: String, onRefreshedListener: (events: List<MyEvent>?) -> Unit)
     fun getUserCalendarListAsync(
-            onReceivedUserCalendarListListener: (calendarList: List<CalendarListEntry>?) -> Unit
+            onReceivedUserCalendarListListener: (calendarList: List<MyCalendarListEntry>?) -> Unit
     )
     fun removeCredentialsFolder()
     // TODO remove
@@ -74,7 +74,7 @@ class GoogleCalendarManagerImpl : GoogleCalendarManager {
         File(CREDENTIALS_FOLDER).deleteRecursively()
     }
 
-    private fun getUpcomingEvents(calendarId: String): List<Event>? {
+    private fun getUpcomingEvents(calendarId: String): List<MyEvent>? {
         return try {
             val cal: java.util.Calendar = java.util.Calendar.getInstance()
             cal.time = Date(System.currentTimeMillis())
@@ -91,7 +91,7 @@ class GoogleCalendarManagerImpl : GoogleCalendarManager {
                     .setOrderBy("startTime")
                     .setSingleEvents(true)
                     .execute()
-            events.items
+            events.items.toInternal()
         } catch (ex: Exception) {
             _service = null
             null
@@ -100,7 +100,7 @@ class GoogleCalendarManagerImpl : GoogleCalendarManager {
 
     override fun getUpcomingEventsAsync(
             calendarId: String,
-            onRefreshedListener: (events: List<Event>?) -> Unit
+            onRefreshedListener: (events: List<MyEvent>?) -> Unit
     ) {
         Thread(Runnable {
             mutex.lock()
@@ -110,23 +110,23 @@ class GoogleCalendarManagerImpl : GoogleCalendarManager {
     }
 
     override fun getUpcomingEventsAsync(
-            onRefreshedListener: (events: List<Event>?, calendarList: List<CalendarListEntry>?) -> Unit) {
+            onRefreshedListener: (events: List<MyEvent>?, calendarList: List<MyCalendarListEntry>?) -> Unit) {
         Thread {
-            var eventList: List<Event>? = null
-            var calendarList: List<CalendarListEntry>? = null
+            var eventList: List<MyEvent>? = null
+            var calendarList: List<MyCalendarListEntry>? = null
             try {
                 mutex.lock()
-                val list = mutableListOf<Event>()
-                val calendars: List<CalendarListEntry> = getUserCalendarList() ?: return@Thread
-                for (calendar: CalendarListEntry in calendars) {
-                    val events: List<Event> = getUpcomingEvents(calendar.id) ?: return@Thread
+                val list = mutableListOf<MyEvent>()
+                val calendars: List<MyCalendarListEntry> = getUserCalendarList() ?: return@Thread
+                for (calendar: MyCalendarListEntry in calendars) {
+                    val events: List<MyEvent> = getUpcomingEvents(calendar.id) ?: return@Thread
                     list.addAll(events)
                 }
-                list.sortWith(Comparator { a: Event, b: Event ->
-                    val x: Long = a.start.timeIfAvaliableOrDate.value
-                    val y: Long = b.start.timeIfAvaliableOrDate.value
+                list.sortWith(Comparator { a: MyEvent, b: MyEvent ->
+                    val x: Long = a.startUNIXTime
+                    val y: Long = b.startUNIXTime
                     if (x != y) return@Comparator if (x > y) 1 else -1
-                    return@Comparator a.summary.compareTo(b.summary)
+                    return@Comparator a.title.compareTo(b.title)
                 })
                 eventList = list
                 calendarList = calendars
@@ -138,7 +138,7 @@ class GoogleCalendarManagerImpl : GoogleCalendarManager {
     }
 
     override fun getUserCalendarListAsync(
-            onReceivedUserCalendarListListener: (calendarList: List<CalendarListEntry>?) -> Unit
+            onReceivedUserCalendarListListener: (calendarList: List<MyCalendarListEntry>?) -> Unit
     ) {
         Thread(Runnable {
             mutex.lock()
@@ -147,9 +147,9 @@ class GoogleCalendarManagerImpl : GoogleCalendarManager {
         }).start()
     }
 
-    private fun getUserCalendarList(): List<CalendarListEntry>? {
+    private fun getUserCalendarList(): List<MyCalendarListEntry>? {
         return try {
-            service.calendarList().list().execute().items
+            service.calendarList().list().execute().items.toInternal()
         } catch (ex: Exception) {
             _service = null
             null

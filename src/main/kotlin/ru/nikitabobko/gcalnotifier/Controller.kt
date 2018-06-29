@@ -1,10 +1,9 @@
 package ru.nikitabobko.gcalnotifier
 
-import com.google.api.services.calendar.model.CalendarListEntry
-import com.google.api.services.calendar.model.Event
 import org.gnome.notify.Notification
+import ru.nikitabobko.gcalnotifier.model.MyCalendarListEntry
+import ru.nikitabobko.gcalnotifier.model.MyEvent
 import ru.nikitabobko.gcalnotifier.support.openURLInDefaultBrowser
-import ru.nikitabobko.gcalnotifier.support.timeIfAvaliableOrDate
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -19,7 +18,7 @@ interface Controller {
     fun settingsButtonClicked()
     fun logoutButtonClicked()
     fun eventPopupItemClicked(indexOf: Int)
-    fun eventReminderTriggered(event: Event)
+    fun eventReminderTriggered(event: MyEvent)
 }
 
 class ControllerImpl : Controller {
@@ -29,18 +28,18 @@ class ControllerImpl : Controller {
      * Use only in [synchronized(eventsLock)] block
      */
     @Volatile
-    private var events: List<Event> = listOf()
+    private var events: List<MyEvent> = listOf()
     private val eventsLock = Any()
     private var lastRefreshWasSucceeded = true
 
-    override fun eventReminderTriggered(event: Event) {
+    override fun eventReminderTriggered(event: MyEvent) {
         var simpleDateFormat = SimpleDateFormat("yyyy-MM-dd hh:mm")
-        var body = simpleDateFormat.format(Date(event.start.timeIfAvaliableOrDate.value))
+        var body = simpleDateFormat.format(Date(event.startUNIXTime))
         simpleDateFormat = SimpleDateFormat(" - hh:mm")
-        body += simpleDateFormat.format(Date(event.end.timeIfAvaliableOrDate.value))
+        body += simpleDateFormat.format(Date(event.endUNIXTime))
 
         view.showInfiniteNotification(
-                event.summary,
+                event.title,
                 body,
                 "Open on web"
         ) { _: Notification, _: String ->
@@ -85,7 +84,7 @@ class ControllerImpl : Controller {
             view.refreshButtonState = RefreshButtonState.REFRESHING
         }
         googleCalendarManager
-                .getUpcomingEventsAsync { events: List<Event>?, calendarList: List<CalendarListEntry>? ->
+                .getUpcomingEventsAsync { events: List<MyEvent>?, calendarList: List<MyCalendarListEntry>? ->
             if (events != null && calendarList != null) {
                 eventReminderTracker.newDataCame(events, calendarList)
                 view.update(events)
