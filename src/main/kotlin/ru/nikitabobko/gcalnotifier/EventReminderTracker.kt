@@ -1,12 +1,8 @@
 package ru.nikitabobko.gcalnotifier
 
-import com.google.api.services.calendar.model.CalendarListEntry
-import com.google.api.services.calendar.model.Event
-import com.google.api.services.calendar.model.EventReminder
 import ru.nikitabobko.gcalnotifier.model.MyCalendarListEntry
 import ru.nikitabobko.gcalnotifier.model.MyEvent
 import ru.nikitabobko.gcalnotifier.model.MyEventReminder
-import ru.nikitabobko.gcalnotifier.support.timeIfAvaliableOrDate
 import sun.awt.Mutex
 import java.util.*
 
