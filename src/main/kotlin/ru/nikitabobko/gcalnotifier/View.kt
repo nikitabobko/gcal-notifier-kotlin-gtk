@@ -168,7 +168,7 @@ class ViewImpl : View {
 
         menu.add(SeparatorMenuItem())
 
-        // upcoming feature
+        // todo upcoming feature
 //        menu.add(MenuItem(
 //            "Settings",
 //            MenuItem.Activate { controller.settingsButtonClicked() }
