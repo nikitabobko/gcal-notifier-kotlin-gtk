@@ -6,13 +6,13 @@ import ru.nikitabobko.gcalnotifier.support.timeIfAvaliableOrDate
 import java.util.*
 
 /**
- * Tracks upcoming events for notifying user about them
+ * Tracks upcoming reminders for notifying user about them
  */
-interface EventTracker {
+interface EventReminderTracker {
     var upcomingEvents: List<Event>
 }
 
-class EventTrackerImpl(private val controller: Controller, private val googleCalendarManager: GoogleCalendarManager) : EventTracker{
+class EventReminderTrackerImpl(private val controller: Controller, private val googleCalendarManager: GoogleCalendarManager) : EventReminderTracker{
     private var lastNotifiedEvent: Event? = null
     private var lastNotifiedEventUNIXTime: Long? = null
     private var nextEventToNotify: Event? = null
@@ -27,17 +27,17 @@ class EventTrackerImpl(private val controller: Controller, private val googleCal
     override var upcomingEvents: List<Event> = listOf()
         set(value) {
             field = value
-            if (eventTrackerThread.isAlive) {
-                eventTrackerThread.interrupt()
+            if (eventTrackerDaemon.isAlive) {
+                eventTrackerDaemon.interrupt()
             } else {
-                eventTrackerThread = buildEventTrackerThread()
-                eventTrackerThread.start()
+                eventTrackerDaemon = buildEventTrackerThread()
+                eventTrackerDaemon.start()
             }
         }
-    private var eventTrackerThread: Thread = buildEventTrackerThread()
+    private var eventTrackerDaemon: Thread = buildEventTrackerThread()
 
     init {
-        eventTrackerThread.start()
+        eventTrackerDaemon.start()
     }
 
     private fun buildEventTrackerThread(): Thread {

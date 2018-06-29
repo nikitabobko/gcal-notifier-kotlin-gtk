@@ -23,9 +23,22 @@ interface Controller {
 
 class ControllerImpl : Controller {
     private val googleCalendarManager = GoogleCalendarManagerImpl()
-    private val eventTracker: EventTracker = EventTrackerImpl(this, googleCalendarManager)
+    private val eventReminderTracker: EventReminderTracker = EventReminderTrackerImpl(this, googleCalendarManager)
+    /**
+     * Thread safety
+     */
     @Volatile
     private var events: List<Event> = listOf()
+        get() {
+            synchronized(eventsLock) {
+                return field
+            }
+        }
+        set(value) {
+            synchronized(eventsLock) {
+                field = value
+            }
+        }
     private val eventsLock = Any()
     private var lastRefreshWasSucceeded = true
 
@@ -49,11 +62,7 @@ class ControllerImpl : Controller {
     }
 
     override fun eventPopupItemClicked(indexOf: Int) {
-        var htmlLink = ""
-        synchronized(eventsLock) {
-            htmlLink = events[indexOf].htmlLink
-        }
-        openURLInDefaultBrowser(htmlLink)
+        openURLInDefaultBrowser(events[indexOf].htmlLink)
     }
 
     override fun logoutButtonClicked() {
@@ -84,11 +93,9 @@ class ControllerImpl : Controller {
         }
         googleCalendarManager.getUpcomingEventsAsync { events: List<Event>? ->
             if (events != null) {
-                eventTracker.upcomingEvents = events
+                eventReminderTracker.upcomingEvents = events
                 view.update(events)
-                synchronized(eventsLock) {
-                    this.events = events
-                }
+                this.events = events
             } else if (byExplicitRefreshButtonClick || lastRefreshWasSucceeded){
                 view.showNotification("Error", "Unable to connect to Google Calendar")
             }
@@ -102,13 +109,13 @@ class ControllerImpl : Controller {
     override fun applicationStarted() {
         view.showStatusIcon()
         // refresh thread
-        val refreshThread = Thread {
+        val refreshDaemon = Thread {
             while (true) {
                 refresh()
                 Thread.sleep(settings.refreshFrequencyInMinutes * 60 * 1000)
             }
         }
-        refreshThread.isDaemon = true
-        refreshThread.start()
+        refreshDaemon.isDaemon = true
+        refreshDaemon.start()
     }
 }
