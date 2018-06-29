@@ -5,7 +5,7 @@ import com.google.api.services.calendar.model.EventReminder
 /**
  * Internal representation of [EventReminder]
  */
-class MyEventReminder(val method: String, val minutes: Int)
+data class MyEventReminder(val method: String, val minutes: Int)
 
 /**
  * Convert to internal representation

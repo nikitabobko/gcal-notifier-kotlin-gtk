@@ -7,9 +7,9 @@ import ru.nikitabobko.gcalnotifier.support.toInternal
 /**
  * Internal representation of [Event]
  */
-class MyEvent(val title: String, val startUNIXTime: Long, val endUNIXTime: Long,
+data class MyEvent(val title: String, val startUNIXTime: Long, val endUNIXTime: Long,
               val reminders: MyReminders, val calendarId: String?, val htmlLink: String) {
-    class MyReminders(val useDefault: Boolean, val overrides: List<MyEventReminder>?)
+    data class MyReminders(val useDefault: Boolean, val overrides: List<MyEventReminder>?)
 }
 
 /**
@@ -22,7 +22,7 @@ fun Event.toInternal(): MyEvent {
             endUNIXTime = end.timeIfAvaliableOrDate.value,
             reminders = MyEvent.MyReminders(
                     useDefault = reminders.useDefault,
-                    overrides = reminders.overrides.toInternal()
+                    overrides = reminders.overrides?.toInternal()
             ),
             calendarId = organizer?.email,
             htmlLink = htmlLink

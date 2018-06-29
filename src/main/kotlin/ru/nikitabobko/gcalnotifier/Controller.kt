@@ -4,6 +4,7 @@ import org.gnome.notify.Notification
 import ru.nikitabobko.gcalnotifier.model.MyCalendarListEntry
 import ru.nikitabobko.gcalnotifier.model.MyEvent
 import ru.nikitabobko.gcalnotifier.support.openURLInDefaultBrowser
+import java.io.FileNotFoundException
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -23,6 +24,7 @@ interface Controller {
 
 class ControllerImpl : Controller {
     private val googleCalendarManager = GoogleCalendarManagerImpl()
+    private val localDataManager: LocalDataManager = LocalDataManagerJSON()
     private val eventReminderTracker: EventReminderTracker = EventReminderTrackerImpl(this)
     /**
      * Use only in [synchronized(eventsLock)] block
@@ -86,6 +88,7 @@ class ControllerImpl : Controller {
         googleCalendarManager
                 .getUpcomingEventsAsync { events: List<MyEvent>?, calendarList: List<MyCalendarListEntry>? ->
             if (events != null && calendarList != null) {
+                localDataManager.safe(events.toTypedArray(), calendarList.toTypedArray())
                 eventReminderTracker.newDataCame(events, calendarList)
                 view.update(events)
                 synchronized(eventsLock) {
@@ -103,6 +106,21 @@ class ControllerImpl : Controller {
 
     override fun applicationStarted() {
         view.showStatusIcon()
+        // Trying to load saved events
+        var events: List<MyEvent>
+        var calendars: List<MyCalendarListEntry>
+        try {
+            events = localDataManager.restoreEventsList().toList()
+            calendars = localDataManager.restoreUsersCalendarList().toList()
+        } catch (ex: FileNotFoundException) {
+            events = listOf()
+            calendars = listOf()
+        }
+        synchronized(eventsLock) {
+            this.events = events
+        }
+        view.update(events)
+        eventReminderTracker.newDataCame(events, calendars)
         // refresh thread
         val refreshDaemon = Thread {
             while (true) {

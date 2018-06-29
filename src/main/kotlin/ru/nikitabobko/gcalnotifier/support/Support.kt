@@ -8,6 +8,7 @@ import org.gnome.gtk.Gtk
 import java.net.URI
 
 const val APPLICATION_NAME = "gcal-notifier-kotlin-gtk"
+val USER_HOME_FOLDER = System.getProperty("user.home")
 
 fun openURLInDefaultBrowser(url: String) {
     Gtk.showURI(URI(url))
