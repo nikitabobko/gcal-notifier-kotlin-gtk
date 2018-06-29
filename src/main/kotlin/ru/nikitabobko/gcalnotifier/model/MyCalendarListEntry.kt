@@ -6,7 +6,7 @@ import ru.nikitabobko.gcalnotifier.support.toInternal
 /**
  * Internal representation of [CalendarListEntry]
  */
-class MyCalendarListEntry(val id: String, val defaultReminders: List<MyEventReminder>?)
+data class MyCalendarListEntry(val id: String, val defaultReminders: List<MyEventReminder>?)
 
 /**
  * Convert to internal representation

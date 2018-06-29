@@ -16,6 +16,7 @@ import ru.nikitabobko.gcalnotifier.model.MyCalendarListEntry
 import ru.nikitabobko.gcalnotifier.model.MyEvent
 import ru.nikitabobko.gcalnotifier.support.APPLICATION_NAME
 import ru.nikitabobko.gcalnotifier.support.AuthorizationCodeInstalledAppWorkaround
+import ru.nikitabobko.gcalnotifier.support.USER_HOME_FOLDER
 import ru.nikitabobko.gcalnotifier.support.toInternal
 import sun.awt.Mutex
 import java.io.File
@@ -25,7 +26,6 @@ import java.io.InputStreamReader
 import java.util.*
 import kotlin.Comparator
 
-private val USER_HOME_FOLDER = System.getProperty("user.home")
 private val CREDENTIALS_FOLDER: String = "$USER_HOME_FOLDER/.config/$APPLICATION_NAME/credentials"
 private val JSON_FACTORY = JacksonFactory.getDefaultInstance()
 private const val CLIENT_SECRET_DIR = "/client_secret.json"
@@ -40,8 +40,6 @@ interface GoogleCalendarManager {
             onReceivedUserCalendarListListener: (calendarList: List<MyCalendarListEntry>?) -> Unit
     )
     fun removeCredentialsFolder()
-    // TODO remove
-//    var userCalendarList: List<CalendarListEntry>?
 }
 
 class GoogleCalendarManagerImpl : GoogleCalendarManager {
@@ -55,20 +53,6 @@ class GoogleCalendarManagerImpl : GoogleCalendarManager {
             return _service!!
         }
     private val mutex: Mutex = Mutex()
-    // TODO remove
-//    private val userCalendarListLock = Any()
-//    @Volatile
-//    override var userCalendarList: List<CalendarListEntry>? = null
-//        get() {
-//            synchronized(userCalendarListLock) {
-//                return field
-//            }
-//        }
-//        set(value) {
-//            synchronized(userCalendarListLock) {
-//                field = value
-//            }
-//        }
 
     override fun removeCredentialsFolder() {
         File(CREDENTIALS_FOLDER).deleteRecursively()
