@@ -38,9 +38,6 @@ interface GoogleCalendarManager {
             onReceivedUserCalendarListListener: (calendarList: List<CalendarListEntry>?) -> Unit
     )
     fun removeCredentialsFolder()
-    /**
-     * Implementation should be thread safety
-     */
     var userCalendarList: List<CalendarListEntry>?
 }
 
@@ -145,7 +142,8 @@ class GoogleCalendarManagerImpl : GoogleCalendarManager {
 
     private fun refreshUserCalendarList(): List<CalendarListEntry>? {
         return try {
-            userCalendarList = service.calendarList().list().execute().items
+            val userCalendarList = service.calendarList().list().execute().items
+            this.userCalendarList = userCalendarList
             userCalendarList
         } catch (ex: Exception) {
             _service = null

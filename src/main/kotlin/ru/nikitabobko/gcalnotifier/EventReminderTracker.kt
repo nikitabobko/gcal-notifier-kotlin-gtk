@@ -24,14 +24,23 @@ class EventReminderTrackerImpl(private val controller: Controller, private val g
         private const val EPS: Long = 30*1000
     }
 
+    private val upcomingEventsLock = Any()
+    @Volatile
     override var upcomingEvents: List<Event> = listOf()
+        get() {
+            synchronized(upcomingEventsLock) {
+                return field
+            }
+        }
         set(value) {
-            field = value
-            if (eventTrackerDaemon.isAlive) {
-                eventTrackerDaemon.interrupt()
-            } else {
-                eventTrackerDaemon = buildEventTrackerThread()
-                eventTrackerDaemon.start()
+            synchronized(upcomingEventsLock) {
+                field = value
+                if (eventTrackerDaemon.isAlive) {
+                    eventTrackerDaemon.interrupt()
+                } else {
+                    eventTrackerDaemon = buildEventTrackerThread()
+                    eventTrackerDaemon.start()
+                }
             }
         }
     private var eventTrackerDaemon: Thread = buildEventTrackerThread()
@@ -75,15 +84,16 @@ class EventReminderTrackerImpl(private val controller: Controller, private val g
         var curTime = Date(Long.MAX_VALUE)
         var curEvent: Event? = null
         val cal = java.util.Calendar.getInstance()
+        val userCalendarList = googleCalendarManager.userCalendarList
+        val upcomingEvents = this.upcomingEvents
 
         for (event: Event in upcomingEvents) {
             val reminders = event.reminders
             val remindersList: List<EventReminder> = when {
-                reminders.useDefault -> googleCalendarManager.userCalendarList
-                        ?.find { calendarListEntry ->
+                reminders.useDefault -> userCalendarList?.find { calendarListEntry ->
                             calendarListEntry.id == event.organizer?.email
                         }?.defaultReminders ?: listOf()
-                reminders.overrides != null -> reminders.overrides
+                reminders.overrides != null -> reminders.overrides ?: listOf()
                 else -> listOf()
             }.filter { eventReminder -> eventReminder.method == "popup" }
             for (eventReminder in remindersList) {

@@ -25,20 +25,10 @@ class ControllerImpl : Controller {
     private val googleCalendarManager = GoogleCalendarManagerImpl()
     private val eventReminderTracker: EventReminderTracker = EventReminderTrackerImpl(this, googleCalendarManager)
     /**
-     * Thread safety
+     * Use only in [synchronized(eventsLock)] block
      */
     @Volatile
     private var events: List<Event> = listOf()
-        get() {
-            synchronized(eventsLock) {
-                return field
-            }
-        }
-        set(value) {
-            synchronized(eventsLock) {
-                field = value
-            }
-        }
     private val eventsLock = Any()
     private var lastRefreshWasSucceeded = true
 
@@ -62,7 +52,9 @@ class ControllerImpl : Controller {
     }
 
     override fun eventPopupItemClicked(indexOf: Int) {
-        openURLInDefaultBrowser(events[indexOf].htmlLink)
+        synchronized(eventsLock) {
+            openURLInDefaultBrowser(events[indexOf].htmlLink)
+        }
     }
 
     override fun logoutButtonClicked() {
@@ -95,8 +87,10 @@ class ControllerImpl : Controller {
             if (events != null) {
                 eventReminderTracker.upcomingEvents = events
                 view.update(events)
-                this.events = events
-            } else if (byExplicitRefreshButtonClick || lastRefreshWasSucceeded){
+                synchronized(eventsLock) {
+                    this.events = events
+                }
+            } else if (byExplicitRefreshButtonClick || lastRefreshWasSucceeded) {
                 view.showNotification("Error", "Unable to connect to Google Calendar")
             }
             if (byExplicitRefreshButtonClick) {
