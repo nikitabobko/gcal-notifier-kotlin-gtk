@@ -6,6 +6,7 @@ import com.google.api.services.calendar.model.CalendarListEntry
 import com.google.api.services.calendar.model.Event
 import com.google.api.services.calendar.model.EventDateTime
 import com.google.api.services.calendar.model.EventReminder
+import ru.nikitabobko.gcalnotifier.model.MyEvent
 import ru.nikitabobko.gcalnotifier.model.toInternal
 
 val EventDateTime.timeIfAvaliableOrDate: DateTime
@@ -16,7 +17,7 @@ val EventDateTime.timeIfAvaliableOrDate: DateTime
 /**
  * Convert to internal representation
  */
-fun <T : GenericJson, R> List<T>.toInternal() : List<R> {
+inline fun <T : GenericJson, reified R> List<T>.toInternal() : List<R> {
     val ret = mutableListOf<R>()
     for (entry in this) {
         ret.add(entry.toInternal())
@@ -27,11 +28,11 @@ fun <T : GenericJson, R> List<T>.toInternal() : List<R> {
 /**
  * Convert to internal representation
  */
-fun <T : GenericJson, R> T.toInternal() : R {
-    return when(this) {
-        is Event -> toInternal() as R
-        is CalendarListEntry -> toInternal() as R
-        is EventReminder -> toInternal() as R
-        else -> throw UnsupportedOperationException()
-    }
+inline fun <T : GenericJson, reified R> T.toInternal() : R {
+    return (when(this) {
+        is Event -> toInternal()
+        is CalendarListEntry -> toInternal()
+        is EventReminder -> toInternal()
+        else -> Any()
+    } as? R) ?: throw UnsupportedOperationException()
 }

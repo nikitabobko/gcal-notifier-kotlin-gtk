@@ -92,14 +92,14 @@ class ViewImpl : View {
 
     @Synchronized
     override fun update(events: List<MyEvent>) {
-        val events = events.subList(0, min(settings.maxNumberOfEventsToShowInPopupMenu, events.size))
+        val eventsList = events.subList(0, min(settings.maxNumberOfEventsToShowInPopupMenu, events.size))
         removeAllEventsFromPopupMenu()
-        if (events.isEmpty()) {
+        if (eventsList.isEmpty()) {
             val item = MenuItem("No upcoming events")
             item.sensitive = false
             popupMenu.insert(item, firstEventItemIndexInPopupMenu)
             popupMenu.showAll()
-        } else insertEventsInPopupMenu(events)
+        } else insertEventsInPopupMenu(eventsList)
     }
 
     private fun insertEventsInPopupMenu(events: List<MyEvent>) {

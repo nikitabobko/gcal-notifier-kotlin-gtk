@@ -110,7 +110,10 @@ class GoogleCalendarManagerImpl : GoogleCalendarManager {
                     val x: Long = a.startUNIXTime
                     val y: Long = b.startUNIXTime
                     if (x != y) return@Comparator if (x > y) 1 else -1
-                    return@Comparator a.title.compareTo(b.title)
+                    if (a.title != null && b.title != null) {
+                        return@Comparator a.title.compareTo(b.title)
+                    }
+                    return@Comparator 0
                 })
                 eventList = list
                 calendarList = calendars

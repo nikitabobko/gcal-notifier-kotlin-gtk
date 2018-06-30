@@ -6,6 +6,7 @@ import com.google.api.client.extensions.java6.auth.oauth2.AuthorizationCodeInsta
 import com.google.api.client.extensions.java6.auth.oauth2.VerificationCodeReceiver
 import org.gnome.gtk.Gtk
 import java.net.URI
+import java.util.*
 
 const val APPLICATION_NAME = "gcal-notifier-kotlin-gtk"
 val USER_HOME_FOLDER = System.getProperty("user.home")
@@ -14,6 +15,27 @@ fun openURLInDefaultBrowser(url: String) {
     Gtk.showURI(URI(url))
 }
 
+private fun Date.plusDays(days: Int): Date {
+    val cal = Calendar.getInstance()
+    cal.time = this
+    cal.add(Calendar.DAY_OF_YEAR, days)
+    return cal.time
+}
+
+val today: Date
+    get() {
+        val cal = Calendar.getInstance()
+        cal.time = Date(System.currentTimeMillis())
+        cal.set(Calendar.HOUR_OF_DAY, 0)
+        return cal.time
+    }
+
+val tomorrow: Date
+    get() = today.plusDays(1)
+
+val theDayAfterTomorrow: Date
+    get() = today.plusDays(2)
+
 class AuthorizationCodeInstalledAppWorkaround(
         flow: AuthorizationCodeFlow, receiver: VerificationCodeReceiver
 ) : AuthorizationCodeInstalledApp(flow, receiver) {
@@ -21,5 +43,15 @@ class AuthorizationCodeInstalledAppWorkaround(
         // HACK: real onAuthorization method calls some AWT methods which
         // will lead to program crash as long as we use GTK
         openURLInDefaultBrowser(authorizationUrl?.build() ?: return)
+    }
+}
+
+infix fun Date.until(tomorrow: Date): ExclusiveDateRange {
+    return ExclusiveDateRange(this, tomorrow)
+}
+
+class ExclusiveDateRange(val from: Date, val toExclusively: Date) {
+    operator fun contains(a: Date): Boolean {
+        return a >= from && a < toExclusively
     }
 }

@@ -3,7 +3,7 @@ package ru.nikitabobko.gcalnotifier
 import org.gnome.notify.Notification
 import ru.nikitabobko.gcalnotifier.model.MyCalendarListEntry
 import ru.nikitabobko.gcalnotifier.model.MyEvent
-import ru.nikitabobko.gcalnotifier.support.openURLInDefaultBrowser
+import ru.nikitabobko.gcalnotifier.support.*
 import java.io.FileNotFoundException
 import java.text.SimpleDateFormat
 import java.util.*
@@ -35,13 +35,17 @@ class ControllerImpl : Controller {
     private var lastRefreshWasSucceeded = true
 
     override fun eventReminderTriggered(event: MyEvent) {
-        var simpleDateFormat = SimpleDateFormat("yyyy-MM-dd hh:mm")
-        var body = simpleDateFormat.format(Date(event.startUNIXTime))
-        simpleDateFormat = SimpleDateFormat(" - hh:mm")
-        body += simpleDateFormat.format(Date(event.endUNIXTime))
+        val eventStart = Date(event.startUNIXTime)
+        var body = when(eventStart) {
+            in today until tomorrow -> "Today"
+            in tomorrow until theDayAfterTomorrow -> "Tomorrow"
+            else -> SimpleDateFormat("yyyy-MM-dd").format(eventStart)
+        }
+        body += SimpleDateFormat(" HH:mm").format(eventStart)
+        body += SimpleDateFormat(" - HH:mm").format(Date(event.endUNIXTime))
 
         view.showInfiniteNotification(
-                event.title,
+                event.title ?: "",
                 body,
                 "Open on web"
         ) { _: Notification, _: String ->
