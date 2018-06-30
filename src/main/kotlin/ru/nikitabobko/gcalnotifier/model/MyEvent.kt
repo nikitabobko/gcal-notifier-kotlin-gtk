@@ -7,7 +7,7 @@ import ru.nikitabobko.gcalnotifier.support.toInternal
 /**
  * Internal representation of [Event]
  */
-data class MyEvent(val title: String, val startUNIXTime: Long, val endUNIXTime: Long,
+data class MyEvent(val title: String?, val startUNIXTime: Long, val endUNIXTime: Long,
               val reminders: MyReminders, val calendarId: String?, val htmlLink: String) {
     data class MyReminders(val useDefault: Boolean, val overrides: List<MyEventReminder>?)
 }
