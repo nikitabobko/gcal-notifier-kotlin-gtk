@@ -4,16 +4,10 @@ import com.google.api.client.auth.oauth2.AuthorizationCodeFlow
 import com.google.api.client.auth.oauth2.AuthorizationCodeRequestUrl
 import com.google.api.client.extensions.java6.auth.oauth2.AuthorizationCodeInstalledApp
 import com.google.api.client.extensions.java6.auth.oauth2.VerificationCodeReceiver
-import org.gnome.gtk.Gtk
-import java.net.URI
 import java.util.*
 
 const val APPLICATION_NAME = "gcal-notifier-kotlin-gtk"
 val USER_HOME_FOLDER = System.getProperty("user.home")
-
-fun openURLInDefaultBrowser(url: String) {
-    Gtk.showURI(URI(url))
-}
 
 private fun Date.plusDays(days: Int): Date {
     val cal = Calendar.getInstance()
@@ -37,7 +31,9 @@ val theDayAfterTomorrow: Date
     get() = today.plusDays(2)
 
 class AuthorizationCodeInstalledAppWorkaround(
-        flow: AuthorizationCodeFlow, receiver: VerificationCodeReceiver
+        flow: AuthorizationCodeFlow,
+        receiver: VerificationCodeReceiver,
+        val openURLInDefaultBrowser: (url: String) -> Unit
 ) : AuthorizationCodeInstalledApp(flow, receiver) {
     override fun onAuthorization(authorizationUrl: AuthorizationCodeRequestUrl?) {
         // HACK: real onAuthorization method calls some AWT methods which

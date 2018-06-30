@@ -42,7 +42,7 @@ interface GoogleCalendarManager {
     fun removeCredentialsFolder()
 }
 
-class GoogleCalendarManagerImpl : GoogleCalendarManager {
+class GoogleCalendarManagerImpl(val openURLInDefaultBrowser: (url: String) -> Unit) : GoogleCalendarManager {
     @Volatile
     private var _service: Calendar? = null
     private val service: Calendar
@@ -168,7 +168,8 @@ class GoogleCalendarManagerImpl : GoogleCalendarManager {
                 .build()
         val authorizationCodeInstalledApp = AuthorizationCodeInstalledAppWorkaround(
                 flow,
-                LocalServerReceiver()
+                LocalServerReceiver(),
+                openURLInDefaultBrowser
         )
         return authorizationCodeInstalledApp.authorize("user")
     }

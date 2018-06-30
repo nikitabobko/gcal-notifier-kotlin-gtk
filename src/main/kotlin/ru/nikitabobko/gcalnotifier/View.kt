@@ -5,11 +5,12 @@ import org.gnome.gdk.Pixbuf
 import org.gnome.gtk.*
 import org.gnome.notify.Notification
 import ru.nikitabobko.gcalnotifier.model.MyEvent
+import java.net.URI
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.math.min
 
-val view: View = ViewImpl()
+val view: View = ViewJavaGnome()
 
 interface View {
     fun showStatusIcon()
@@ -23,13 +24,17 @@ interface View {
     fun showInfiniteNotification(summary: String, body: String?,
                                  actionLabel: String? = null,
                                  action: ((Notification, String) -> Unit)? = null)
+    fun openURLInDefaultBrowser(url: String)
 }
 
 enum class RefreshButtonState {
     REFRESHING, NORMAL
 }
 
-class ViewImpl : View {
+/**
+ * Implementation based on java-gnome lib
+ */
+class ViewJavaGnome : View {
     private var popupMenu: Menu = buildEmptySystemTrayPopupMenu()
     /**
      * Initialized in [buildEmptySystemTrayPopupMenu]
@@ -57,6 +62,10 @@ class ViewImpl : View {
             }
             popupMenu.showAll()
         }
+
+    override fun openURLInDefaultBrowser(url: String) {
+        Gtk.showURI(URI(url))
+    }
 
     private fun showNotification(summary: String,
                                  body: String?,

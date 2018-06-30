@@ -23,7 +23,7 @@ interface Controller {
 }
 
 class ControllerImpl : Controller {
-    private val googleCalendarManager = GoogleCalendarManagerImpl()
+    private val googleCalendarManager = GoogleCalendarManagerImpl(view::openURLInDefaultBrowser)
     private val localDataManager: LocalDataManager = LocalDataManagerJSON()
     private val eventReminderTracker: EventReminderTracker = EventReminderTrackerImpl(this)
     /**
@@ -49,7 +49,7 @@ class ControllerImpl : Controller {
                 body,
                 "Open on web"
         ) { _: Notification, _: String ->
-            openURLInDefaultBrowser(event.htmlLink)
+            view.openURLInDefaultBrowser(event.htmlLink)
         }
     }
 
@@ -59,7 +59,7 @@ class ControllerImpl : Controller {
 
     override fun eventPopupItemClicked(indexOf: Int) {
         synchronized(eventsLock) {
-            openURLInDefaultBrowser(events[indexOf].htmlLink)
+            view.openURLInDefaultBrowser(events[indexOf].htmlLink)
         }
     }
 
@@ -81,7 +81,7 @@ class ControllerImpl : Controller {
     }
 
     override fun openGoogleCalendarOnWebButtonClicked() {
-        openURLInDefaultBrowser("https://calendar.google.com/calendar/r")
+        view.openURLInDefaultBrowser("https://calendar.google.com/calendar/r")
     }
 
     @Synchronized
