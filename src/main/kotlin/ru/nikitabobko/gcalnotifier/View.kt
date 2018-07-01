@@ -48,7 +48,7 @@ class ViewJavaGnome : View {
     private var firstEventItemIndexInPopupMenu = 0
     private var statusIcon: StatusIcon? = null
     private val appIcon: Pixbuf = Pixbuf(
-            Resources.toByteArray(Class::class.java.getResource("/gcal-icon.png"))
+            Resources.toByteArray(Class::class.java.getResource("/icon.png"))
     )
     override var refreshButtonState: RefreshButtonState = RefreshButtonState.NORMAL
         set(value) {
