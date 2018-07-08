@@ -89,7 +89,7 @@ class EventReminderTrackerImpl(private val controller: Controller) : EventRemind
         val cal = java.util.Calendar.getInstance()
 
         for (event: MyEvent in upcomingEvents) {
-            val reminders = event.reminders
+            val reminders = event.reminders ?: continue
             val remindersList: List<MyEventReminder> = when {
 
                 reminders.useDefault -> userCalendarList.find { calendarListEntry ->
@@ -101,11 +101,11 @@ class EventReminderTrackerImpl(private val controller: Controller) : EventRemind
                 else -> listOf()
 
             }.filter { eventReminder -> eventReminder.method == "popup" }
+
             for (eventReminder in remindersList) {
                 cal.time = Date(event.startUNIXTime)
                 cal.add(java.util.Calendar.MINUTE, -eventReminder.minutes)
                 val reminderTime: Date = cal.time
-
 
                 val condition = reminderTime <= curTime
 

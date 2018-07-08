@@ -8,7 +8,7 @@ import ru.nikitabobko.gcalnotifier.support.toInternal
  * Internal representation of [Event]
  */
 data class MyEvent(val title: String?, val startUNIXTime: Long, val endUNIXTime: Long,
-              val reminders: MyReminders, val calendarId: String?, val htmlLink: String) {
+              val reminders: MyReminders?, val calendarId: String?, val htmlLink: String) {
     data class MyReminders(val useDefault: Boolean, val overrides: List<MyEventReminder>?)
 }
 
@@ -20,10 +20,12 @@ fun Event.toInternal(): MyEvent {
             title = summary,
             startUNIXTime = start.timeIfAvaliableOrDate.value,
             endUNIXTime = end.timeIfAvaliableOrDate.value,
-            reminders = MyEvent.MyReminders(
-                    useDefault = reminders.useDefault,
-                    overrides = reminders.overrides?.toInternal()
-            ),
+            reminders = reminders?.let {
+                MyEvent.MyReminders(
+                        useDefault = reminders.useDefault,
+                        overrides = reminders.overrides?.toInternal()
+                )
+            },
             calendarId = organizer?.email,
             htmlLink = htmlLink
     )
