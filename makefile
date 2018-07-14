@@ -12,7 +12,7 @@ tar: $(TEMP_FOLDER_RELEASE) $(JAR_PATH)
 tarForce: clean tar
 
 $(TEMP_FOLDER_RELEASE):
-	mkdir -p $@ && cp support/* $@ && cp src/main/resources/icon.png $@
+	mkdir -p $@ && cp -r support/. $@ && cp src/main/resources/icon.png $@
 
 $(JAR_PATH): $(JAR_PATH_GRADLE) $(TEMP_FOLDER_RELEASE) 
 	cp $< $@
