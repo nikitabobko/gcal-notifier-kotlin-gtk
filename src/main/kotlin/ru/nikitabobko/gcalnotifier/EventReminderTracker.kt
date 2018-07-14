@@ -30,6 +30,12 @@ class EventReminderTrackerImpl(private val controller: Controller) : EventRemind
     @Volatile
     private var userCalendarList: List<MyCalendarListEntry> = listOf()
 
+    private var eventTrackerDaemon: Thread = buildEventTrackerThread()
+
+    init {
+        eventTrackerDaemon.start()
+    }
+
     @Synchronized
     override fun newDataCame(upcomingEvents: List<MyEvent>, calendars: List<MyCalendarListEntry>) {
         upcomingEventsAndUserCalendarsMutex.lock()
@@ -42,12 +48,6 @@ class EventReminderTrackerImpl(private val controller: Controller) : EventRemind
             eventTrackerDaemon = buildEventTrackerThread()
             eventTrackerDaemon.start()
         }
-    }
-
-    private var eventTrackerDaemon: Thread = buildEventTrackerThread()
-
-    init {
-        eventTrackerDaemon.start()
     }
 
     private fun buildEventTrackerThread(): Thread {

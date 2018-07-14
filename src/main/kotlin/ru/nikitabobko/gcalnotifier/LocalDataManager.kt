@@ -27,6 +27,7 @@ interface LocalDataManager {
  * Implementation based on JSON
  */
 class LocalDataManagerJSON : LocalDataManager {
+    private val gson = Gson()
     private val lock = Any()
     companion object {
         private val EVENTS_LIST_FILE_LOCATION =
@@ -39,9 +40,9 @@ class LocalDataManagerJSON : LocalDataManager {
     private fun safe(any: Any, fileName: String) {
         synchronized(lock) {
             try {
-                val printWriter = PrintWriter(File(fileName))
-                printWriter.println(Gson().toJson(any))
-                printWriter.close()
+                PrintWriter(fileName).use {
+                    it.println(gson.toJson(any))
+                }
             } catch (ex: Exception) { }
         }
     }
@@ -52,10 +53,9 @@ class LocalDataManagerJSON : LocalDataManager {
             if (!file.exists()) return null
 
             return try {
-                val bufferedReader = BufferedReader(FileReader(File(fileName)))
-                val ret: T = Gson().fromJson(bufferedReader.readLine(), T::class.java)
-                bufferedReader.close()
-                ret
+                BufferedReader(FileReader(fileName)).use {
+                    gson.fromJson(it.readLine(), T::class.java)
+                }
             } catch (ex: Exception) {
                 try {
                     File(fileName).delete()
