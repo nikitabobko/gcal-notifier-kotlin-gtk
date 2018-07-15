@@ -21,4 +21,4 @@ $(JAR_PATH_GRADLE):
 	./gradlew jar
 
 clean:
-	./gradlew clean && rm -f TEMP_FOLDER_RELEASE
+	./gradlew clean && rm -f $(TEMP_FOLDER_RELEASE)
