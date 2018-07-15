@@ -1,8 +1,6 @@
-package ru.nikitabobko.gcalnotifier
+package ru.nikitabobko.gcalnotifier.support
 
-val settings = Settings()
-
-class Settings {
+object Settings {
     var refreshFrequencyInMinutes: Long = 5L
     var maxNumberOfEventsToShowInPopupMenu: Int = 10
 }

@@ -7,7 +7,7 @@ import com.google.api.client.extensions.java6.auth.oauth2.VerificationCodeReceiv
 import java.util.*
 
 const val APPLICATION_NAME = "gcal-notifier-kotlin-gtk"
-val USER_HOME_FOLDER = System.getProperty("user.home")
+val USER_HOME_FOLDER = System.getProperty("user.home")!!
 
 private fun Date.plusDays(days: Int): Date {
     val cal = Calendar.getInstance()
@@ -33,7 +33,7 @@ val theDayAfterTomorrow: Date
 class AuthorizationCodeInstalledAppWorkaround(
         flow: AuthorizationCodeFlow,
         receiver: VerificationCodeReceiver,
-        val openURLInDefaultBrowser: (url: String) -> Unit
+        private val openURLInDefaultBrowser: (url: String) -> Unit
 ) : AuthorizationCodeInstalledApp(flow, receiver) {
     override fun onAuthorization(authorizationUrl: AuthorizationCodeRequestUrl?) {
         // HACK: real onAuthorization method calls some AWT methods which
@@ -46,8 +46,8 @@ infix fun Date.until(tomorrow: Date): ExclusiveDateRange {
     return ExclusiveDateRange(this, tomorrow)
 }
 
-class ExclusiveDateRange(val from: Date, val toExclusively: Date) {
+class ExclusiveDateRange(private val fromInclusively: Date, private val toExclusively: Date) {
     operator fun contains(a: Date): Boolean {
-        return a >= from && a < toExclusively
+        return a >= fromInclusively && a < toExclusively
     }
 }

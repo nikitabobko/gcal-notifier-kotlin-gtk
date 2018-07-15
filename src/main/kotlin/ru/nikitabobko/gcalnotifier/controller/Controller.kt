@@ -1,30 +1,78 @@
-package ru.nikitabobko.gcalnotifier
+package ru.nikitabobko.gcalnotifier.controller
 
 import org.gnome.notify.Notification
 import ru.nikitabobko.gcalnotifier.model.MyCalendarListEntry
 import ru.nikitabobko.gcalnotifier.model.MyEvent
 import ru.nikitabobko.gcalnotifier.support.*
+import ru.nikitabobko.gcalnotifier.view.RefreshButtonState
+import ru.nikitabobko.gcalnotifier.view.View
+import ru.nikitabobko.gcalnotifier.view.ViewJavaGnome
 import java.io.FileNotFoundException
 import java.text.SimpleDateFormat
 import java.util.*
 
-val controller: Controller = ControllerImpl()
-
+/**
+ * Controls app flow. All decisions are made by it.
+ */
 interface Controller {
+    /**
+     * Notify [Controller] that application started. Should be called by [View].
+     */
     fun applicationStarted()
+
+    /**
+     * Notify [Controller] that user clicked button "Open Google Calendar on web".
+     * Should be called by [View].
+     */
     fun openGoogleCalendarOnWebButtonClicked()
+
+    /**
+     * Notify [Controller] that user clicked status icon on system tray.
+     * Should be called by [View].
+     */
     fun statusIconClicked()
+
+    /**
+     * Notify [Controller] that user clicked "Quit" button. Should be called by [View].
+     */
     fun quitClicked()
+
+    /**
+     * Notify [Controller] that user clicked "Refresh" button. Should be called by [View].
+     */
     fun refreshButtonClicked()
+
+    /**
+     * Notify [Controller] that user clicked "Settings" button. Should be called by [View].
+     */
     fun settingsButtonClicked()
+
+    /**
+     * Notify [Controller] that user clicked "Log out" button. Should be called by [View].
+     */
     fun logoutButtonClicked()
+
+    /**
+     * Notify [Controller] that user clicked on of the events item in popup menu.
+     * Should be called by [View].
+     * @param indexOf Index of event item in popup menu.
+     */
     fun eventPopupItemClicked(indexOf: Int)
+
+    /**
+     * Notify [Controller] that it's about time to remind user about event he/she setted to be reminded.
+     * Should be called by [EventReminderTracker]
+     * @param event Event to remind user about it
+     */
     fun eventReminderTriggered(event: MyEvent)
 }
 
 class ControllerImpl : Controller {
-    private val googleCalendarManager = GoogleCalendarManagerImpl(view::openURLInDefaultBrowser)
+    private val view: View = ViewJavaGnome(this)
+
     private val localDataManager: LocalDataManager = LocalDataManagerJSON()
+    private val googleCalendarManager = GoogleCalendarManagerImpl(
+            view::openURLInDefaultBrowser, localDataManager)
     private val eventReminderTracker: EventReminderTracker = EventReminderTrackerImpl(this)
     /**
      * Use only in [synchronized(eventsLock)] block
@@ -64,7 +112,7 @@ class ControllerImpl : Controller {
     }
 
     override fun logoutButtonClicked() {
-        googleCalendarManager.removeCredentialsFolder()
+        localDataManager.removeGoogleCalendarCredentialsDir()
         view.quit()
     }
 
@@ -126,13 +174,11 @@ class ControllerImpl : Controller {
         view.update(events)
         eventReminderTracker.newDataCame(events, calendars)
         // refresh thread
-        val refreshDaemon = Thread {
+        Thread {
             while (true) {
                 refresh()
-                Thread.sleep(settings.refreshFrequencyInMinutes * 60 * 1000)
+                Thread.sleep(Settings.refreshFrequencyInMinutes * 60 * 1000)
             }
-        }
-        refreshDaemon.isDaemon = true
-        refreshDaemon.start()
+        }.run { isDaemon = true; start() }
     }
 }

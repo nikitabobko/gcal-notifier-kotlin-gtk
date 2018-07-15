@@ -1,7 +1,6 @@
 package ru.nikitabobko.gcalnotifier.model
 
 import com.google.api.services.calendar.model.Event
-import ru.nikitabobko.gcalnotifier.support.timeIfAvaliableOrDate
 import ru.nikitabobko.gcalnotifier.support.toInternal
 
 /**
@@ -9,6 +8,9 @@ import ru.nikitabobko.gcalnotifier.support.toInternal
  */
 data class MyEvent(val title: String?, val startUNIXTime: Long, val endUNIXTime: Long,
               val reminders: MyReminders?, val calendarId: String?, val htmlLink: String) {
+    /**
+     * Internal representation of [Event.Reminders]
+     */
     data class MyReminders(val useDefault: Boolean, val overrides: List<MyEventReminder>?)
 }
 
@@ -18,8 +20,8 @@ data class MyEvent(val title: String?, val startUNIXTime: Long, val endUNIXTime:
 fun Event.toInternal(): MyEvent {
     return MyEvent(
             title = summary,
-            startUNIXTime = start.timeIfAvaliableOrDate.value,
-            endUNIXTime = end.timeIfAvaliableOrDate.value,
+            startUNIXTime = (start.dateTime ?: start.date).value,
+            endUNIXTime = (end.dateTime ?: end.date).value,
             reminders = reminders?.let {
                 MyEvent.MyReminders(
                         useDefault = reminders.useDefault,

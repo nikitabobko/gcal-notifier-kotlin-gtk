@@ -1,5 +1,6 @@
-package ru.nikitabobko.gcalnotifier
+package ru.nikitabobko.gcalnotifier.support
 
+import ru.nikitabobko.gcalnotifier.controller.Controller
 import ru.nikitabobko.gcalnotifier.model.MyCalendarListEntry
 import ru.nikitabobko.gcalnotifier.model.MyEvent
 import ru.nikitabobko.gcalnotifier.model.MyEventReminder
@@ -10,6 +11,10 @@ import java.util.*
  * Tracks upcoming reminders for notifying user about them
  */
 interface EventReminderTracker {
+    /**
+     * Notify [EventReminderTracker] that new data came.
+     * Usually called by [Controller] after data has been refreshed
+     */
     fun newDataCame(upcomingEvents: List<MyEvent>, calendars: List<MyCalendarListEntry>)
 }
 
