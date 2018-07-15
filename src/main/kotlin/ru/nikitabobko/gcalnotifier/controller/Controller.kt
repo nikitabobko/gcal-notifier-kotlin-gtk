@@ -80,7 +80,7 @@ class ControllerImpl : Controller {
     @Volatile
     private var events: List<MyEvent> = listOf()
     private val eventsLock = Any()
-    private var lastRefreshWasSucceeded = true
+    private var notifyUserAboutRefreshFailures = true
 
     override fun eventReminderTriggered(event: MyEvent) {
         val eventStart = Date(event.startUNIXTime)
@@ -133,7 +133,8 @@ class ControllerImpl : Controller {
     }
 
     @Synchronized
-    private fun refresh(byExplicitRefreshButtonClick: Boolean = false) {
+    private fun refresh(byExplicitRefreshButtonClick: Boolean = false,
+                        doNotNotifyAboutRefreshFailureForce: Boolean = false) {
         if (byExplicitRefreshButtonClick) {
             view.refreshButtonState = RefreshButtonState.REFRESHING
         }
@@ -146,13 +147,14 @@ class ControllerImpl : Controller {
                 synchronized(eventsLock) {
                     this.events = events
                 }
-            } else if (byExplicitRefreshButtonClick || lastRefreshWasSucceeded) {
+            } else if (!doNotNotifyAboutRefreshFailureForce &&
+                    (byExplicitRefreshButtonClick || notifyUserAboutRefreshFailures)) {
                 view.showNotification("Error", "Unable to connect to Google Calendar")
+                notifyUserAboutRefreshFailures = false
             }
             if (byExplicitRefreshButtonClick) {
                 view.refreshButtonState = RefreshButtonState.NORMAL
             }
-            lastRefreshWasSucceeded = events != null
         }
     }
 
@@ -175,9 +177,14 @@ class ControllerImpl : Controller {
         eventReminderTracker.newDataCame(events, calendars)
         // refresh thread
         Thread {
+            // If user setted up our app to autostart then it would annoy user
+            // that "Unable to connect to Google Calendar" if gcal-notifier launches
+            // faster than connected to wifi network. So we don't notify user about
+            // failed initial refresh.
+            refresh(doNotNotifyAboutRefreshFailureForce = true)
             while (true) {
-                refresh()
                 Thread.sleep(Settings.refreshFrequencyInMinutes * 60 * 1000)
+                refresh()
             }
         }.run { isDaemon = true; start() }
     }
