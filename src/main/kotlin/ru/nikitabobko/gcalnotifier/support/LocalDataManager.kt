@@ -1,13 +1,25 @@
-package ru.nikitabobko.gcalnotifier
+package ru.nikitabobko.gcalnotifier.support
 
 import com.google.gson.Gson
 import ru.nikitabobko.gcalnotifier.model.MyCalendarListEntry
 import ru.nikitabobko.gcalnotifier.model.MyEvent
-import ru.nikitabobko.gcalnotifier.support.APPLICATION_NAME
-import ru.nikitabobko.gcalnotifier.support.USER_HOME_FOLDER
 import java.io.*
 
+/**
+ * Manages user's local data (Such as list of events and calendars to be able work in offline)
+ */
 interface LocalDataManager {
+    /**
+     * Path to directory where Google Calendar API stores credentials
+     * @see removeGoogleCalendarCredentialsDir
+     */
+    val googleCalendarCredentialsDirPath: String
+
+    /**
+     * Remove directory where Google Calendar API stores credentials
+     * @see googleCalendarCredentialsDirPath
+     */
+    fun removeGoogleCalendarCredentialsDir()
     fun safeEventsList(events: Array<MyEvent>)
     /**
      * @throws FileNotFoundException
@@ -27,6 +39,8 @@ interface LocalDataManager {
  * Implementation based on JSON
  */
 class LocalDataManagerJSON : LocalDataManager {
+    override val googleCalendarCredentialsDirPath: String
+        get() = "$USER_HOME_FOLDER/.config/$APPLICATION_NAME/credentials"
     private val gson = Gson()
     private val lock = Any()
     companion object {
@@ -35,6 +49,27 @@ class LocalDataManagerJSON : LocalDataManager {
 
         private val USER_CALENDAR_LIST_FILE_LOCATION =
                 "$USER_HOME_FOLDER/.config/$APPLICATION_NAME/calendars.json"
+    }
+
+    override fun safe(events: Array<MyEvent>, calendarList: Array<MyCalendarListEntry>) {
+        safeEventsList(events)
+        safeUsersCalendarList(calendarList)
+    }
+
+    override fun safeEventsList(events: Array<MyEvent>) = safe(events, EVENTS_LIST_FILE_LOCATION)
+
+    override fun safeUsersCalendarList(calendarList: Array<MyCalendarListEntry>) =
+            safe(calendarList, USER_CALENDAR_LIST_FILE_LOCATION)
+
+
+    override fun restoreEventsList(): Array<MyEvent> =
+            restore(EVENTS_LIST_FILE_LOCATION) ?: throw FileNotFoundException()
+
+    override fun restoreUsersCalendarList(): Array<MyCalendarListEntry> =
+            restore(USER_CALENDAR_LIST_FILE_LOCATION) ?: throw FileNotFoundException()
+
+    override fun removeGoogleCalendarCredentialsDir() {
+        File(googleCalendarCredentialsDirPath).deleteRecursively()
     }
 
     private fun safe(any: Any, fileName: String) {
@@ -64,21 +99,4 @@ class LocalDataManagerJSON : LocalDataManager {
             }
         }
     }
-
-    override fun safe(events: Array<MyEvent>, calendarList: Array<MyCalendarListEntry>) {
-        safeEventsList(events)
-        safeUsersCalendarList(calendarList)
-    }
-
-    override fun safeEventsList(events: Array<MyEvent>) = safe(events, EVENTS_LIST_FILE_LOCATION)
-
-    override fun safeUsersCalendarList(calendarList: Array<MyCalendarListEntry>) =
-            safe(calendarList, USER_CALENDAR_LIST_FILE_LOCATION)
-
-
-    override fun restoreEventsList(): Array<MyEvent> =
-            restore(EVENTS_LIST_FILE_LOCATION) ?: throw FileNotFoundException()
-
-    override fun restoreUsersCalendarList(): Array<MyCalendarListEntry> =
-            restore(USER_CALENDAR_LIST_FILE_LOCATION) ?: throw FileNotFoundException()
 }

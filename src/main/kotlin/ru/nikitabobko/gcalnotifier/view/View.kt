@@ -1,17 +1,20 @@
-package ru.nikitabobko.gcalnotifier
+package ru.nikitabobko.gcalnotifier.view
 
 import com.google.common.io.Resources
 import org.gnome.gdk.Pixbuf
 import org.gnome.gtk.*
 import org.gnome.notify.Notification
+import ru.nikitabobko.gcalnotifier.controller.Controller
+import ru.nikitabobko.gcalnotifier.support.Settings
 import ru.nikitabobko.gcalnotifier.model.MyEvent
 import java.net.URI
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.math.min
 
-val view: View = ViewJavaGnome()
-
+/**
+ * Just receives requests by [Controller] and performs them.
+ */
 interface View {
     fun showStatusIcon()
     fun showSettingsWindow()
@@ -34,7 +37,7 @@ enum class RefreshButtonState {
 /**
  * Implementation based on java-gnome lib
  */
-class ViewJavaGnome : View {
+class ViewJavaGnome(private val controller: Controller) : View {
     private var popupMenu: Menu = buildEmptySystemTrayPopupMenu()
     /**
      * Initialized in [buildEmptySystemTrayPopupMenu]
@@ -101,7 +104,7 @@ class ViewJavaGnome : View {
 
     @Synchronized
     override fun update(events: List<MyEvent>) {
-        val eventsList = events.subList(0, min(settings.maxNumberOfEventsToShowInPopupMenu, events.size))
+        val eventsList = events.subList(0, min(Settings.maxNumberOfEventsToShowInPopupMenu, events.size))
         removeAllEventsFromPopupMenu()
         if (eventsList.isEmpty()) {
             val item = MenuItem("No upcoming events")

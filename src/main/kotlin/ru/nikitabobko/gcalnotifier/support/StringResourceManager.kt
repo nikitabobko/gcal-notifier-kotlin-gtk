@@ -1,5 +1,6 @@
-package ru.nikitabobko.gcalnotifier
+package ru.nikitabobko.gcalnotifier.support
 
+// Not used yet
 interface StringResourceManager {
     val openGoogleCalendarOnWeb: String
 }

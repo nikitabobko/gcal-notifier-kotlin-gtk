@@ -1,4 +1,4 @@
-package ru.nikitabobko.gcalnotifier
+package ru.nikitabobko.gcalnotifier.support
 
 import org.gnome.gtk.Menu
 import org.gnome.gtk.MenuItem

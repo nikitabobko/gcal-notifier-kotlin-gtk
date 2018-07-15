@@ -1,4 +1,4 @@
-package ru.nikitabobko.gcalnotifier
+package ru.nikitabobko.gcalnotifier.support
 
 import com.google.api.client.auth.oauth2.Credential
 import com.google.api.client.extensions.jetty.auth.oauth2.LocalServerReceiver
@@ -14,10 +14,6 @@ import com.google.api.services.calendar.CalendarScopes
 import com.google.api.services.calendar.model.Events
 import ru.nikitabobko.gcalnotifier.model.MyCalendarListEntry
 import ru.nikitabobko.gcalnotifier.model.MyEvent
-import ru.nikitabobko.gcalnotifier.support.APPLICATION_NAME
-import ru.nikitabobko.gcalnotifier.support.AuthorizationCodeInstalledAppWorkaround
-import ru.nikitabobko.gcalnotifier.support.USER_HOME_FOLDER
-import ru.nikitabobko.gcalnotifier.support.toInternal
 import sun.awt.Mutex
 import java.io.File
 import java.io.IOException
@@ -26,11 +22,13 @@ import java.io.InputStreamReader
 import java.util.*
 import kotlin.Comparator
 
-private val CREDENTIALS_FOLDER: String = "$USER_HOME_FOLDER/.config/$APPLICATION_NAME/credentials"
 private val JSON_FACTORY = JacksonFactory.getDefaultInstance()
 private const val CLIENT_SECRET_DIR = "/client_secret.json"
 private val SCOPES: List<String> = Collections.singletonList(CalendarScopes.CALENDAR_READONLY)
 
+/**
+ * Performs Google Calendar API calls
+ */
 interface GoogleCalendarManager {
     fun getUpcomingEventsAsync(
             onRefreshedListener: (events: List<MyEvent>?, calendarList: List<MyCalendarListEntry>?) -> Unit
@@ -39,10 +37,12 @@ interface GoogleCalendarManager {
     fun getUserCalendarListAsync(
             onReceivedUserCalendarListListener: (calendarList: List<MyCalendarListEntry>?) -> Unit
     )
-    fun removeCredentialsFolder()
 }
 
-class GoogleCalendarManagerImpl(val openURLInDefaultBrowser: (url: String) -> Unit) : GoogleCalendarManager {
+class GoogleCalendarManagerImpl(
+        private val openURLInDefaultBrowser: (url: String) -> Unit,
+        private val localDataManager: LocalDataManager
+) : GoogleCalendarManager {
     @Volatile
     private var _service: Calendar? = null
     private val service: Calendar
@@ -53,10 +53,6 @@ class GoogleCalendarManagerImpl(val openURLInDefaultBrowser: (url: String) -> Un
             return _service!!
         }
     private val mutex: Mutex = Mutex()
-
-    override fun removeCredentialsFolder() {
-        File(CREDENTIALS_FOLDER).deleteRecursively()
-    }
 
     private fun getUpcomingEvents(calendarId: String): List<MyEvent>? {
         return try {
@@ -163,7 +159,8 @@ class GoogleCalendarManagerImpl(val openURLInDefaultBrowser: (url: String) -> Un
         // Build flow and trigger user authorization request.
         val flow = GoogleAuthorizationCodeFlow.Builder(
                 HTTP_TRANSPORT, JSON_FACTORY, clientSecrets, SCOPES)
-                .setDataStoreFactory(FileDataStoreFactory(File(CREDENTIALS_FOLDER)))
+                .setDataStoreFactory(FileDataStoreFactory(
+                        File(localDataManager.googleCalendarCredentialsDirPath)))
                 .setAccessType("offline")
                 .build()
         val authorizationCodeInstalledApp = AuthorizationCodeInstalledAppWorkaround(
