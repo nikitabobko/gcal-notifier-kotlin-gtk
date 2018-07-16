@@ -12,7 +12,7 @@ The latest version is 1.0.1
   * Extract tar archieve by executing:  
   `tar -xvf gcal-notifier-kotlin-gtk.tar`
   * Install program by executing `install.sh` script in extracted folder:  
-  `./install.sh`
+  `sudo ./install.sh`
 
 # Usage
 While app is running it shows small icon in your system tray and popups notifications for events which are setted to be reminded in Google Calendar:  
