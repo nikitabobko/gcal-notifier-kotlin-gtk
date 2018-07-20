@@ -5,11 +5,14 @@ VERSION=$(shell cat build.gradle | grep -Po "(?<=(version ')).+(?=')")
 JAR_PATH_GRADLE=build/libs/$(APPNAME)-$(VERSION).jar
 TEMP_FOLDER_RELEASE=$(APPNAME)-release
 JAR_PATH=$(TEMP_FOLDER_RELEASE)/$(APPNAME).jar
+TAR_FILE_NAME=$(APPNAME)-$(VERSION).tar
 
-tar: $(TEMP_FOLDER_RELEASE) $(JAR_PATH) 
-	tar -cf $(APPNAME).tar $(TEMP_FOLDER_RELEASE) && rm -rf $<
+.PHONY: $(JAR_PATH_GRADLE)
 
-tarForce: clean tar
+tar: $(TAR_FILE_NAME)
+
+$(TAR_FILE_NAME): $(TEMP_FOLDER_RELEASE) $(JAR_PATH) 
+	tar -cf $@ $(TEMP_FOLDER_RELEASE); rm -rf $<
 
 $(TEMP_FOLDER_RELEASE):
 	mkdir -p $@ && cp -r support/. $@ && cp src/main/resources/icon.png $@
