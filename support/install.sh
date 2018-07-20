@@ -1,6 +1,6 @@
 #!/usr/bin/env sh
 root=/
-if [ "$#" == 1 ]; then
+if [ "$#" -eq 1 ]; then
     root=$1
 fi
 
