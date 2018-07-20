@@ -1,2 +1,2 @@
 #!/usr/bin/env sh
-java -jar /opt/gcal-notifier-kotlin-gtk/gcal-notifier-kotlin-gtk.jar
+java -cp /usr/share/java/gtk.jar:/opt/gcal-notifier-kotlin-gtk/gcal-notifier-kotlin-gtk.jar ru.nikitabobko.gcalnotifier.MainKt

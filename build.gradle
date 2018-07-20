@@ -43,7 +43,7 @@ jar {
     manifest {
         attributes('Main-Class': 'ru.nikitabobko.gcalnotifier.MainKt')
     }
-    from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
+    from { configurations.compile.filter { !it.name.contains("gtk") }.collect { it.isDirectory() ? it : zipTree(it) } }
 }
 
 task runJar(type: Exec, dependsOn: jar) {
