@@ -147,6 +147,7 @@ class ControllerImpl : Controller {
                 synchronized(eventsLock) {
                     this.events = events
                 }
+                notifyUserAboutRefreshFailures = true
             } else if (!doNotNotifyAboutRefreshFailureForce &&
                     (byExplicitRefreshButtonClick || notifyUserAboutRefreshFailures)) {
                 view.showNotification("Error", "Unable to connect to Google Calendar")
