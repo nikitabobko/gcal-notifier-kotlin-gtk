@@ -14,7 +14,7 @@ plugins {
 }
 
 group 'ru.nikitabobko'
-version '1.0.1'
+version '1.0.2'
 
 apply plugin: 'kotlin'
 apply plugin: 'application'
