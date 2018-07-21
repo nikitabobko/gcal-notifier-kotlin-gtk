@@ -112,7 +112,7 @@ class ControllerImpl : Controller {
     }
 
     override fun logoutButtonClicked() {
-        localDataManager.removeGoogleCalendarCredentialsDir()
+        localDataManager.removeAllData()
         view.quit()
     }
 
