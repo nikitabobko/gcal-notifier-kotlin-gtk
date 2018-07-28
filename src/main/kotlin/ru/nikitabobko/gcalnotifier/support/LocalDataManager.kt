@@ -47,15 +47,17 @@ class LocalDataManagerJSON : LocalDataManager {
 
     override fun safeEventsList(events: Array<MyEvent>) = safe(events, eventsListFileLocation)
 
-    override fun safeUsersCalendarList(calendarList: Array<MyCalendarListEntry>) =
-            safe(calendarList, userCalendarFileLocation)
+    override fun safeUsersCalendarList(calendarList: Array<MyCalendarListEntry>) {
+        return safe(calendarList, userCalendarFileLocation)
+    }
 
+    override fun restoreEventsList(): Array<MyEvent> {
+        return restore(eventsListFileLocation) ?: throw FileNotFoundException()
+    }
 
-    override fun restoreEventsList(): Array<MyEvent> =
-            restore(eventsListFileLocation) ?: throw FileNotFoundException()
-
-    override fun restoreUsersCalendarList(): Array<MyCalendarListEntry> =
-            restore(userCalendarFileLocation) ?: throw FileNotFoundException()
+    override fun restoreUsersCalendarList(): Array<MyCalendarListEntry> {
+        return restore(userCalendarFileLocation) ?: throw FileNotFoundException()
+    }
 
     override fun removeAllData() {
         File(localDataFolderPath).deleteRecursively()
