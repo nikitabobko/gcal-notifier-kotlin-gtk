@@ -117,10 +117,11 @@ class ViewJavaGnome(private val controller: Controller) : View {
     private fun insertEventsInPopupMenu(events: List<MyEvent>) {
         val timeFormat = " - HH:mm"
         for (event: MyEvent in events.reversed()) {
-            val dateFormat = SimpleDateFormat("yyyy/MM/dd" + (if (!event.isAllDayEvent) timeFormat else ""))
+            val dateFormat = SimpleDateFormat("yyyy/MM/dd"
+                    + (if (event.isAllDayEvent) " ".repeat(timeFormat.length) else timeFormat))
             val date = Date(event.startUNIXTime)
             val item = MenuItem(
-                    dateFormat.format(date) + (if (event.isAllDayEvent) " ".repeat(timeFormat.length) else "")
+                    dateFormat.format(date)
                             + "    \t" // just four spaces as separator
                             + event.title,
                     MenuItem.Activate { menuItem ->
