@@ -89,8 +89,10 @@ class ControllerImpl : Controller {
             in tomorrow until theDayAfterTomorrow -> "Tomorrow"
             else -> SimpleDateFormat("yyyy-MM-dd").format(eventStart)
         }
-        body += SimpleDateFormat(" HH:mm").format(eventStart)
-        body += SimpleDateFormat(" - HH:mm").format(Date(event.endUNIXTime))
+        if (!event.isAllDayEvent) {
+            body += SimpleDateFormat(" HH:mm").format(eventStart)
+            body += SimpleDateFormat(" - HH:mm").format(Date(event.endUNIXTime))
+        }
 
         view.showInfiniteNotification(
                 event.title ?: "",
