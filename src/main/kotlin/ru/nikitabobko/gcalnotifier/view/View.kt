@@ -5,11 +5,10 @@ import org.gnome.gdk.Pixbuf
 import org.gnome.gtk.*
 import org.gnome.notify.Notification
 import ru.nikitabobko.gcalnotifier.controller.Controller
-import ru.nikitabobko.gcalnotifier.support.Settings
 import ru.nikitabobko.gcalnotifier.model.MyEvent
+import ru.nikitabobko.gcalnotifier.support.Settings
 import java.net.URI
 import java.text.SimpleDateFormat
-import java.util.*
 import kotlin.math.min
 
 /**
@@ -57,11 +56,11 @@ class ViewJavaGnome(private val controller: Controller) : View {
         set(value) {
             field = value
             if (field == RefreshButtonState.NORMAL) {
+                (refreshMenuItem.child as? Label)?.label = "Refresh"
                 refreshMenuItem.sensitive = true
-                refreshMenuItem.name = "Refreshing..."
             } else {
+                (refreshMenuItem.child as? Label)?.label = "Refreshing..."
                 refreshMenuItem.sensitive = false
-                refreshMenuItem.name = "Refresh"
             }
             popupMenu.showAll()
         }
@@ -115,23 +114,27 @@ class ViewJavaGnome(private val controller: Controller) : View {
     }
 
     private fun insertEventsInPopupMenu(events: List<MyEvent>) {
-        val timeFormat = " - HH:mm"
-        for (event: MyEvent in events.reversed()) {
-            val dateFormat = SimpleDateFormat("yyyy/MM/dd"
-                    + (if (event.isAllDayEvent) " ".repeat(timeFormat.length) else timeFormat))
-            val date = Date(event.startUNIXTime)
-            val item = MenuItem(
-                    dateFormat.format(date)
-                            + "    \t" // just four spaces as separator
-                            + event.title,
-                    MenuItem.Activate { menuItem ->
-                        val indexOf = popupMenu.children.indexOf(menuItem) -
-                                firstEventItemIndexInPopupMenu
-                        controller.eventPopupItemClicked(indexOf)
-                    }
-            )
-            popupMenu.insert(item, firstEventItemIndexInPopupMenu)
-        }
+        val dateTimePattern = "yyyy/MM/dd - HH:mm"
+        val datePattern = "yyyy/MM/dd"
+
+        val dateTimeFormat = SimpleDateFormat(dateTimePattern)
+        val dateFormat = SimpleDateFormat(datePattern)
+
+        val dateTimeCharWidth: Int = events.map {
+            if (it.isAllDayEvent) datePattern.length else dateTimePattern.length
+        }.max() ?: 0
+
+        events.reversed().map {
+            return@map EventMenuItem(
+                    (if (it.isAllDayEvent) dateFormat else dateTimeFormat).format(it.startUNIXTime),
+                    it.title ?: "",
+                    dateTimeCharWidth
+            ) { menuItem ->
+                val indexOf = popupMenu.children.indexOf(menuItem) - firstEventItemIndexInPopupMenu
+                controller.eventPopupItemClicked(indexOf)
+            }
+        }.forEach { popupMenu.insert(it, firstEventItemIndexInPopupMenu) }
+
         popupMenu.showAll()
     }
 
