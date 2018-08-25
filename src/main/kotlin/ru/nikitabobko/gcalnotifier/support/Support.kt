@@ -30,7 +30,7 @@ val tomorrow: Date
 val theDayAfterTomorrow: Date
     get() = today.plusDays(2)
 
-class AuthorizationCodeInstalledAppWorkaround(
+class AuthorizationCodeInstalledAppHack(
         flow: AuthorizationCodeFlow,
         receiver: VerificationCodeReceiver,
         private val openURLInDefaultBrowser: (url: String) -> Unit

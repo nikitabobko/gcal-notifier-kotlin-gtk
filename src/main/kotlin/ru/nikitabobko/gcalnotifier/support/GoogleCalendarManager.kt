@@ -163,7 +163,7 @@ class GoogleCalendarManagerImpl(
                         File(localDataManager.googleCalendarCredentialsDirPath)))
                 .setAccessType("offline")
                 .build()
-        val authorizationCodeInstalledApp = AuthorizationCodeInstalledAppWorkaround(
+        val authorizationCodeInstalledApp = AuthorizationCodeInstalledAppHack(
                 flow,
                 LocalServerReceiver(),
                 openURLInDefaultBrowser

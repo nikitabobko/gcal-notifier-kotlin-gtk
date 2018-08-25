@@ -24,8 +24,8 @@ fun Event.toInternal(): MyEvent {
             endUNIXTime = (end.dateTime ?: end.date).value,
             reminders = reminders?.let {
                 MyEvent.MyReminders(
-                        useDefault = reminders.useDefault,
-                        overrides = reminders.overrides?.toInternal()
+                        useDefault = it.useDefault,
+                        overrides = it.overrides?.toInternal()
                 )
             },
             calendarId = organizer?.email,
