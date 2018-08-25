@@ -153,12 +153,11 @@ class ViewJavaGnome(private val controller: Controller) : View {
     }
 
     override fun showStatusIcon() {
-        statusIcon = StatusIcon(appIcon).let {
+        statusIcon = StatusIcon(appIcon).apply {
             // left mouse button click
-            it.connect(StatusIcon.Activate { controller.statusIconClicked() })
+            connect(StatusIcon.Activate { controller.statusIconClicked() })
             // right mouse button click
-            it.connect { _, _, _ -> controller.statusIconClicked() }
-            return@let it
+            connect { _, _, _ -> controller.statusIconClicked() }
         }
     }
 
