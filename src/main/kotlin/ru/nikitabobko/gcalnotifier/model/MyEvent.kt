@@ -1,7 +1,9 @@
 package ru.nikitabobko.gcalnotifier.model
 
 import com.google.api.services.calendar.model.Event
-import ru.nikitabobko.gcalnotifier.support.toInternal
+import ru.nikitabobko.gcalnotifier.support.*
+import java.text.SimpleDateFormat
+import java.util.*
 
 /**
  * Internal representation of [Event]
@@ -12,6 +14,20 @@ data class MyEvent(val title: String?, val startUNIXTime: Long, val endUNIXTime:
      * Internal representation of [Event.Reminders]
      */
     data class MyReminders(val useDefault: Boolean, val overrides: List<MyEventReminder>?)
+
+    fun dateTimeString(): String {
+        val eventStart = Date(startUNIXTime)
+        var dateTime = when(eventStart) {
+            in today until tomorrow -> "Today"
+            in tomorrow until theDayAfterTomorrow -> "Tomorrow"
+            else -> SimpleDateFormat("yyyy/MM/dd").format(eventStart)
+        }
+        if (!isAllDayEvent) {
+            dateTime += SimpleDateFormat(" HH:mm").format(eventStart)
+            dateTime += SimpleDateFormat(" - HH:mm").format(Date(endUNIXTime))
+        }
+        return dateTime
+    }
 }
 
 /**
