@@ -83,20 +83,9 @@ class ControllerImpl : Controller {
     private var notifyUserAboutRefreshFailures = true
 
     override fun eventReminderTriggered(event: MyEvent) {
-        val eventStart = Date(event.startUNIXTime)
-        var body = when(eventStart) {
-            in today until tomorrow -> "Today"
-            in tomorrow until theDayAfterTomorrow -> "Tomorrow"
-            else -> SimpleDateFormat("yyyy-MM-dd").format(eventStart)
-        }
-        if (!event.isAllDayEvent) {
-            body += SimpleDateFormat(" HH:mm").format(eventStart)
-            body += SimpleDateFormat(" - HH:mm").format(Date(event.endUNIXTime))
-        }
-
         view.showInfiniteNotification(
                 event.title ?: "",
-                body,
+                event.dateTimeString(),
                 "Open on web"
         ) { _: Notification, _: String ->
             view.openURLInDefaultBrowser(event.htmlLink)
