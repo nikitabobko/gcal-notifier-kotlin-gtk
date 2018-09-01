@@ -108,7 +108,7 @@ class ControllerImpl : Controller {
     }
 
     override fun settingsButtonClicked() {
-        TODO("not implemented")
+        view.showSettingsWindowIfIsNotShownAlready()
     }
 
     override fun refreshButtonClicked() {

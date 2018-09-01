@@ -16,7 +16,7 @@ import kotlin.math.min
  */
 interface View {
     fun showStatusIcon()
-    fun showSettingsWindow()
+    fun showSettingsWindowIfIsNotShownAlready()
     fun update(events: List<MyEvent>)
     fun quit()
     var refreshButtonState: RefreshButtonState
@@ -49,9 +49,11 @@ class ViewJavaGnome(private val controller: Controller) : View {
      */
     private var firstEventItemIndexInPopupMenu = 0
     private var statusIcon: StatusIcon? = null
-    private val appIcon: Pixbuf = Pixbuf(
+    val appIcon: Pixbuf = Pixbuf(
             Resources.toByteArray(Class::class.java.getResource("/icon.png"))
     )
+    private var settingsWindow: SettingsWindow? = null
+
     override var refreshButtonState: RefreshButtonState = RefreshButtonState.NORMAL
         set(value) {
             field = value
@@ -141,8 +143,14 @@ class ViewJavaGnome(private val controller: Controller) : View {
         Gtk.mainQuit()
     }
 
-    override fun showSettingsWindow() {
-        TODO(reason = "not implemented")
+    override fun showSettingsWindowIfIsNotShownAlready() {
+        val settingsWindowLocal = settingsWindow
+        if (settingsWindowLocal != null) {
+            settingsWindowLocal.focusWindow()
+            return
+        }
+        settingsWindow = SettingsWindow(this, onClose = { settingsWindow = null })
+
     }
 
     override fun showStatusIcon() {
@@ -161,8 +169,8 @@ class ViewJavaGnome(private val controller: Controller) : View {
         val menu = Menu()
 
         menu.add(MenuItem(
-            "Open Google Calendar on web",
-            MenuItem.Activate { controller.openGoogleCalendarOnWebButtonClicked() }
+                "Open Google Calendar on web",
+                MenuItem.Activate { controller.openGoogleCalendarOnWebButtonClicked() }
         ))
 
         refreshMenuItem = MenuItem(
@@ -181,20 +189,19 @@ class ViewJavaGnome(private val controller: Controller) : View {
 
         menu.add(SeparatorMenuItem())
 
-        // todo upcoming feature
-//        menu.add(MenuItem(
-//            "Settings",
-//            MenuItem.Activate { controller.settingsButtonClicked() }
-//        ))
-
         menu.add(MenuItem(
-            "Log out",
-            MenuItem.Activate { controller.logoutButtonClicked() }
+                "Settings",
+                MenuItem.Activate { controller.settingsButtonClicked() }
         ))
 
         menu.add(MenuItem(
-            "Quit",
-            MenuItem.Activate { controller.quitClicked() }
+                "Log out",
+                MenuItem.Activate { controller.logoutButtonClicked() }
+        ))
+
+        menu.add(MenuItem(
+               "Quit",
+                MenuItem.Activate { controller.quitClicked() }
         ))
 
         menu.showAll()

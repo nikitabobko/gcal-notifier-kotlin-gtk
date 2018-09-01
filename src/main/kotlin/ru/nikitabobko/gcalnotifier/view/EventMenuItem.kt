@@ -12,7 +12,7 @@ class EventMenuItem(
     init {
         connect(handler)
 
-        box(Orientation.HORIZONTAL, 4) {
+        box(Orientation.HORIZONTAL, 0) {
             label(dateTime) {
                 setAlignment(0f, 0f)
                 setWidthChars(dateTimeLabelCharWidth)
