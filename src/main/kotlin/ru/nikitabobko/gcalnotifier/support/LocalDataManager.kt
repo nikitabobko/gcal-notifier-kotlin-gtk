@@ -16,13 +16,11 @@ interface LocalDataManager {
 
     fun safeEventsList(events: Array<MyEvent>)
 
-    @Throws(FileNotFoundException::class)
-    fun restoreEventsList(): Array<MyEvent>
+    fun restoreEventsList(): Array<MyEvent>?
 
     fun safeUsersCalendarList(calendarList: Array<MyCalendarListEntry>)
 
-    @Throws(FileNotFoundException::class)
-    fun restoreUsersCalendarList(): Array<MyCalendarListEntry>
+    fun restoreUsersCalendarList(): Array<MyCalendarListEntry>?
 
     fun safe(events: Array<MyEvent>, calendarList: Array<MyCalendarListEntry>)
 
@@ -51,43 +49,39 @@ class LocalDataManagerJSON : LocalDataManager {
         return safe(calendarList, userCalendarFileLocation)
     }
 
-    override fun restoreEventsList(): Array<MyEvent> {
-        return restore(eventsListFileLocation) ?: throw FileNotFoundException()
+    override fun restoreEventsList(): Array<MyEvent>? {
+        return restore(eventsListFileLocation)
     }
 
-    override fun restoreUsersCalendarList(): Array<MyCalendarListEntry> {
-        return restore(userCalendarFileLocation) ?: throw FileNotFoundException()
+    override fun restoreUsersCalendarList(): Array<MyCalendarListEntry>? {
+        return restore(userCalendarFileLocation)
     }
 
     override fun removeAllData() {
         File(localDataFolderPath).deleteRecursively()
     }
 
-    private fun safe(any: Any, fileName: String) {
-        synchronized(lock) {
-            try {
-                PrintWriter(fileName).use {
-                    it.println(gson.toJson(any))
-                }
-            } catch (ex: Exception) { }
-        }
+    private fun safe(any: Any, fileName: String) = synchronized(lock) {
+        try {
+            PrintWriter(fileName).use {
+                it.println(gson.toJson(any))
+            }
+        } catch (ex: Throwable) { }
     }
 
-    private inline fun <reified T : Any> restore(fileName: String) : T? {
-        synchronized(lock) {
-            val file = File(fileName)
-            if (!file.exists()) return null
+    private inline fun <reified T : Any> restore(fileName: String) : T? = synchronized(lock) {
+        val file = File(fileName)
+        if (!file.exists()) return null
 
-            return try {
-                BufferedReader(FileReader(fileName)).use {
-                    gson.fromJson(it.readLine(), T::class.java)
-                }
-            } catch (ex: Exception) {
-                try {
-                    File(fileName).delete()
-                } catch (ex: Exception) { }
-                null
+        return try {
+            BufferedReader(FileReader(fileName)).use {
+                gson.fromJson(it.readLine(), T::class.java)
             }
+        } catch (ex: Throwable) {
+            try {
+                File(fileName).delete()
+            } catch (ex: Throwable) { }
+            null
         }
     }
 }

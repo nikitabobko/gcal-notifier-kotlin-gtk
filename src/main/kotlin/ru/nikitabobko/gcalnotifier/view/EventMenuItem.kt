@@ -10,15 +10,14 @@ class EventMenuItem(
         handler: (MenuItem) -> Unit
 ) : MenuItem() {
     init {
-        connect(handler)
-
         box(Orientation.HORIZONTAL, 4) {
             label(dateTime) {
                 setAlignment(0f, 0f)
                 setWidthChars(dateTimeLabelCharWidth)
-                setMaxWidthChars(dateTimeLabelCharWidth)
             }
             label(eventTitle)
         }
+
+        connect(handler)
     }
 }

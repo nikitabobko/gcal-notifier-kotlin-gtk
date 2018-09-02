@@ -1,5 +1,6 @@
 package ru.nikitabobko.gcalnotifier.model
 
+import com.google.api.services.calendar.model.Colors
 import com.google.api.services.calendar.model.Event
 import ru.nikitabobko.gcalnotifier.support.*
 import java.text.SimpleDateFormat
@@ -9,7 +10,8 @@ import java.util.*
  * Internal representation of [Event]
  */
 data class MyEvent(val title: String?, val startUNIXTime: Long, val endUNIXTime: Long,
-              val reminders: MyReminders?, val calendarId: String?, val htmlLink: String, val isAllDayEvent: Boolean) {
+                   val reminders: MyReminders?, val calendarId: String?, val htmlLink: String,
+                   val isAllDayEvent: Boolean) {
     /**
      * Internal representation of [Event.Reminders]
      */
@@ -38,10 +40,10 @@ fun Event.toInternal(): MyEvent {
             title = summary,
             startUNIXTime = (start.dateTime ?: start.date).value,
             endUNIXTime = (end.dateTime ?: end.date).value,
-            reminders = reminders?.let {
+            reminders = reminders?.let { reminders: Event.Reminders ->
                 MyEvent.MyReminders(
-                        useDefault = it.useDefault,
-                        overrides = it.overrides?.toInternal()
+                        useDefault = reminders.useDefault,
+                        overrides = reminders.overrides?.map { it.toInternal() }
                 )
             },
             calendarId = organizer?.email,
