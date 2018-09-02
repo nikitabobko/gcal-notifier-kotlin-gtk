@@ -14,6 +14,7 @@ import com.google.api.services.calendar.CalendarScopes
 import com.google.api.services.calendar.model.Events
 import ru.nikitabobko.gcalnotifier.model.MyCalendarListEntry
 import ru.nikitabobko.gcalnotifier.model.MyEvent
+import ru.nikitabobko.gcalnotifier.model.toInternal
 import sun.awt.Mutex
 import java.io.File
 import java.io.IOException
@@ -33,7 +34,6 @@ interface GoogleCalendarManager {
     fun getUpcomingEventsAsync(
             onRefreshedListener: (events: List<MyEvent>?, calendarList: List<MyCalendarListEntry>?) -> Unit
     )
-    fun getUpcomingEventsAsync(calendarId: String, onRefreshedListener: (events: List<MyEvent>?) -> Unit)
     fun getUserCalendarListAsync(
             onReceivedUserCalendarListListener: (calendarList: List<MyCalendarListEntry>?) -> Unit
     )
@@ -46,11 +46,8 @@ class GoogleCalendarManagerImpl(
     @Volatile
     private var _service: Calendar? = null
     private val service: Calendar
-        get() {
-            if (_service == null) {
-                _service = buildService()
-            }
-            return _service!!
+        get(): Calendar {
+            return _service ?: buildService().also { _service = it }
         }
     private val mutex: Mutex = Mutex()
 
@@ -71,22 +68,11 @@ class GoogleCalendarManagerImpl(
                     .setOrderBy("startTime")
                     .setSingleEvents(true)
                     .execute()
-            events.items.toInternal()
-        } catch (ex: Exception) {
+            events.items.map { it.toInternal() }
+        } catch (ex: Throwable) {
             _service = null
             null
         }
-    }
-
-    override fun getUpcomingEventsAsync(
-            calendarId: String,
-            onRefreshedListener: (events: List<MyEvent>?) -> Unit
-    ) {
-        Thread(Runnable {
-            mutex.lock()
-            onRefreshedListener(getUpcomingEvents(calendarId))
-            mutex.unlock()
-        }).start()
     }
 
     override fun getUpcomingEventsAsync(
@@ -123,17 +109,17 @@ class GoogleCalendarManagerImpl(
     override fun getUserCalendarListAsync(
             onReceivedUserCalendarListListener: (calendarList: List<MyCalendarListEntry>?) -> Unit
     ) {
-        Thread(Runnable {
+        Thread {
             mutex.lock()
             onReceivedUserCalendarListListener(getUserCalendarList())
             mutex.unlock()
-        }).start()
+        }.start()
     }
 
     private fun getUserCalendarList(): List<MyCalendarListEntry>? {
         return try {
-            service.calendarList().list().execute().items.toInternal()
-        } catch (ex: Exception) {
+            service.calendarList().list().execute().items.map { it.toInternal() }
+        } catch (ex: Throwable) {
             _service = null
             null
         }

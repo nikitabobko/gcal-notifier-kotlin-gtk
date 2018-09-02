@@ -7,9 +7,6 @@ import ru.nikitabobko.gcalnotifier.support.*
 import ru.nikitabobko.gcalnotifier.view.RefreshButtonState
 import ru.nikitabobko.gcalnotifier.view.View
 import ru.nikitabobko.gcalnotifier.view.ViewJavaGnome
-import java.io.FileNotFoundException
-import java.text.SimpleDateFormat
-import java.util.*
 
 /**
  * Controls app flow. All decisions are made by it.
@@ -96,10 +93,8 @@ class ControllerImpl : Controller {
         view.showPopupMenu()
     }
 
-    override fun eventPopupItemClicked(indexOf: Int) {
-        synchronized(eventsLock) {
-            view.openURLInDefaultBrowser(events[indexOf].htmlLink)
-        }
+    override fun eventPopupItemClicked(indexOf: Int) = synchronized(eventsLock) {
+        view.openURLInDefaultBrowser(events[indexOf].htmlLink)
     }
 
     override fun logoutButtonClicked() {
@@ -153,15 +148,8 @@ class ControllerImpl : Controller {
     override fun applicationStarted() {
         view.showStatusIcon()
         // Trying to load saved events
-        var events: List<MyEvent>
-        var calendars: List<MyCalendarListEntry>
-        try {
-            events = localDataManager.restoreEventsList().toList()
-            calendars = localDataManager.restoreUsersCalendarList().toList()
-        } catch (ex: FileNotFoundException) {
-            events = listOf()
-            calendars = listOf()
-        }
+        val events: List<MyEvent> = localDataManager.restoreEventsList()?.toList() ?: listOf()
+        val calendars: List<MyCalendarListEntry> = localDataManager.restoreUsersCalendarList()?.toList() ?: listOf()
         synchronized(eventsLock) {
             this.events = events
         }

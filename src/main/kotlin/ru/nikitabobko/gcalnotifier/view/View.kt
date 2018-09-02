@@ -114,10 +114,11 @@ class ViewJavaGnome(private val controller: Controller) : View {
     }
 
     private fun insertEventsInPopupMenu(events: List<MyEvent>) {
-        val eventsDateTime = events.reversed().map { it.dateTimeString() }
+        val eventsReversed = events.reversed()
+        val eventsDateTime = eventsReversed.map { it.dateTimeString() }
         val dateTimeCharWidth: Int = eventsDateTime.map { it.length }.max() ?: 0
 
-        events.reversed().mapIndexed { index, myEvent ->
+        eventsReversed.mapIndexed { index, myEvent ->
             return@mapIndexed EventMenuItem(
                     eventsDateTime[index],
                     myEvent.title ?: "",
