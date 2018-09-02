@@ -2,7 +2,6 @@
 
 # gcal-notifier-kotlin-gtk
 Simple Google Calendar notifier for Linux written on Kotlin using GTK lib  
-The latest version is 1.0.4
 
 # Installation
 * For ArchLinux users [AUR package](https://aur.archlinux.org/packages/gcal-notifier-kotlin-gtk/) is available
