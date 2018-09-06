@@ -121,9 +121,7 @@ class ControllerImpl : Controller {
     @Synchronized
     private fun refresh(byExplicitRefreshButtonClick: Boolean = false,
                         doNotNotifyAboutRefreshFailureForce: Boolean = false) {
-        if (byExplicitRefreshButtonClick) {
-            view.refreshButtonState = RefreshButtonState.REFRESHING
-        }
+        view.refreshButtonState = RefreshButtonState.REFRESHING
         googleCalendarManager
                 .getUpcomingEventsAsync { events: List<MyEvent>?, calendarList: List<MyCalendarListEntry>? ->
             if (events != null && calendarList != null) {
@@ -139,9 +137,7 @@ class ControllerImpl : Controller {
                 view.showNotification("Error", "Unable to connect to Google Calendar")
                 notifyUserAboutRefreshFailures = false
             }
-            if (byExplicitRefreshButtonClick) {
-                view.refreshButtonState = RefreshButtonState.NORMAL
-            }
+            view.refreshButtonState = RefreshButtonState.NORMAL
         }
     }
 
