@@ -55,37 +55,33 @@ class EventReminderTrackerImpl(private val controller: Controller) : EventRemind
         }
     }
 
-    private fun buildEventTrackerThread(): Thread {
-        val thread = Thread {
-            while(true) {
-                val currentTimeMillis = System.currentTimeMillis()
+    private fun buildEventTrackerThread(): Thread = Thread {
+        while (true) {
+            val currentTimeMillis = System.currentTimeMillis()
+            if (nextEventsToNotify.isEmpty() || nextEventsToNotifyUNIXTime == null) {
+                initNextEventsToNotify(currentTimeMillis)
                 if (nextEventsToNotify.isEmpty() || nextEventsToNotifyUNIXTime == null) {
-                    initNextEventsToNotify(currentTimeMillis)
-                    if (nextEventsToNotify.isEmpty() || nextEventsToNotifyUNIXTime == null) {
-                        break
-                    }
-                }
-                if (nextEventsToNotifyUNIXTime!! - EPS < currentTimeMillis) {
-                    for (event in nextEventsToNotify) {
-                        controller.eventReminderTriggered(event)
-                    }
-                    lastNotifiedEventUNIXTime = nextEventsToNotifyUNIXTime
-
-                    nextEventsToNotify = listOf()
-                    nextEventsToNotifyUNIXTime = null
-                    continue
-                }
-                try {
-                    Thread.sleep(nextEventsToNotifyUNIXTime!! - currentTimeMillis)
-                } catch (ex: InterruptedException) {
-                    // Thread was interrupted, let's check whether nextEventToNotify changed
-                    initNextEventsToNotify(System.currentTimeMillis())
+                    break
                 }
             }
+            if (nextEventsToNotifyUNIXTime!! - EPS < currentTimeMillis) {
+                for (event in nextEventsToNotify) {
+                    controller.eventReminderTriggered(event)
+                }
+                lastNotifiedEventUNIXTime = nextEventsToNotifyUNIXTime
+
+                nextEventsToNotify = listOf()
+                nextEventsToNotifyUNIXTime = null
+                continue
+            }
+            try {
+                Thread.sleep(nextEventsToNotifyUNIXTime!! - currentTimeMillis)
+            } catch (ex: InterruptedException) {
+                // Thread was interrupted, let's check whether nextEventToNotify changed
+                initNextEventsToNotify(System.currentTimeMillis())
+            }
         }
-        thread.isDaemon = true
-        return thread
-    }
+    }.apply { isDaemon = true }
 
     private fun initNextEventsToNotify(currentTimeMillis: Long) {
         upcomingEventsAndUserCalendarsMutex.lock()

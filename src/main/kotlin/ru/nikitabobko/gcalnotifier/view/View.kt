@@ -8,7 +8,6 @@ import ru.nikitabobko.gcalnotifier.controller.Controller
 import ru.nikitabobko.gcalnotifier.model.MyEvent
 import ru.nikitabobko.gcalnotifier.support.Settings
 import java.net.URI
-import java.text.SimpleDateFormat
 import kotlin.math.min
 
 /**
@@ -55,13 +54,9 @@ class ViewJavaGnome(private val controller: Controller) : View {
     override var refreshButtonState: RefreshButtonState = RefreshButtonState.NORMAL
         set(value) {
             field = value
-            if (field == RefreshButtonState.NORMAL) {
-                (refreshMenuItem.child as? Label)?.label = "Refresh"
-                refreshMenuItem.sensitive = true
-            } else {
-                (refreshMenuItem.child as? Label)?.label = "Refreshing..."
-                refreshMenuItem.sensitive = false
-            }
+            (refreshMenuItem.child as? Label)?.label = if (field == RefreshButtonState.NORMAL) "Refresh"
+                                                       else "Refreshing..."
+            refreshMenuItem.sensitive = field == RefreshButtonState.NORMAL
             popupMenu.showAll()
         }
 
