@@ -15,13 +15,11 @@ import com.google.api.services.calendar.model.Events
 import ru.nikitabobko.gcalnotifier.model.MyCalendarListEntry
 import ru.nikitabobko.gcalnotifier.model.MyEvent
 import ru.nikitabobko.gcalnotifier.model.toInternal
-import sun.awt.Mutex
 import java.io.File
 import java.io.IOException
 import java.io.InputStream
 import java.io.InputStreamReader
 import java.util.*
-import kotlin.Comparator
 
 private val JSON_FACTORY = JacksonFactory.getDefaultInstance()
 private const val CLIENT_SECRET_DIR = "/client_secret.json"
@@ -48,7 +46,7 @@ class GoogleCalendarManagerImpl(
         get(): Calendar {
             return _service ?: buildService().also { _service = it }
         }
-    private val mutex: Mutex = Mutex()
+    private val lock = Any()
 
     private fun getUpcomingEvents(calendarId: String): List<MyEvent>? = try {
         val cal: java.util.Calendar = java.util.Calendar.getInstance()
@@ -75,41 +73,22 @@ class GoogleCalendarManagerImpl(
     override fun getUpcomingEventsAsync(
             onRefreshedListener: (events: List<MyEvent>?, calendarList: List<MyCalendarListEntry>?) -> Unit) {
         Thread {
-            var eventList: List<MyEvent>? = null
-            var calendarList: List<MyCalendarListEntry>? = null
-            try {
-                mutex.lock()
-                val list = mutableListOf<MyEvent>()
-                val calendars: List<MyCalendarListEntry> = getUserCalendarList() ?: return@Thread
-                for (calendar: MyCalendarListEntry in calendars) {
-                    val events: List<MyEvent> = getUpcomingEvents(calendar.id) ?: return@Thread
-                    list.addAll(events)
-                }
-                list.sortWith(Comparator { a: MyEvent, b: MyEvent ->
-                    val x: Long = a.startUNIXTime
-                    val y: Long = b.startUNIXTime
-                    if (x != y) return@Comparator if (x > y) 1 else -1
-                    if (a.title != null && b.title != null) {
-                        return@Comparator a.title.compareTo(b.title)
-                    }
-                    return@Comparator 0
-                })
-                eventList = list
-                calendarList = calendars
-            } finally {
-                onRefreshedListener(eventList, calendarList)
-                mutex.unlock()
+            synchronized(lock) {
+                val calendars: List<MyCalendarListEntry>? = getUserCalendarList()
+                val events: List<MyEvent>? = calendars
+                        ?.mapNotNull { getUpcomingEvents(it.id) }
+                        ?.fold(mutableListOf()) { acc: MutableList<MyEvent>, list: List<MyEvent> ->
+                            acc.apply { addAll(list) }
+                        }?.sortedWith(compareBy({ it.startUNIXTime }, { it.title }))
+                onRefreshedListener(events, calendars)
             }
         }.start()
     }
 
     override fun getUserCalendarListAsync(
-            onReceivedUserCalendarListListener: (calendarList: List<MyCalendarListEntry>?) -> Unit
-    ) {
+            onReceivedUserCalendarListListener: (calendarList: List<MyCalendarListEntry>?) -> Unit) {
         Thread {
-            mutex.lock()
-            onReceivedUserCalendarListListener(getUserCalendarList())
-            mutex.unlock()
+            synchronized(lock) { onReceivedUserCalendarListListener(getUserCalendarList()) }
         }.start()
     }
 

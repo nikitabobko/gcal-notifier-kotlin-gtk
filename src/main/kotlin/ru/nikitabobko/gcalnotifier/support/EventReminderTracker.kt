@@ -4,7 +4,6 @@ import ru.nikitabobko.gcalnotifier.controller.Controller
 import ru.nikitabobko.gcalnotifier.model.MyCalendarListEntry
 import ru.nikitabobko.gcalnotifier.model.MyEvent
 import ru.nikitabobko.gcalnotifier.model.MyEventReminder
-import sun.awt.Mutex
 import java.util.*
 
 /**
@@ -29,7 +28,7 @@ class EventReminderTrackerImpl(private val controller: Controller) : EventRemind
         private const val EPS: Long = 30*1000
     }
 
-    private val upcomingEventsAndUserCalendarsMutex = Mutex()
+    private val upcomingEventsAndUserCalendarsLock = Any()
     @Volatile
     private var upcomingEvents: List<MyEvent> = listOf()
     @Volatile
@@ -43,10 +42,10 @@ class EventReminderTrackerImpl(private val controller: Controller) : EventRemind
 
     @Synchronized
     override fun newDataCame(upcomingEvents: List<MyEvent>, calendars: List<MyCalendarListEntry>) {
-        upcomingEventsAndUserCalendarsMutex.lock()
-        this.upcomingEvents = upcomingEvents
-        this.userCalendarList = calendars
-        upcomingEventsAndUserCalendarsMutex.unlock()
+        synchronized(upcomingEventsAndUserCalendarsLock) {
+            this.upcomingEvents = upcomingEvents
+            this.userCalendarList = calendars
+        }
         if (eventTrackerDaemon.isAlive) {
             eventTrackerDaemon.interrupt()
         } else {
@@ -83,8 +82,7 @@ class EventReminderTrackerImpl(private val controller: Controller) : EventRemind
         }
     }.apply { isDaemon = true }
 
-    private fun initNextEventsToNotify(currentTimeMillis: Long) {
-        upcomingEventsAndUserCalendarsMutex.lock()
+    private fun initNextEventsToNotify(currentTimeMillis: Long) = synchronized(upcomingEventsAndUserCalendarsLock) {
         var curTime = Date(Long.MAX_VALUE)
         val curEvents: MutableList<MyEvent> = mutableListOf()
         val cal = java.util.Calendar.getInstance()
@@ -129,6 +127,5 @@ class EventReminderTrackerImpl(private val controller: Controller) : EventRemind
         if (!curEvents.isEmpty()) {
             nextEventsToNotifyUNIXTime = curTime.time
         }
-        upcomingEventsAndUserCalendarsMutex.unlock()
     }
 }
