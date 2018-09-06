@@ -52,9 +52,9 @@ interface Controller {
     /**
      * Notify [Controller] that user clicked on of the events item in popup menu.
      * Should be called by [View].
-     * @param indexOf Index of event item in popup menu.
+     * @param event which event was clicked
      */
-    fun eventPopupItemClicked(indexOf: Int)
+    fun eventPopupItemClicked(event: MyEvent)
 
     /**
      * Notify [Controller] that it's about time to remind user about event he/she setted to be reminded.
@@ -71,12 +71,6 @@ class ControllerImpl : Controller {
     private val googleCalendarManager = GoogleCalendarManagerImpl(
             view::openURLInDefaultBrowser, localDataManager)
     private val eventReminderTracker: EventReminderTracker = EventReminderTrackerImpl(this)
-    /**
-     * Use only in [synchronized(eventsLock)] block
-     */
-    @Volatile
-    private var events: List<MyEvent> = listOf()
-    private val eventsLock = Any()
     private var notifyUserAboutRefreshFailures = true
 
     override fun eventReminderTriggered(event: MyEvent) {
@@ -93,8 +87,8 @@ class ControllerImpl : Controller {
         view.showPopupMenu()
     }
 
-    override fun eventPopupItemClicked(indexOf: Int) = synchronized(eventsLock) {
-        view.openURLInDefaultBrowser(events[indexOf].htmlLink)
+    override fun eventPopupItemClicked(event: MyEvent) {
+        view.openURLInDefaultBrowser(event.htmlLink)
     }
 
     override fun logoutButtonClicked() {
@@ -128,9 +122,6 @@ class ControllerImpl : Controller {
                 localDataManager.safe(events.toTypedArray(), calendarList.toTypedArray())
                 eventReminderTracker.newDataCame(events, calendarList)
                 view.update(events)
-                synchronized(eventsLock) {
-                    this.events = events
-                }
                 notifyUserAboutRefreshFailures = true
             } else if (!doNotNotifyAboutRefreshFailureForce &&
                     (byExplicitRefreshButtonClick || notifyUserAboutRefreshFailures)) {
@@ -146,9 +137,6 @@ class ControllerImpl : Controller {
         // Trying to load saved events
         val events: List<MyEvent> = localDataManager.restoreEventsList()?.toList() ?: listOf()
         val calendars: List<MyCalendarListEntry> = localDataManager.restoreUsersCalendarList()?.toList() ?: listOf()
-        synchronized(eventsLock) {
-            this.events = events
-        }
         view.update(events)
         eventReminderTracker.newDataCame(events, calendars)
         // refresh thread
