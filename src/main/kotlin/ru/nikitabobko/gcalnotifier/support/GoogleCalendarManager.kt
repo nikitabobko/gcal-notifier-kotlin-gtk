@@ -41,8 +41,7 @@ interface GoogleCalendarManager {
 
 class GoogleCalendarManagerImpl(
         private val openURLInDefaultBrowser: (url: String) -> Unit,
-        private val localDataManager: LocalDataManager
-) : GoogleCalendarManager {
+        private val localDataManager: LocalDataManager) : GoogleCalendarManager {
     @Volatile
     private var _service: Calendar? = null
     private val service: Calendar
@@ -51,28 +50,26 @@ class GoogleCalendarManagerImpl(
         }
     private val mutex: Mutex = Mutex()
 
-    private fun getUpcomingEvents(calendarId: String): List<MyEvent>? {
-        return try {
-            val cal: java.util.Calendar = java.util.Calendar.getInstance()
-            cal.time = Date(System.currentTimeMillis())
-            cal.add(java.util.Calendar.MINUTE, -30)
-            val start = DateTime(cal.time)
-            cal.add(java.util.Calendar.MINUTE, 30)
-            // Look 8 weeks ahead
-            cal.add(java.util.Calendar.WEEK_OF_YEAR, 8)
-            val end = DateTime(cal.time)
+    private fun getUpcomingEvents(calendarId: String): List<MyEvent>? = try {
+        val cal: java.util.Calendar = java.util.Calendar.getInstance()
+        cal.time = Date(System.currentTimeMillis())
+        cal.add(java.util.Calendar.MINUTE, -30)
+        val start = DateTime(cal.time)
+        cal.add(java.util.Calendar.MINUTE, 30)
+        // Look 8 weeks ahead
+        cal.add(java.util.Calendar.WEEK_OF_YEAR, 8)
+        val end = DateTime(cal.time)
 
-            val events: Events = service.events().list(calendarId)
-                    .setTimeMin(start)
-                    .setTimeMax(end)
-                    .setOrderBy("startTime")
-                    .setSingleEvents(true)
-                    .execute()
-            events.items.map { it.toInternal() }
-        } catch (ex: Throwable) {
-            _service = null
-            null
-        }
+        val events: Events = service.events().list(calendarId)
+                .setTimeMin(start)
+                .setTimeMax(end)
+                .setOrderBy("startTime")
+                .setSingleEvents(true)
+                .execute()
+        events.items.map { it.toInternal() }
+    } catch (ex: Throwable) {
+        _service = null
+        null
     }
 
     override fun getUpcomingEventsAsync(
@@ -116,24 +113,15 @@ class GoogleCalendarManagerImpl(
         }.start()
     }
 
-    private fun getUserCalendarList(): List<MyCalendarListEntry>? {
-        return try {
-            service.calendarList().list().execute().items.map { it.toInternal() }
-        } catch (ex: Throwable) {
-            _service = null
-            null
-        }
+    private fun getUserCalendarList(): List<MyCalendarListEntry>? = try {
+        service.calendarList().list().execute().items.map { it.toInternal() }
+    } catch (ex: Throwable) {
+        _service = null
+        null
     }
 
-    private fun buildService(): Calendar {
-        // Build a new authorized API client service.
-        val netHttpTransport: NetHttpTransport =
-                GoogleNetHttpTransport.newTrustedTransport()
-        return Calendar.Builder(
-                netHttpTransport,
-                JSON_FACTORY,
-                getCredentials(netHttpTransport)
-        ).setApplicationName(APPLICATION_NAME).build()
+    private fun buildService(): Calendar = GoogleNetHttpTransport.newTrustedTransport().let {
+        Calendar.Builder(it, JSON_FACTORY, getCredentials(it)).setApplicationName(APPLICATION_NAME).build()
     }
 
     @Throws(IOException::class)
