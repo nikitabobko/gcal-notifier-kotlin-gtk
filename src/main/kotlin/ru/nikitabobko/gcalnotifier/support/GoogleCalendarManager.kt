@@ -12,6 +12,7 @@ import com.google.api.client.util.store.FileDataStoreFactory
 import com.google.api.services.calendar.Calendar
 import com.google.api.services.calendar.CalendarScopes
 import com.google.api.services.calendar.model.Events
+import ru.nikitabobko.gcalnotifier.APPLICATION_NAME
 import ru.nikitabobko.gcalnotifier.model.MyCalendarListEntry
 import ru.nikitabobko.gcalnotifier.model.MyEvent
 import ru.nikitabobko.gcalnotifier.model.toInternal

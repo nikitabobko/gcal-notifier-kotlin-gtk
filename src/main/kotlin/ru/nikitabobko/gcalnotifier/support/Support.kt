@@ -6,7 +6,6 @@ import com.google.api.client.extensions.java6.auth.oauth2.AuthorizationCodeInsta
 import com.google.api.client.extensions.java6.auth.oauth2.VerificationCodeReceiver
 import java.util.*
 
-const val APPLICATION_NAME = "gcal-notifier-kotlin-gtk"
 val USER_HOME_FOLDER = System.getProperty("user.home")!!
 
 private fun Date.plusDays(days: Int): Date {
