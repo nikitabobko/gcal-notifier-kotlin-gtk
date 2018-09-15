@@ -8,8 +8,9 @@ class EventMenuItem(
         private val eventTitle: String,
         private val dateTimeLabelCharWidth: Int = dateTime.length,
         handler: (MenuItem) -> Unit
-) : MenuItem() {
+) : MenuItem("") {
     init {
+        remove(child)
         box(Orientation.HORIZONTAL, 4) {
             label(dateTime) {
                 setAlignment(0f, 0f)
