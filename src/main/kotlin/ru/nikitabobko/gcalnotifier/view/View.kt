@@ -2,6 +2,7 @@ package ru.nikitabobko.gcalnotifier.view
 
 import com.google.common.io.Resources
 import org.gnome.gdk.Pixbuf
+import org.gnome.glib.Glib
 import org.gnome.gtk.*
 import org.gnome.notify.Notification
 import ru.nikitabobko.gcalnotifier.controller.Controller
@@ -14,6 +15,7 @@ import kotlin.math.min
  * Just receives requests by [Controller] and performs them.
  */
 interface View {
+    var controller: Controller
     fun showStatusIcon()
     fun showSettingsWindow()
     fun update(events: List<MyEvent>)
@@ -35,7 +37,7 @@ enum class RefreshButtonState {
 /**
  * Implementation based on java-gnome lib
  */
-class ViewJavaGnome(private val controller: Controller) : View {
+class ViewJavaGnome(private val uiThreadId: Long) : View {
     private var popupMenu: Menu = buildEmptySystemTrayPopupMenu()
     /**
      * Initialized in [buildEmptySystemTrayPopupMenu]
@@ -59,6 +61,7 @@ class ViewJavaGnome(private val controller: Controller) : View {
             refreshMenuItem.sensitive = field == RefreshButtonState.NORMAL
             popupMenu.showAll()
         }
+    override lateinit var controller: Controller
 
     override fun openURLInDefaultBrowser(url: String) {
         Gtk.showURI(URI(url))
@@ -81,23 +84,24 @@ class ViewJavaGnome(private val controller: Controller) : View {
     override fun showNotification(summary: String,
                                   body: String?,
                                   actionLabel: String?,
-                                  action: ((Notification, String) -> Unit)?) {
+                                  action: ((Notification, String) -> Unit)?) = runOnUIThread {
         showNotification(summary, body, false, actionLabel, action)
     }
 
     override fun showInfiniteNotification(summary: String,
                                           body: String?,
                                           actionLabel: String?,
-                                          action: ((Notification, String) -> Unit)?) {
+                                          action: ((Notification, String) -> Unit)?) = runOnUIThread {
         showNotification(summary, body, true, actionLabel, action)
     }
 
-    override fun showPopupMenu() {
-        popupMenu.popup(statusIcon ?: return)
+    override fun showPopupMenu() = runOnUIThread {
+        // don't understand why but when you launch this code in UI thread then menu popups and disappears immediately. That's why I launch it
+        popupMenu.popup(statusIcon ?: return@runOnUIThread)
     }
 
     @Synchronized
-    override fun update(events: List<MyEvent>) {
+    override fun update(events: List<MyEvent>) = runOnUIThread {
         val eventsList = events.subList(0, min(Settings.maxNumberOfEventsToShowInPopupMenu, events.size))
         removeAllEventsFromPopupMenu()
         if (eventsList.isEmpty()) {
@@ -129,15 +133,15 @@ class ViewJavaGnome(private val controller: Controller) : View {
         }
     }
 
-    override fun quit() {
+    override fun quit() = runOnUIThread {
         Gtk.mainQuit()
     }
 
-    override fun showSettingsWindow() {
+    override fun showSettingsWindow() = runOnUIThread {
         TODO(reason = "not implemented")
     }
 
-    override fun showStatusIcon() {
+    override fun showStatusIcon() = runOnUIThread {
         statusIcon = StatusIcon(appIcon).apply {
             // left mouse button click
             connect(StatusIcon.Activate { controller.statusIconClicked() })
@@ -191,5 +195,16 @@ class ViewJavaGnome(private val controller: Controller) : View {
 
         menu.showAll()
         return menu
+    }
+
+    private fun runOnUIThread(callback: () -> Unit) {
+        if (Thread.currentThread().id != uiThreadId) {
+            Glib.idleAdd {
+                callback()
+                return@idleAdd false
+            }
+        } else {
+            callback()
+        }
     }
 }

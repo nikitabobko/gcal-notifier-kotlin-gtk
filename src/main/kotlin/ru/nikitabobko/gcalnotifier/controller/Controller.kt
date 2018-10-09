@@ -64,9 +64,7 @@ interface Controller {
     fun eventReminderTriggered(event: MyEvent)
 }
 
-class ControllerImpl : Controller {
-    private val view: View = ViewJavaGnome(this)
-
+class ControllerImpl(private val view: View) : Controller {
     private val localDataManager: LocalDataManager = LocalDataManagerJSON()
     private val googleCalendarManager = GoogleCalendarManagerImpl(
             view::openURLInDefaultBrowser, localDataManager)
