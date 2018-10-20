@@ -7,6 +7,7 @@ import ru.nikitabobko.gcalnotifier.support.*
 import ru.nikitabobko.gcalnotifier.view.RefreshButtonState
 import ru.nikitabobko.gcalnotifier.view.View
 import ru.nikitabobko.gcalnotifier.view.ViewJavaGnome
+import kotlin.concurrent.thread
 
 /**
  * Controls app flow. All decisions are made by it.
@@ -138,8 +139,8 @@ class ControllerImpl(private val view: View) : Controller {
         view.update(events)
         eventReminderTracker.newDataCame(events, calendars)
         // refresh thread
-        Thread {
-            // If user setted up our app to autostart then it would annoy user
+        thread(isDaemon = true, start = true) {
+            // If user set up our app to autostart then it would annoy user
             // that "Unable to connect to Google Calendar" if gcal-notifier launches
             // faster than connected to wifi network. So we don't notify user about
             // failed initial refresh.
@@ -148,6 +149,6 @@ class ControllerImpl(private val view: View) : Controller {
                 Thread.sleep(Settings.refreshFrequencyInMinutes * 60 * 1000)
                 refresh()
             }
-        }.run { isDaemon = true; start() }
+        }
     }
 }
