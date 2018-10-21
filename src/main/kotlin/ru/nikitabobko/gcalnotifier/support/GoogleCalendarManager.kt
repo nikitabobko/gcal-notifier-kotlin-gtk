@@ -21,6 +21,7 @@ import java.io.IOException
 import java.io.InputStream
 import java.io.InputStreamReader
 import java.util.*
+import kotlin.concurrent.thread
 
 private val JSON_FACTORY = JacksonFactory.getDefaultInstance()
 private const val CLIENT_SECRET_DIR = "/client_secret.json"
@@ -73,7 +74,7 @@ class GoogleCalendarManagerImpl(
 
     override fun getUpcomingEventsAsync(
             onRefreshedListener: (events: List<MyEvent>?, calendarList: List<MyCalendarListEntry>?) -> Unit) {
-        Thread {
+        thread(priority = Thread.MIN_PRIORITY) {
             synchronized(lock) {
                 val calendars: List<MyCalendarListEntry>? = getUserCalendarList()
                 val events: List<MyEvent>? = calendars
@@ -83,14 +84,14 @@ class GoogleCalendarManagerImpl(
                         }?.sortedWith(compareBy({ it.startUNIXTime }, { it.title }))
                 onRefreshedListener(events, calendars)
             }
-        }.start()
+        }
     }
 
     override fun getUserCalendarListAsync(
             onReceivedUserCalendarListListener: (calendarList: List<MyCalendarListEntry>?) -> Unit) {
-        Thread {
+        thread(priority = Thread.MIN_PRIORITY) {
             synchronized(lock) { onReceivedUserCalendarListListener(getUserCalendarList()) }
-        }.start()
+        }
     }
 
     private fun getUserCalendarList(): List<MyCalendarListEntry>? = try {

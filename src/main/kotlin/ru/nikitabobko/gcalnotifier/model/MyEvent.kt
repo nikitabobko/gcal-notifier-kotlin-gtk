@@ -10,12 +10,22 @@ import java.util.*
  * Internal representation of [Event]
  */
 data class MyEvent(val title: String?, val startUNIXTime: Long, val endUNIXTime: Long,
-                   val reminders: MyReminders?, val calendarId: String?, val htmlLink: String,
-                   val isAllDayEvent: Boolean) {
+                   val isAllDayEvent: Boolean, val reminders: MyReminders? = null,
+                   val calendarId: String? = null, val htmlLink: String? = null) {
     /**
      * Internal representation of [Event.Reminders]
      */
-    data class MyReminders(val useDefault: Boolean, val overrides: List<MyEventReminder>?)
+    data class MyReminders(
+            /**
+             * Whether the default reminders of the calendar apply to the event.
+             */
+            val useDefault: Boolean,
+            /**
+             * If the event doesn't use the default reminders, this lists the reminders specific to the event, or,
+             * if not set, indicates that no reminders are set for this event. The maximum number of override
+             * reminders is 5.
+             */
+            val overrides: List<MyEventReminder>?)
 
     fun dateTimeString(): String {
         val eventStart = Date(startUNIXTime)
@@ -29,6 +39,12 @@ data class MyEvent(val title: String?, val startUNIXTime: Long, val endUNIXTime:
             dateTime += SimpleDateFormat(" - HH:mm").format(Date(endUNIXTime))
         }
         return dateTime
+    }
+
+    fun getReminders(calendars: List<MyCalendarListEntry>): List<MyEventReminder>? = when {
+        reminders?.useDefault == true -> calendars.find { it.id == calendarId }?.defaultReminders
+        reminders?.overrides != null -> reminders.overrides
+        else -> null
     }
 }
 

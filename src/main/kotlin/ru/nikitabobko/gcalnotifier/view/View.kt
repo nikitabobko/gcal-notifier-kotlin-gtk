@@ -8,6 +8,7 @@ import org.gnome.notify.Notification
 import ru.nikitabobko.gcalnotifier.controller.Controller
 import ru.nikitabobko.gcalnotifier.model.MyEvent
 import ru.nikitabobko.gcalnotifier.support.Settings
+import ru.nikitabobko.gcalnotifier.support.ViewFactory
 import java.net.URI
 import kotlin.math.min
 
@@ -15,7 +16,6 @@ import kotlin.math.min
  * Just receives requests by [Controller] and performs them.
  */
 interface View {
-    var controller: Controller
     fun showStatusIcon()
     fun showSettingsWindow()
     fun update(events: List<MyEvent>)
@@ -37,7 +37,8 @@ enum class RefreshButtonState {
 /**
  * Implementation based on java-gnome lib
  */
-class ViewJavaGnome(private val uiThreadId: Long) : View {
+class ViewJavaGnome(private val uiThreadId: Long, factory: ViewFactory) : View {
+    private val controller by lazy { factory.controller }
     private var popupMenu: Menu = buildEmptySystemTrayPopupMenu()
     /**
      * Initialized in [buildEmptySystemTrayPopupMenu]
@@ -61,7 +62,6 @@ class ViewJavaGnome(private val uiThreadId: Long) : View {
             refreshMenuItem.sensitive = field == RefreshButtonState.NORMAL
             popupMenu.showAll()
         }
-    override lateinit var controller: Controller
 
     override fun openURLInDefaultBrowser(url: String) {
         Gtk.showURI(URI(url))
@@ -96,7 +96,6 @@ class ViewJavaGnome(private val uiThreadId: Long) : View {
     }
 
     override fun showPopupMenu() = runOnUIThread {
-        // don't understand why but when you launch this code in UI thread then menu popups and disappears immediately. That's why I launch it
         popupMenu.popup(statusIcon ?: return@runOnUIThread)
     }
 
