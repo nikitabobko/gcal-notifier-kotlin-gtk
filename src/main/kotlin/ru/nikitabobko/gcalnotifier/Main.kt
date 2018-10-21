@@ -6,7 +6,7 @@ import ru.nikitabobko.gcalnotifier.support.MyFactory
 import kotlin.system.exitProcess
 
 const val APPLICATION_NAME = "gcal-notifier-kotlin-gtk"
-const val APPLICATION_VERSION = "v1.0.6-beta"
+const val APPLICATION_VERSION = "v2.0"
 val UI_THREAD_ID = Thread.currentThread().id
 
 /**
