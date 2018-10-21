@@ -1,5 +1,5 @@
 buildscript {
-    ext.kotlin_version = '1.2.50'
+    ext.kotlin_version = '1.2.71'
 
     repositories {
         mavenCentral()
@@ -31,12 +31,10 @@ repositories {
 
 dependencies {
     compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
-    compile 'com.google.api-client:google-api-client:1.23.0'
     compile 'com.google.oauth-client:google-oauth-client-jetty:1.23.0'
     compile 'com.google.apis:google-api-services-calendar:v3-rev305-1.23.0'
     compile 'com.google.code.gson:gson:2.8.0'
     compile name: 'gtk'
-    testCompile group: 'junit', name: 'junit', version: '4.12'
 }
 
 jar {
