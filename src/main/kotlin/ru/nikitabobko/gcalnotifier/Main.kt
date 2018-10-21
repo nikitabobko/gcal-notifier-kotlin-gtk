@@ -13,7 +13,10 @@ val UI_THREAD_ID = Thread.currentThread().id
  * Application entry point
  */
 fun main(args: Array<String>) {
-    assert(Thread.currentThread().id == UI_THREAD_ID)
+    Thread.currentThread().let {
+        assert(it.id == UI_THREAD_ID)
+        it.priority = Thread.MIN_PRIORITY
+    }
 
     parseArgs(args)
 

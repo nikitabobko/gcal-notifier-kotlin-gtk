@@ -3,8 +3,8 @@ package ru.nikitabobko.gcalnotifier.support
 import ru.nikitabobko.gcalnotifier.controller.Controller
 import ru.nikitabobko.gcalnotifier.model.MyCalendarListEntry
 import ru.nikitabobko.gcalnotifier.model.MyEvent
-import ru.nikitabobko.gcalnotifier.model.MyEventReminder
-import java.util.*
+import ru.nikitabobko.gcalnotifier.model.MyEventReminderMethod
+import kotlin.concurrent.thread
 
 /**
  * Tracks upcoming reminders for notifying user about them
@@ -17,7 +17,7 @@ interface EventReminderTracker {
     fun newDataCame(upcomingEvents: List<MyEvent>, calendars: List<MyCalendarListEntry>)
 }
 
-class EventReminderTrackerImpl(private val controller: Controller) : EventReminderTracker {
+class EventReminderTrackerImpl(factory: EventReminderTrackerFactory) : EventReminderTracker {
     private var lastNotifiedEventUNIXTime: Long? = null
     private var nextEventsToNotify: List<MyEvent> = listOf()
     private var nextEventsToNotifyUNIXTime: Long? = null
@@ -34,11 +34,11 @@ class EventReminderTrackerImpl(private val controller: Controller) : EventRemind
     @Volatile
     private var userCalendarList: List<MyCalendarListEntry> = listOf()
 
-    private var eventTrackerDaemon: Thread = buildEventTrackerThread()
+    private val controller: Controller by lazy { factory.controller }
 
-    init {
-        eventTrackerDaemon.start()
-    }
+    private val eventTrackerDaemonLock = Any()
+    @Volatile
+    private var eventTrackerDaemon: Thread? = null
 
     @Synchronized
     override fun newDataCame(upcomingEvents: List<MyEvent>, calendars: List<MyCalendarListEntry>) {
@@ -46,86 +46,54 @@ class EventReminderTrackerImpl(private val controller: Controller) : EventRemind
             this.upcomingEvents = upcomingEvents
             this.userCalendarList = calendars
         }
-        if (eventTrackerDaemon.isAlive) {
-            eventTrackerDaemon.interrupt()
-        } else {
-            eventTrackerDaemon = buildEventTrackerThread()
-            eventTrackerDaemon.start()
+        synchronized(eventTrackerDaemonLock) {
+            if (eventTrackerDaemon?.isAlive == true) {
+                eventTrackerDaemon!!.interrupt()
+            } else {
+                eventTrackerDaemon = buildEventTrackerThread().also { it.start() }
+            }
         }
     }
 
-    private fun buildEventTrackerThread(): Thread = Thread {
+    private fun buildEventTrackerThread(): Thread = thread(isDaemon = true, start = false, priority = Thread.MIN_PRIORITY) {
         while (true) {
-            val currentTimeMillis = System.currentTimeMillis()
-            if (nextEventsToNotify.isEmpty() || nextEventsToNotifyUNIXTime == null) {
+            var doContinue = false
+            var currentTimeMillis = System.currentTimeMillis()
+            synchronized(eventTrackerDaemonLock) {
+                currentTimeMillis = System.currentTimeMillis()
                 initNextEventsToNotify(currentTimeMillis)
                 if (nextEventsToNotify.isEmpty() || nextEventsToNotifyUNIXTime == null) {
-                    break
+                    eventTrackerDaemon = null
+                    return@thread
                 }
-            }
-            if (nextEventsToNotifyUNIXTime!! - EPS < currentTimeMillis) {
-                for (event in nextEventsToNotify) {
-                    controller.eventReminderTriggered(event)
-                }
-                lastNotifiedEventUNIXTime = nextEventsToNotifyUNIXTime
+                if (nextEventsToNotifyUNIXTime!! - EPS < currentTimeMillis) {
+                    for (event in nextEventsToNotify) {
+                        controller.eventReminderTriggered(event)
+                    }
+                    lastNotifiedEventUNIXTime = nextEventsToNotifyUNIXTime
 
-                nextEventsToNotify = listOf()
-                nextEventsToNotifyUNIXTime = null
-                continue
+                    nextEventsToNotify = listOf()
+                    nextEventsToNotifyUNIXTime = null
+                    doContinue = true
+                }
             }
+            if (doContinue) continue
             try {
-                Thread.sleep(nextEventsToNotifyUNIXTime!! - currentTimeMillis)
-            } catch (ex: InterruptedException) {
-                // Thread was interrupted, let's check whether nextEventToNotify changed
-                initNextEventsToNotify(System.currentTimeMillis())
-            }
+                Thread.sleep(minOf(nextEventsToNotifyUNIXTime!! - currentTimeMillis, 0L))
+            } catch (ignored: InterruptedException) { }
         }
-    }.apply { isDaemon = true }
+    }
+
+    private fun MyEvent.getNextToNotifyTime(currentTimeMillis: Long): Long? {
+        return this.getReminders(userCalendarList)
+                ?.filter { it.method == MyEventReminderMethod.POPUP }
+                ?.mapNotNull { if (it.minutes != null) this.startUNIXTime - it.minutes else null }
+                ?.filter { it > (lastNotifiedEventUNIXTime ?: currentTimeMillis) }
+                ?.min()
+    }
 
     private fun initNextEventsToNotify(currentTimeMillis: Long) = synchronized(upcomingEventsAndUserCalendarsLock) {
-        var curTime = Date(Long.MAX_VALUE)
-        val curEvents: MutableList<MyEvent> = mutableListOf()
-        val cal = java.util.Calendar.getInstance()
-
-        for (event: MyEvent in upcomingEvents) {
-            val reminders = event.reminders ?: continue
-            val remindersList: List<MyEventReminder> = when {
-
-                reminders.useDefault -> userCalendarList.find { calendarListEntry ->
-                    calendarListEntry.id == event.calendarId
-                }?.defaultReminders ?: listOf()
-
-                reminders.overrides != null -> reminders.overrides
-
-                else -> listOf()
-
-            }.filter { eventReminder -> eventReminder.method == "popup" }
-
-            for (eventReminder in remindersList) {
-                cal.time = Date(event.startUNIXTime)
-                cal.add(java.util.Calendar.MINUTE, -eventReminder.minutes)
-                val reminderTime: Date = cal.time
-
-                val condition = reminderTime <= curTime
-
-                val firstSubCondition = lastNotifiedEventUNIXTime == null &&
-                        reminderTime.time >= currentTimeMillis
-
-                val secondSubCondition = lastNotifiedEventUNIXTime != null &&
-                        reminderTime.time > lastNotifiedEventUNIXTime!!
-
-                if (condition && (firstSubCondition || secondSubCondition)) {
-                    if (reminderTime < curTime) {
-                        curEvents.clear()
-                    }
-                    curEvents.add(event)
-                    curTime = reminderTime
-                }
-            }
-        }
-        nextEventsToNotify = curEvents
-        if (!curEvents.isEmpty()) {
-            nextEventsToNotifyUNIXTime = curTime.time
-        }
+        nextEventsToNotify = upcomingEvents.allMinBy { it.getNextToNotifyTime(currentTimeMillis) ?: Long.MAX_VALUE }
+        nextEventsToNotifyUNIXTime = nextEventsToNotify.firstOrNull()?.getNextToNotifyTime(currentTimeMillis)
     }
 }

@@ -3,10 +3,11 @@ package ru.nikitabobko.gcalnotifier.controller
 import org.gnome.notify.Notification
 import ru.nikitabobko.gcalnotifier.model.MyCalendarListEntry
 import ru.nikitabobko.gcalnotifier.model.MyEvent
-import ru.nikitabobko.gcalnotifier.support.*
+import ru.nikitabobko.gcalnotifier.support.ControllerFactory
+import ru.nikitabobko.gcalnotifier.support.EventReminderTracker
+import ru.nikitabobko.gcalnotifier.support.Settings
 import ru.nikitabobko.gcalnotifier.view.RefreshButtonState
 import ru.nikitabobko.gcalnotifier.view.View
-import ru.nikitabobko.gcalnotifier.view.ViewJavaGnome
 import kotlin.concurrent.thread
 
 /**
@@ -58,18 +59,15 @@ interface Controller {
     fun eventPopupItemClicked(event: MyEvent)
 
     /**
-     * Notify [Controller] that it's about time to remind user about event he/she setted to be reminded.
+     * Notify [Controller] that it's about time to remind user about event he/she set to be reminded.
      * Should be called by [EventReminderTracker]
      * @param event Event to remind user about it
      */
     fun eventReminderTriggered(event: MyEvent)
 }
 
-class ControllerImpl(private val view: View) : Controller {
-    private val localDataManager: LocalDataManager = LocalDataManagerJSON()
-    private val googleCalendarManager = GoogleCalendarManagerImpl(
-            view::openURLInDefaultBrowser, localDataManager)
-    private val eventReminderTracker: EventReminderTracker = EventReminderTrackerImpl(this)
+class ControllerImpl(private val factory: ControllerFactory) : Controller {
+    private val view by lazy { factory.view }
     private var notifyUserAboutRefreshFailures = true
 
     override fun eventReminderTriggered(event: MyEvent) {
@@ -78,7 +76,7 @@ class ControllerImpl(private val view: View) : Controller {
                 event.dateTimeString(),
                 "Open on web"
         ) { _: Notification, _: String ->
-            view.openURLInDefaultBrowser(event.htmlLink)
+            view.openURLInDefaultBrowser(event.htmlLink ?: return@showInfiniteNotification)
         }
     }
 
@@ -87,11 +85,11 @@ class ControllerImpl(private val view: View) : Controller {
     }
 
     override fun eventPopupItemClicked(event: MyEvent) {
-        view.openURLInDefaultBrowser(event.htmlLink)
+        view.openURLInDefaultBrowser(event.htmlLink ?: return)
     }
 
     override fun logoutButtonClicked() {
-        localDataManager.removeAllData()
+        factory.localDataManager.removeAllData()
         view.quit()
     }
 
@@ -115,11 +113,10 @@ class ControllerImpl(private val view: View) : Controller {
     private fun refresh(byExplicitRefreshButtonClick: Boolean = false,
                         doNotNotifyAboutRefreshFailureForce: Boolean = false) {
         view.refreshButtonState = RefreshButtonState.REFRESHING
-        googleCalendarManager
-                .getUpcomingEventsAsync { events: List<MyEvent>?, calendarList: List<MyCalendarListEntry>? ->
+        factory.googleCalendarManager.getUpcomingEventsAsync { events, calendarList ->
             if (events != null && calendarList != null) {
-                localDataManager.safe(events.toTypedArray(), calendarList.toTypedArray())
-                eventReminderTracker.newDataCame(events, calendarList)
+                factory.localDataManager.safe(events.toTypedArray(), calendarList.toTypedArray())
+                factory.eventReminderTracker.newDataCame(events, calendarList)
                 view.update(events)
                 notifyUserAboutRefreshFailures = true
             } else if (!doNotNotifyAboutRefreshFailureForce &&
@@ -133,13 +130,17 @@ class ControllerImpl(private val view: View) : Controller {
 
     override fun applicationStarted() {
         view.showStatusIcon()
+
         // Trying to load saved events
-        val events: List<MyEvent> = localDataManager.restoreEventsList()?.toList() ?: listOf()
-        val calendars: List<MyCalendarListEntry> = localDataManager.restoreUsersCalendarList()?.toList() ?: listOf()
+        val events: List<MyEvent> = factory.localDataManager.restoreEventsList()?.toList() ?: listOf()
+
+        val calendars: List<MyCalendarListEntry> = factory.localDataManager.restoreUsersCalendarList()
+                ?.toList() ?: listOf()
+
         view.update(events)
-        eventReminderTracker.newDataCame(events, calendars)
+        factory.eventReminderTracker.newDataCame(events, calendars)
         // refresh thread
-        thread(isDaemon = true, start = true) {
+        thread(isDaemon = true, priority = Thread.MIN_PRIORITY) {
             // If user set up our app to autostart then it would annoy user
             // that "Unable to connect to Google Calendar" if gcal-notifier launches
             // faster than connected to wifi network. So we don't notify user about

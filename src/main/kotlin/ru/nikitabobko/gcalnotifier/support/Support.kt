@@ -29,6 +29,25 @@ val tomorrow: Date
 val theDayAfterTomorrow: Date
     get() = today.plusDays(2)
 
+inline fun <T, R : Comparable<R>> Iterable<T>.allMinBy(selector: (T) -> R): List<T> {
+    val iterator = iterator()
+    if (!iterator.hasNext()) return listOf()
+    val ret = mutableListOf(iterator.next())
+    var minValue = selector(ret[0])
+    while (iterator.hasNext()) {
+        val e = iterator.next()
+        val v = selector(e)
+        if (v <= minValue) {
+            if (v < minValue) {
+                ret.clear()
+                minValue = v
+            }
+            ret.add(e)
+        }
+    }
+    return ret
+}
+
 class AuthorizationCodeInstalledAppHack(
         flow: AuthorizationCodeFlow,
         receiver: VerificationCodeReceiver,
