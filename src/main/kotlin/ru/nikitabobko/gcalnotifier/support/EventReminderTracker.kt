@@ -79,7 +79,7 @@ class EventReminderTrackerImpl(factory: EventReminderTrackerFactory) : EventRemi
             }
             if (doContinue) continue
             try {
-                Thread.sleep(minOf(nextEventsToNotifyUNIXTime!! - currentTimeMillis, 0L))
+                Thread.sleep(maxOf(nextEventsToNotifyUNIXTime!! - currentTimeMillis, 0L))
             } catch (ignored: InterruptedException) { }
         }
     }
