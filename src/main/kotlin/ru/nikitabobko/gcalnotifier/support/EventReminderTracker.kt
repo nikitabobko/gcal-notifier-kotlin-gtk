@@ -4,6 +4,7 @@ import ru.nikitabobko.gcalnotifier.controller.Controller
 import ru.nikitabobko.gcalnotifier.model.MyCalendarListEntry
 import ru.nikitabobko.gcalnotifier.model.MyEvent
 import ru.nikitabobko.gcalnotifier.model.MyEventReminderMethod
+import ru.nikitabobko.kotlin.refdelegation.weakRef
 import kotlin.concurrent.thread
 
 /**
@@ -27,15 +28,15 @@ class EventReminderTrackerImpl(factory: FactoryForEventReminderTracker) : EventR
          */
         private const val EPS: Long = 30*1000
     }
-
-    private val upcomingEventsAndUserCalendarsLock = Any()
-    @Volatile
-    private var upcomingEvents: List<MyEvent> = listOf()
-    @Volatile
-    private var userCalendarList: List<MyCalendarListEntry> = listOf()
-
     private val controller: Controller by factory.controller
-
+    private val localDataManager: LocalDataManager by factory.localDataManager
+    private val upcomingEventsAndUserCalendarsLock = Any()
+    private var upcomingEvents: List<MyEvent> by weakRef {
+        localDataManager.restoreEventsList()?.toList() ?: emptyList()
+    }
+    private var userCalendarList: List<MyCalendarListEntry> by weakRef {
+        localDataManager.restoreUsersCalendarList()?.toList() ?: emptyList()
+    }
     private val eventTrackerDaemonLock = Any()
     @Volatile
     private var eventTrackerDaemon: Thread? = null
