@@ -3,7 +3,7 @@ APPNAME=$(shell cat settings.gradle | grep -Po "(?<=(rootProject.name = ')).+(?=
 VERSION=$(shell cat build.gradle | grep -Po "(?<=(version ')).+(?=')")
 
 JAR_PATH_GRADLE=build/libs/$(APPNAME)-$(VERSION).jar
-TEMP_FOLDER_RELEASE=$(APPNAME)-release
+TEMP_FOLDER_RELEASE=$(APPNAME)-$(VERSION)
 JAR_PATH=$(TEMP_FOLDER_RELEASE)/$(APPNAME).jar
 TAR_FILE_NAME=$(APPNAME)-$(VERSION).tar
 

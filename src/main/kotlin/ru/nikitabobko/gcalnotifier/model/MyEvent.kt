@@ -1,8 +1,10 @@
 package ru.nikitabobko.gcalnotifier.model
 
-import com.google.api.services.calendar.model.Colors
 import com.google.api.services.calendar.model.Event
-import ru.nikitabobko.gcalnotifier.support.*
+import ru.nikitabobko.gcalnotifier.support.theDayAfterTomorrow
+import ru.nikitabobko.gcalnotifier.support.today
+import ru.nikitabobko.gcalnotifier.support.tomorrow
+import ru.nikitabobko.gcalnotifier.support.until
 import java.text.SimpleDateFormat
 import java.util.*
 

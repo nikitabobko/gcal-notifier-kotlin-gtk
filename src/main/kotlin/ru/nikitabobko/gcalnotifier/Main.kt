@@ -22,7 +22,7 @@ fun main(args: Array<String>) {
 
     Gtk.init(arrayOf())
     Notify.init(APPLICATION_NAME)
-    MyFactory.controller.applicationStarted()
+    MyFactory.controller.value.applicationStarted()
     Gtk.main()
 }
 
