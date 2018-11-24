@@ -72,7 +72,7 @@ class ControllerImpl(factory: FactoryForController) : Controller {
     private val googleCalendarManager by factory.googleCalendarManager
     private val eventReminderTracker by factory.eventReminderTracker
 
-    private var notifyUserAboutRefreshFailures = true
+    private var notifyAboutRefreshFailures = true
 
     override fun eventReminderTriggered(event: MyEvent) {
         view.showInfiniteNotification(
@@ -102,7 +102,7 @@ class ControllerImpl(factory: FactoryForController) : Controller {
     }
 
     override fun refreshButtonClicked() {
-        refresh(byExplicitRefreshButtonClick = true)
+        refresh()
     }
 
     override fun quitClicked() {
@@ -114,19 +114,17 @@ class ControllerImpl(factory: FactoryForController) : Controller {
     }
 
     @Synchronized
-    private fun refresh(byExplicitRefreshButtonClick: Boolean = false,
-                        doNotNotifyAboutRefreshFailureForce: Boolean = false) {
+    private fun refresh(notifyAboutRefreshFailuresForce: Boolean = true) {
         view.refreshButtonState = RefreshButtonState.REFRESHING
         googleCalendarManager.getUpcomingEventsAsync { events, calendarList ->
             if (events != null && calendarList != null) {
                 localDataManager.safe(events.toTypedArray(), calendarList.toTypedArray())
                 eventReminderTracker.newDataCame(events, calendarList)
                 view.update(events)
-                notifyUserAboutRefreshFailures = true
-            } else if (!doNotNotifyAboutRefreshFailureForce &&
-                    (byExplicitRefreshButtonClick || notifyUserAboutRefreshFailures)) {
+                notifyAboutRefreshFailures = true
+            } else if (notifyAboutRefreshFailuresForce && notifyAboutRefreshFailures) {
                 view.showNotification("Error", "Unable to connect to Google Calendar")
-                notifyUserAboutRefreshFailures = false
+                notifyAboutRefreshFailures = false
             }
             view.refreshButtonState = RefreshButtonState.NORMAL
         }
@@ -149,7 +147,7 @@ class ControllerImpl(factory: FactoryForController) : Controller {
             // that "Unable to connect to Google Calendar" if gcal-notifier launches
             // faster than connected to wifi network. So we don't notify user about
             // failed initial refresh.
-            refresh(doNotNotifyAboutRefreshFailureForce = true)
+            refresh(notifyAboutRefreshFailuresForce = false)
             while (true) {
                 Thread.sleep(Settings.refreshFrequencyInMinutes * 60 * 1000)
                 refresh()
