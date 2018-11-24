@@ -39,7 +39,7 @@ fun printVersionAndExit() {
 
 fun printHelpAndExit() {
     println("""
-        usage: $APPLICATION_NAME <options>
+        usage: $APPLICATION_NAME [options]
         where possible options include:
           -h, --help          show this help message and exit
           -v, --version       show version and exit
