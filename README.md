@@ -9,7 +9,7 @@ Simple Google Calendar notifier for Linux written on Kotlin using GTK lib
   * Ensure that you have [java-gnome lib](http://java-gnome.sourceforge.net/) installed
   * Download the latest release on the [release page](https://github.com/nikitabobko/gcal-notifier-kotlin-gtk/releases)
   * Extract tar archieve by executing:  
-  `tar -xvf gcal-notifier-kotlin-gtk.tar`
+  `tar -xvf gcal-notifier-kotlin-gtk-VERSION.tar`
   * Install program by executing `install.sh` script in extracted folder:  
   `sudo ./install.sh`
 
