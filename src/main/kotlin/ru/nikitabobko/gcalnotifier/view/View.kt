@@ -8,7 +8,7 @@ import org.gnome.notify.Notification
 import ru.nikitabobko.gcalnotifier.controller.Controller
 import ru.nikitabobko.gcalnotifier.model.MyEvent
 import ru.nikitabobko.gcalnotifier.support.Settings
-import ru.nikitabobko.gcalnotifier.support.ViewFactory
+import ru.nikitabobko.gcalnotifier.support.FactoryForView
 import java.net.URI
 import kotlin.math.min
 
@@ -37,8 +37,8 @@ enum class RefreshButtonState {
 /**
  * Implementation based on java-gnome lib
  */
-class ViewJavaGnome(private val uiThreadId: Long, factory: ViewFactory) : View {
-    private val controller by lazy { factory.controller }
+class ViewJavaGnome(private val uiThreadId: Long, factory: FactoryForView) : View {
+    private val controller by factory.controller
     private var popupMenu: Menu = buildEmptySystemTrayPopupMenu()
     /**
      * Initialized in [buildEmptySystemTrayPopupMenu]

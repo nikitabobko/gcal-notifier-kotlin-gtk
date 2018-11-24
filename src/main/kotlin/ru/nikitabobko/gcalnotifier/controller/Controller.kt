@@ -3,7 +3,7 @@ package ru.nikitabobko.gcalnotifier.controller
 import org.gnome.notify.Notification
 import ru.nikitabobko.gcalnotifier.model.MyCalendarListEntry
 import ru.nikitabobko.gcalnotifier.model.MyEvent
-import ru.nikitabobko.gcalnotifier.support.ControllerFactory
+import ru.nikitabobko.gcalnotifier.support.FactoryForController
 import ru.nikitabobko.gcalnotifier.support.EventReminderTracker
 import ru.nikitabobko.gcalnotifier.support.Settings
 import ru.nikitabobko.gcalnotifier.view.RefreshButtonState
@@ -66,8 +66,12 @@ interface Controller {
     fun eventReminderTriggered(event: MyEvent)
 }
 
-class ControllerImpl(private val factory: ControllerFactory) : Controller {
-    private val view by lazy { factory.view }
+class ControllerImpl(factory: FactoryForController) : Controller {
+    private val view by factory.view
+    private val localDataManager by factory.localDataManager
+    private val googleCalendarManager by factory.googleCalendarManager
+    private val eventReminderTracker by factory.eventReminderTracker
+
     private var notifyUserAboutRefreshFailures = true
 
     override fun eventReminderTriggered(event: MyEvent) {
@@ -89,7 +93,7 @@ class ControllerImpl(private val factory: ControllerFactory) : Controller {
     }
 
     override fun logoutButtonClicked() {
-        factory.localDataManager.removeAllData()
+        localDataManager.removeAllData()
         view.quit()
     }
 
@@ -113,10 +117,10 @@ class ControllerImpl(private val factory: ControllerFactory) : Controller {
     private fun refresh(byExplicitRefreshButtonClick: Boolean = false,
                         doNotNotifyAboutRefreshFailureForce: Boolean = false) {
         view.refreshButtonState = RefreshButtonState.REFRESHING
-        factory.googleCalendarManager.getUpcomingEventsAsync { events, calendarList ->
+        googleCalendarManager.getUpcomingEventsAsync { events, calendarList ->
             if (events != null && calendarList != null) {
-                factory.localDataManager.safe(events.toTypedArray(), calendarList.toTypedArray())
-                factory.eventReminderTracker.newDataCame(events, calendarList)
+                localDataManager.safe(events.toTypedArray(), calendarList.toTypedArray())
+                eventReminderTracker.newDataCame(events, calendarList)
                 view.update(events)
                 notifyUserAboutRefreshFailures = true
             } else if (!doNotNotifyAboutRefreshFailureForce &&
@@ -132,13 +136,13 @@ class ControllerImpl(private val factory: ControllerFactory) : Controller {
         view.showStatusIcon()
 
         // Trying to load saved events
-        val events: List<MyEvent> = factory.localDataManager.restoreEventsList()?.toList() ?: listOf()
+        val events: List<MyEvent> = localDataManager.restoreEventsList()?.toList() ?: listOf()
 
-        val calendars: List<MyCalendarListEntry> = factory.localDataManager.restoreUsersCalendarList()
+        val calendars: List<MyCalendarListEntry> = localDataManager.restoreUsersCalendarList()
                 ?.toList() ?: listOf()
 
         view.update(events)
-        factory.eventReminderTracker.newDataCame(events, calendars)
+        eventReminderTracker.newDataCame(events, calendars)
         // refresh thread
         thread(isDaemon = true, priority = Thread.MIN_PRIORITY) {
             // If user set up our app to autostart then it would annoy user

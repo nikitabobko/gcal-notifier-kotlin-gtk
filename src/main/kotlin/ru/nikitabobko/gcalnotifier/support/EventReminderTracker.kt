@@ -17,8 +17,8 @@ interface EventReminderTracker {
     fun newDataCame(upcomingEvents: List<MyEvent>, calendars: List<MyCalendarListEntry>)
 }
 
-class EventReminderTrackerImpl(factory: EventReminderTrackerFactory) : EventReminderTracker {
-    private var lastNotifiedEventUNIXTime: Long? = null
+class EventReminderTrackerImpl(factory: FactoryForEventReminderTracker) : EventReminderTracker {
+    private var lastNotifiedEventUNIXTime: Long = System.currentTimeMillis()
     private var nextEventsToNotify: List<MyEvent> = listOf()
     private var nextEventsToNotifyUNIXTime: Long? = null
     companion object {
@@ -34,7 +34,7 @@ class EventReminderTrackerImpl(factory: EventReminderTrackerFactory) : EventRemi
     @Volatile
     private var userCalendarList: List<MyCalendarListEntry> = listOf()
 
-    private val controller: Controller by lazy { factory.controller }
+    private val controller: Controller by factory.controller
 
     private val eventTrackerDaemonLock = Any()
     @Volatile
@@ -58,10 +58,9 @@ class EventReminderTrackerImpl(factory: EventReminderTrackerFactory) : EventRemi
     private fun buildEventTrackerThread(): Thread = thread(isDaemon = true, start = false, priority = Thread.MIN_PRIORITY) {
         while (true) {
             var doContinue = false
-            var currentTimeMillis = System.currentTimeMillis()
             synchronized(eventTrackerDaemonLock) {
-                currentTimeMillis = System.currentTimeMillis()
-                initNextEventsToNotify(currentTimeMillis)
+                val currentTimeMillis = System.currentTimeMillis()
+                initNextEventsToNotify()
                 if (nextEventsToNotify.isEmpty() || nextEventsToNotifyUNIXTime == null) {
                     eventTrackerDaemon = null
                     return@thread
@@ -70,7 +69,7 @@ class EventReminderTrackerImpl(factory: EventReminderTrackerFactory) : EventRemi
                     for (event in nextEventsToNotify) {
                         controller.eventReminderTriggered(event)
                     }
-                    lastNotifiedEventUNIXTime = nextEventsToNotifyUNIXTime
+                    lastNotifiedEventUNIXTime = nextEventsToNotifyUNIXTime!!
 
                     nextEventsToNotify = listOf()
                     nextEventsToNotifyUNIXTime = null
@@ -79,21 +78,24 @@ class EventReminderTrackerImpl(factory: EventReminderTrackerFactory) : EventRemi
             }
             if (doContinue) continue
             try {
-                Thread.sleep(maxOf(nextEventsToNotifyUNIXTime!! - currentTimeMillis, 0L))
+                val maxOf = maxOf(nextEventsToNotifyUNIXTime!! - System.currentTimeMillis(), 0L)
+                Thread.sleep(maxOf)
             } catch (ignored: InterruptedException) { }
         }
     }
 
-    private fun MyEvent.getNextToNotifyTime(currentTimeMillis: Long): Long? {
-        return this.getReminders(userCalendarList)
-                ?.filter { it.method == MyEventReminderMethod.POPUP }
-                ?.mapNotNull { if (it.minutes != null) this.startUNIXTime - it.minutes else null }
-                ?.filter { it > (lastNotifiedEventUNIXTime ?: currentTimeMillis) }
-                ?.min()
-    }
+    private fun MyEvent.getNextToNotifyTime(): Long? = this.getReminders(userCalendarList)
+            ?.filter { it.method == MyEventReminderMethod.POPUP }
+            ?.mapNotNull { if (it.milliseconds != null) this.startUNIXTime - it.milliseconds else null }
+            ?.filter { it > lastNotifiedEventUNIXTime }
+            ?.min()
 
-    private fun initNextEventsToNotify(currentTimeMillis: Long) = synchronized(upcomingEventsAndUserCalendarsLock) {
-        nextEventsToNotify = upcomingEvents.allMinBy { it.getNextToNotifyTime(currentTimeMillis) ?: Long.MAX_VALUE }
-        nextEventsToNotifyUNIXTime = nextEventsToNotify.firstOrNull()?.getNextToNotifyTime(currentTimeMillis)
+    private fun initNextEventsToNotify() = synchronized(upcomingEventsAndUserCalendarsLock) {
+        val candidates = upcomingEvents.mapNotNull { event ->
+            event.getNextToNotifyTime()?.let { Pair(event, it) }
+        }
+
+        nextEventsToNotifyUNIXTime = candidates.minBy { it.second }?.second
+        nextEventsToNotify = candidates.filter { it.second == nextEventsToNotifyUNIXTime }.map { it.first }
     }
 }

@@ -1,6 +1,7 @@
 package ru.nikitabobko.gcalnotifier.model
 
 import com.google.api.services.calendar.model.EventReminder
+import ru.nikitabobko.gcalnotifier.support.minutes
 
 enum class MyEventReminderMethod {
     EMAIL, SMS, POPUP
@@ -20,10 +21,10 @@ data class MyEventReminder(
          */
         val method: MyEventReminderMethod?,
         /**
-         * Number of minutes before the start of the event when the reminder should trigger.
-         * Valid values are between 0 and 40320 (4 weeks in minutes).
+         * Number of milliseconds before the start of the event when the reminder should trigger.
+         * Valid values are between 0 and 2 419 200 000 (4 weeks in milliseconds).
          */
-        val minutes: Int?)
+        val milliseconds: Long?)
 
 /**
  * Convert to internal representation
@@ -36,6 +37,6 @@ fun EventReminder.toInternal(): MyEventReminder {
                 "popup" -> MyEventReminderMethod.POPUP
                 else -> null
             },
-            minutes = minutes
+            milliseconds = minutes.minutes
     )
 }

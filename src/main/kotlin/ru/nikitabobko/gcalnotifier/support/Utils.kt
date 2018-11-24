@@ -5,6 +5,8 @@ import com.google.api.client.auth.oauth2.AuthorizationCodeRequestUrl
 import com.google.api.client.extensions.java6.auth.oauth2.AuthorizationCodeInstalledApp
 import com.google.api.client.extensions.java6.auth.oauth2.VerificationCodeReceiver
 import java.util.*
+import kotlin.properties.ReadOnlyProperty
+import kotlin.reflect.KProperty
 
 val USER_HOME_FOLDER = System.getProperty("user.home")!!
 
@@ -20,6 +22,8 @@ val today: Date
         val cal = Calendar.getInstance()
         cal.time = Date(System.currentTimeMillis())
         cal.set(Calendar.HOUR_OF_DAY, 0)
+        cal.set(Calendar.MINUTE, 0)
+        cal.set(Calendar.SECOND, 0)
         return cal.time
     }
 
@@ -28,25 +32,6 @@ val tomorrow: Date
 
 val theDayAfterTomorrow: Date
     get() = today.plusDays(2)
-
-inline fun <T, R : Comparable<R>> Iterable<T>.allMinBy(selector: (T) -> R): List<T> {
-    val iterator = iterator()
-    if (!iterator.hasNext()) return listOf()
-    val ret = mutableListOf(iterator.next())
-    var minValue = selector(ret[0])
-    while (iterator.hasNext()) {
-        val e = iterator.next()
-        val v = selector(e)
-        if (v <= minValue) {
-            if (v < minValue) {
-                ret.clear()
-                minValue = v
-            }
-            ret.add(e)
-        }
-    }
-    return ret
-}
 
 class AuthorizationCodeInstalledAppHack(
         flow: AuthorizationCodeFlow,
@@ -60,12 +45,18 @@ class AuthorizationCodeInstalledAppHack(
     }
 }
 
-infix fun Date.until(tomorrow: Date): ExclusiveDateRange {
-    return ExclusiveDateRange(this, tomorrow)
+val Int.seconds: Long
+    get() = this * 1000L
+
+val Int.minutes: Long
+    get() = this * 1000L * 60L
+
+infix fun Date.until(exclusive: Date): ClosedRange<Date> {
+    return this..Date(exclusive.time - 1.seconds)
 }
 
-class ExclusiveDateRange(private val fromInclusively: Date, private val toExclusively: Date) {
-    operator fun contains(a: Date): Boolean {
-        return a >= fromInclusively && a < toExclusively
-    }
+fun <T> lazyProp(init: () -> T) = LazyProperty(lazy(init))
+
+class LazyProperty<out T>(lazy: Lazy<T>) : Lazy<T> by lazy, ReadOnlyProperty<Any?, T> {
+    override fun getValue(thisRef: Any?, property: KProperty<*>): T = value
 }
