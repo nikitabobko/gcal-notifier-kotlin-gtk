@@ -22,6 +22,7 @@ interface FactoryForView {
 
 interface FactoryForEventReminderTracker {
     val controller: ReadOnlyProperty<Any?, Controller>
+    val localDataManager: ReadOnlyProperty<Any?, LocalDataManager>
 }
 
 object MyFactory : Factory {
