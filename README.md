@@ -14,7 +14,7 @@ Simple Google Calendar notifier for Linux written on Kotlin using GTK lib
   `sudo ./install.sh`
 
 # Usage
-While app is running it shows small icon in your system tray and popups notifications for events which are setted to be reminded in Google Calendar:  
+While app is running it shows small icon in your system tray and popups notifications for events which are set to be reminded in Google Calendar:  
 ![popup.png](https://raw.githubusercontent.com/nikitabobko/gcal-notifier-kotlin-gtk/master/.screenshots/popup.png)![notif.png](https://raw.githubusercontent.com/nikitabobko/gcal-notifier-kotlin-gtk/master/.screenshots/notif.png)
 
 `Hint:` Gnome users may not see that system tray icon as system tray feature was removed in Gnome 3.26. You may want to install
