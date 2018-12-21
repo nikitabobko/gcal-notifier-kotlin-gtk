@@ -11,23 +11,41 @@ import kotlin.reflect.KProperty
 import kotlin.test.*
 
 open class EmptyFakeController : Controller {
-    override fun applicationStarted() {}
+    override fun applicationStarted(): Unit = TODO("not implemented")
 
-    override fun openGoogleCalendarOnWebButtonClicked() {}
+    override fun openGoogleCalendarOnWebButtonClicked(): Unit = TODO("not implemented")
 
-    override fun statusIconClicked() {}
+    override fun statusIconClicked(): Unit = TODO("not implemented")
 
-    override fun quitClicked() {}
+    override fun quitClicked(): Unit = TODO("not implemented")
 
-    override fun refreshButtonClicked() {}
+    override fun refreshButtonClicked(): Unit = TODO("not implemented")
 
-    override fun settingsButtonClicked() {}
+    override fun settingsButtonClicked(): Unit = TODO("not implemented")
 
-    override fun logoutButtonClicked() {}
+    override fun logoutButtonClicked(): Unit = TODO("not implemented")
 
-    override fun eventPopupItemClicked(event: MyEvent) {}
+    override fun eventPopupItemClicked(event: MyEvent): Unit = TODO("not implemented")
 
-    override fun eventReminderTriggered(event: MyEvent) {}
+    override fun eventReminderTriggered(event: MyEvent): Unit = TODO("not implemented")
+}
+
+open class EmptyLocalDataManager : LocalDataManager {
+    override val googleCalendarCredentialsDirPath: String
+        get() = TODO("not implemented")
+
+    override fun safeEventsList(events: Array<MyEvent>): Unit = TODO("not implemented")
+
+    override fun restoreEventsList(): Array<MyEvent>? = TODO("not implemented")
+
+    override fun safeUsersCalendarList(calendarList: Array<MyCalendarListEntry>) = TODO("not implemented")
+
+    override fun restoreUsersCalendarList(): Array<MyCalendarListEntry>? = TODO("not implemented")
+
+    override fun safe(events: Array<MyEvent>, calendarList: Array<MyCalendarListEntry>): Unit = TODO("not implemented")
+
+    override fun removeAllData(): Unit = TODO("not implemented")
+
 }
 
 class EventReminderTrackerTests {
@@ -143,9 +161,9 @@ class EventReminderTrackerTests {
                 }
                 count++
             }
-        })
+        }, events.toTypedArray(), emptyArray())
 
-        val numOfThreads = 10_000
+        val numOfThreads = 5_000
         val barrier = CyclicBarrier(numOfThreads + 1)
         val threads = Array(numOfThreads) {
             thread {
@@ -180,9 +198,8 @@ class EventReminderTrackerTests {
         val controllerProvider = initTrackerWrapper?.controllerProvider
                 ?.also { it.controller = fakeController } ?: ControllerProvider(fakeController)
 
-        val trackerWrapper = initTrackerWrapper?.tracker ?: EventReminderTrackerImpl(object : FactoryForEventReminderTracker {
-            override val controller: ReadOnlyProperty<Any?, Controller> = controllerProvider
-        })
+        val trackerWrapper = initTrackerWrapper?.tracker
+                ?: createEventReminderTrackerImpl(controllerProvider, events.toTypedArray(), calendars.toTypedArray())
 
         trackerWrapper.newDataCame(events, calendars)
         waitFor { count == numberOfTriggers }
@@ -190,12 +207,28 @@ class EventReminderTrackerTests {
         return EventReminderTrackerWrapper(trackerWrapper, controllerProvider)
     }
 
-    private fun createEventReminderTrackerImpl(controller: Controller): EventReminderTrackerImpl {
+    private fun createEventReminderTrackerImpl(controllerProvider: ReadOnlyProperty<Any?, Controller>,
+                                               events: Array<MyEvent>, calendars: Array<MyCalendarListEntry>): EventReminderTrackerImpl {
         return EventReminderTrackerImpl(object : FactoryForEventReminderTracker {
-            override val controller: ReadOnlyProperty<Any?, Controller> = object : ReadOnlyProperty<Any?, Controller> {
-                override fun getValue(thisRef: Any?, property: KProperty<*>) = controller
+            override val localDataManager: ReadOnlyProperty<Any?, LocalDataManager> = object : ReadOnlyProperty<Any?, LocalDataManager> {
+                override fun getValue(thisRef: Any?, property: KProperty<*>): LocalDataManager = object : EmptyLocalDataManager() {
+                    override fun restoreEventsList(): Array<MyEvent>? = events
+
+                    override fun restoreUsersCalendarList(): Array<MyCalendarListEntry>? = calendars
+                }
             }
+            override val controller: ReadOnlyProperty<Any?, Controller> = controllerProvider
         })
+    }
+
+    private fun createEventReminderTrackerImpl(controller: Controller, events: Array<MyEvent>,
+                                               calendars: Array<MyCalendarListEntry>): EventReminderTrackerImpl {
+        return createEventReminderTrackerImpl(
+                object : ReadOnlyProperty<Any?, Controller> {
+                    override fun getValue(thisRef: Any?, property: KProperty<*>) = controller
+                },
+                events,
+                calendars)
     }
 
     private inline fun waitFor(maxTime: Long = 10.seconds,callback: () -> Boolean) {
