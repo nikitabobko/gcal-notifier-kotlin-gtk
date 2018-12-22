@@ -1,6 +1,7 @@
 package ru.nikitabobko.gcalnotifier
 
 import ru.nikitabobko.gcalnotifier.support.tomorrow
+import ru.nikitabobko.gcalnotifier.support.today
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -8,7 +9,12 @@ class MyEventTests {
 
     @Test
     fun dateTimeStringTest() {
-        assertEquals("Today", createEvent("title", System.currentTimeMillis(), listOf()).dateTimeString().split(" ")[0])
-        assertEquals("Tomorrow", createEvent("title", tomorrow.time, listOf()).dateTimeString().split(" ")[0])
+        doTest("Today", System.currentTimeMillis())
+        doTest("Today", today.time)
+        doTest("Tomorrow", tomorrow.time)
+    }
+
+    private fun doTest(expected: String, actualTimeInMillis: Long) {
+        assertEquals(expected, createEvent("title", actualTimeInMillis, emptyList()).dateTimeString().split(" ")[0])
     }
 }
