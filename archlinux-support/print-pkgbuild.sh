@@ -22,6 +22,6 @@ source=(\"https://github.com/nikitabobko/gcal-notifier-kotlin-gtk/releases/downl
 sha256sums=(\"$sha256\")
 
 package() {
-    cd \${srcdir}/gcal-notifier-kotlin-gtk-\${pkgver}
+    cd \${srcdir}/gcal-notifier-kotlin-gtk-v\${pkgver}
     ./install.sh \$pkgdir/
 }"
