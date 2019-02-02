@@ -2,26 +2,74 @@
 APPNAME=$(shell cat settings.gradle | grep -Po "(?<=(rootProject.name = ')).+(?=')")
 VERSION=$(shell cat build.gradle | grep -Po "(?<=(version ')).+(?=')")
 
-JAR_PATH_GRADLE=build/libs/$(APPNAME)-$(VERSION).jar
-TEMP_FOLDER_RELEASE=$(APPNAME)-$(VERSION)
-JAR_PATH=$(TEMP_FOLDER_RELEASE)/$(APPNAME).jar
-TAR_FILE_NAME=$(APPNAME)-$(VERSION).tar
+MAIN_DIR=$(APPNAME)-v$(VERSION)
 
-.PHONY: $(JAR_PATH_GRADLE)
+DEBIAN_SUPPORT_DIR=debian-support
 
-tar: $(TAR_FILE_NAME)
+JAR_FILE=$(MAIN_DIR)/$(APPNAME).jar
+JAR_FILE_GRADLE=build/libs/$(APPNAME)-$(VERSION).jar
 
-$(TAR_FILE_NAME): $(TEMP_FOLDER_RELEASE) $(JAR_PATH) 
-	tar -cf $@ $(TEMP_FOLDER_RELEASE); rm -rf $<
+TAR_FILE=$(APPNAME)-v$(VERSION).tar
 
-$(TEMP_FOLDER_RELEASE):
-	mkdir -p $@ && cp -r support/. $@ && cp src/main/resources/icon.png $@
+DEB_DIR=$(APPNAME)-v$(VERSION)-deb
+DEB_FILE=$(APPNAME)-v$(VERSION).deb
 
-$(JAR_PATH): $(JAR_PATH_GRADLE) $(TEMP_FOLDER_RELEASE) 
-	cp $< $@
+.PHONY: $(JAR_FILE_GRADLE)
 
-$(JAR_PATH_GRADLE):
+all: tar deb
+
+######################
+### Debian package ###
+######################
+
+deb: $(DEB_FILE)
+
+$(DEB_FILE): $(DEB_DIR)
+	dpkg-deb --build $< $@
+
+$(DEB_DIR): install_to_DEB_DIR $(DEB_DIR)/DEBIAN/control 
+
+install_to_DEB_DIR: $(MAIN_DIR)
+	mkdir -p $(DEB_DIR)
+	$(MAIN_DIR)/install.sh $(DEB_DIR)
+
+$(DEB_DIR)/DEBIAN/control:
+	mkdir -p $(DEB_DIR)/DEBIAN && \
+	cat $(DEBIAN_SUPPORT_DIR)/control > $@ && \
+	echo "Version: ${VERSION}" >> $@ && \
+	echo "Installed-Size: $(shell du -s $(DEB_DIR) | cut -f1)" >> $@
+
+#############################
+### Universal tar package ###
+#############################
+
+tar: $(TAR_FILE)
+
+$(TAR_FILE): $(MAIN_DIR)
+	tar -cf $@ $<
+
+###########################################################
+### Main dir which collects all sources into one folder ###
+###########################################################
+
+$(MAIN_DIR): $(JAR_FILE)
+	mkdir -p $@ && \
+	cp -r support/. $@ && \
+	cp src/main/resources/icon.png $@
+
+#############################
+### Kotlin compiled files ###
+#############################
+
+$(JAR_FILE): $(JAR_FILE_GRADLE)
+	install -D $< $@
+
+$(JAR_FILE_GRADLE):
 	./gradlew jar
 
+#############
+### clean ###
+#############
+
 clean:
-	./gradlew clean && rm -f $(TEMP_FOLDER_RELEASE) *.tar
+	./gradlew clean && rm -rf $(MAIN_DIR) $(DEB_DIR) *.tar *.deb
