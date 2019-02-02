@@ -1,0 +1,8 @@
+Package: gcal-notifier-kotlin-gtk
+Source: gcal-notifier-kotlin-gtk
+Maintainer: Nikita Bobko <nikitabobko@gmail.com>
+Architecture: all
+Description: Simple Google Calendar notifier for Linux written on Kotlin using GTK lib
+Priority: optional
+Homepage: https://github.com/nikitabobko/gcal-notifier-kotlin-gtk
+Depends: libjava-gnome-java (>= 4.1.3)
