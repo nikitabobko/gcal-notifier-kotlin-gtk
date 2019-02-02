@@ -1,6 +1,6 @@
-# Search appname and version in settings.gradle and build.gradle using regex
+# Search appname in settings.gradle using regex
 APPNAME=$(shell cat settings.gradle | grep -Po "(?<=(rootProject.name = ')).+(?=')")
-VERSION=$(shell cat build.gradle | grep -Po "(?<=(version ')).+(?=')")
+VERSION=$(shell cat src/main/resources/version.txt)
 
 MAIN_DIR=$(APPNAME)-v$(VERSION)
 
@@ -14,9 +14,26 @@ TAR_FILE=$(APPNAME)-v$(VERSION).tar
 DEB_DIR=$(APPNAME)-v$(VERSION)-deb
 DEB_FILE=$(APPNAME)-v$(VERSION).deb
 
+PKGBUILD_FILE=archlinux/PKGBUILD
+SRCINFO_FILE=archlinux/.SRCINFO
+
 .PHONY: $(JAR_FILE_GRADLE)
 
-all: tar deb
+build: tar deb
+
+release: tar deb pkgbuild
+
+#######################
+### Update PKGBUILD ###
+#######################
+
+pkgbuild: $(PKGBUILD_FILE) $(SRCINFO_FILE)
+
+$(SRCINFO_FILE): $(PKGBUILD_FILE)
+	./archlinux-support/print-srcinfo.sh > $@
+
+$(PKGBUILD_FILE): $(TAR_FILE)
+	./archlinux-support/print-pkgbuild.sh $(VERSION) $(shell sha256sum $(TAR_FILE)) > $@
 
 ######################
 ### Debian package ###

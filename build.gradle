@@ -14,7 +14,7 @@ plugins {
 }
 
 group 'ru.nikitabobko'
-version '2.0.2'
+version rootProject.file('src/main/resources/version.txt').text
 
 apply plugin: 'kotlin'
 apply plugin: 'application'
