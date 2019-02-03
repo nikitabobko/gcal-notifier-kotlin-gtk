@@ -4,6 +4,11 @@
 *.tar
 *.deb
 
+###############
+## Temp dirs ##
+###############
+gcal-notifier-kotlin-gtk-v*/
+
 ##############################
 ## Intellij idea .gitignore ##
 ##############################
