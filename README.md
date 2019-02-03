@@ -5,18 +5,19 @@ Simple Google Calendar notifier for Linux written on Kotlin using GTK lib
 
 # Installation
 
-### Debian/Ubuntu
+#### Debian/Ubuntu
 
 * Download *.deb file from [latest release page](https://github.com/nikitabobko/gcal-notifier-kotlin-gtk/releases/latest)
 * Double click on downloaded file and press `Install` button **or** via Terminal:  
   `sudo apt install ./gcal-notifier-kotlin-gtk-VERSION.deb`
 
-### Arch Linux
+
+#### Arch Linux
 
 For Arch Linux users [AUR package](https://aur.archlinux.org/packages/gcal-notifier-kotlin-gtk/) is available
 
-### Other Linux distributions
-* Install [java-gnome lib](http://java-gnome.sourceforge.net/)
+#### Other Linux distributions
+* Install [all dependencies](https://github.com/nikitabobko/gcal-notifier-kotlin-gtk#dependencies)
 * Download *.tar file from [latest release page](https://github.com/nikitabobko/gcal-notifier-kotlin-gtk/releases/latest)
 * Extract tar archive by executing:  
 `tar -xvf gcal-notifier-kotlin-gtk-VERSION.tar`
@@ -31,7 +32,8 @@ While app is running it shows small icon in your system tray and popups notifica
 [TopIcons](https://extensions.gnome.org/extension/495/topicons/) or [TopIcons Plus](https://extensions.gnome.org/extension/1031/topicons/)
 to return back system tray.
 
-# Requirements
+# Dependencies
+* JRE 8
 * [java-gnome lib](http://java-gnome.sourceforge.net/)
 
 # Uninstallation
@@ -39,24 +41,25 @@ to return back system tray.
 For all uninstallation methods it's recommended to log out from gcal-notifier firstly. You can do this by:  
  `Click gcal-notifier icon on system tray` -> `Log out`
 
-### Debian/Ubuntu
+#### Debian/Ubuntu
 
 Execute from terminal:  
 `sudo apt autoremove gcal-notifier-kotlin-gtk`
 
-### Arch Linux
+#### Arch Linux
 
 Execute from terminal:  
 `sudo pacman -Rsn gcal-notifier-kotlin-gtk`
 
-### Other Linux distributions
+#### Other Linux distributions
 
-Execute from terminal:  
-`sudo /opt/gcal-notifier-kotlin-gtk/uninstall.sh`
+* Execute from terminal:  
+  `sudo /opt/gcal-notifier-kotlin-gtk/uninstall.sh`
+* Don't forget to uninstall [dependencies](https://github.com/nikitabobko/gcal-notifier-kotlin-gtk#dependencies) if you don't need them anymore
 
 # Building project from sources
 For building project [Gradle build tool](https://gradle.org/) is used.  
-Before building project ensure that you have [java-gnome lib](http://java-gnome.sourceforge.net/) installed.
+Before building project ensure that you have [dependencies](https://github.com/nikitabobko/gcal-notifier-kotlin-gtk#dependencies) installed.
 
 #### Building jar file
 Execute `./gradlew jar` to generate jar file in `build/libs/` directory.
