@@ -72,3 +72,6 @@ Execute `./gradlew jar` to generate jar file in `build/libs/` directory.
 
 #### Build deb archive only
 `make deb`
+
+#### Running tests
+`./gradlew test`
