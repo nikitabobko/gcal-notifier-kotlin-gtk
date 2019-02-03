@@ -19,48 +19,48 @@ SRCINFO_FILE=archlinux/.SRCINFO
 
 .PHONY: $(JAR_FILE_GRADLE)
 
+###############
+### Targets ###
+###############
+
 build: tar deb
 
 release: tar deb pkgbuild
+
+pkgbuild: $(PKGBUILD_FILE) $(SRCINFO_FILE)
+
+deb: $(DEB_FILE)
+
+tar: $(TAR_FILE)
 
 #######################
 ### Update PKGBUILD ###
 #######################
 
-pkgbuild: $(PKGBUILD_FILE) $(SRCINFO_FILE)
-
 $(SRCINFO_FILE): $(PKGBUILD_FILE)
-	./archlinux-support/print-srcinfo.sh > $@
+	(cd archlinux && makepkg --printsrcinfo) > $@
 
 $(PKGBUILD_FILE): $(TAR_FILE)
-	./archlinux-support/print-pkgbuild.sh $(VERSION) $(shell sha256sum $(TAR_FILE)) > $@
+	./archlinux-support/print-pkgbuild.sh $(VERSION) $$(sha256sum $< | cut -d" " -f1) > $@
 
 ######################
 ### Debian package ###
 ######################
 
-deb: $(DEB_FILE)
-
 $(DEB_FILE): $(DEB_DIR)
 	dpkg-deb --build $< $@
 
-$(DEB_DIR): install_to_DEB_DIR $(DEB_DIR)/DEBIAN/control 
-
-install_to_DEB_DIR: $(MAIN_DIR)
+$(DEB_DIR): $(MAIN_DIR)
 	mkdir -p $(DEB_DIR)
 	$(MAIN_DIR)/install.sh $(DEB_DIR)
-
-$(DEB_DIR)/DEBIAN/control:
-	mkdir -p $(DEB_DIR)/DEBIAN && \
-	cat $(DEBIAN_SUPPORT_DIR)/control > $@ && \
-	echo "Version: ${VERSION}" >> $@ && \
-	echo "Installed-Size: $(shell du -s $(DEB_DIR) | cut -f1)" >> $@
+	mkdir -p $(DEB_DIR)/DEBIAN
+	cat $(DEBIAN_SUPPORT_DIR)/control > $@/DEBIAN/control
+	echo "Version: ${VERSION}" >> $@/DEBIAN/control
+	echo "Installed-Size: $$(du -s $(DEB_DIR) | cut -f1)" >> $@/DEBIAN/control
 
 #############################
 ### Universal tar package ###
 #############################
-
-tar: $(TAR_FILE)
 
 $(TAR_FILE): $(MAIN_DIR)
 	tar -cf $@ $<
@@ -70,8 +70,8 @@ $(TAR_FILE): $(MAIN_DIR)
 ###########################################################
 
 $(MAIN_DIR): $(JAR_FILE)
-	mkdir -p $@ && \
-	cp -r support/. $@ && \
+	mkdir -p $@
+	cp -r support/. $@
 	cp src/main/resources/icon.png $@
 
 #############################
@@ -89,4 +89,4 @@ $(JAR_FILE_GRADLE):
 #############
 
 clean:
-	./gradlew clean && rm -rf $(MAIN_DIR) $(DEB_DIR) *.tar *.deb
+	./gradlew clean && rm -rf $(MAIN_DIR) $(DEB_DIR) $(APPNAME)* *.tar *.deb
