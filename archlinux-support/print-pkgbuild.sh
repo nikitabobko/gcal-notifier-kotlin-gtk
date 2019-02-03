@@ -13,7 +13,7 @@ echo "# Maintainer: Nikita Bobko <nikitabobko (at) gmail (dot) com>
 pkgname=gcal-notifier-kotlin-gtk
 pkgver=${version}
 pkgrel=1
-pkgdesc='Simple Google Calendar notifier for Linux written on Kotlin using GTK lib'
+pkgdesc='Simple Google Calendar notifier for Linux written in Kotlin using GTK lib'
 arch=('x86_64' 'i686')
 url='https://github.com/nikitabobko/gcal-notifier-kotlin-gtk'
 license=('GPL')
