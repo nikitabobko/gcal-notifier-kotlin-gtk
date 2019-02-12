@@ -44,14 +44,14 @@ dependencies {
 
 jar {
     manifest {
-        attributes('Main-Class': 'ru.nikitabobko.gcalnotifier.MainKt')
+        attributes('Main-Class': mainClassName)
     }
     from { configurations.compile.filter { !it.name.contains("gtk") }.collect { it.isDirectory() ? it : zipTree(it) } }
 }
 
 task runJar(type: Exec, dependsOn: jar) {
     executable 'java'
-    args '-jar', "$jar.archivePath"
+    args '-cp', "$jar.archivePath:/usr/share/java/gtk.jar", mainClassName
 }
 
 compileKotlin {
