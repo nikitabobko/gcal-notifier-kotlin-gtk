@@ -78,7 +78,7 @@ class ControllerImpl(factory: FactoryForController) : Controller {
         view.showInfiniteNotification(
                 event.title ?: "",
                 event.dateTimeString(),
-                "Open on web"
+                "Open in web"
         ) { _: Notification, _: String ->
             view.openURLInDefaultBrowser(event.htmlLink ?: return@showInfiniteNotification)
         }
