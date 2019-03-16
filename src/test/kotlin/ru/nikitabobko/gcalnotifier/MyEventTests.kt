@@ -1,14 +1,12 @@
 package ru.nikitabobko.gcalnotifier
 
-import ru.nikitabobko.gcalnotifier.support.tomorrow
+import junit.framework.TestCase
 import ru.nikitabobko.gcalnotifier.support.today
-import kotlin.test.Test
-import kotlin.test.assertEquals
+import ru.nikitabobko.gcalnotifier.support.tomorrow
 
-class MyEventTests {
+class MyEventTests : TestCase() {
 
-    @Test
-    fun dateTimeStringTest() {
+    fun testDateTimeString() {
         doTest("Today", System.currentTimeMillis())
         doTest("Today", today.time)
         doTest("Tomorrow", tomorrow.time)

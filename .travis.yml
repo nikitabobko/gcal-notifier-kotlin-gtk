@@ -1,0 +1,26 @@
+sudo: required
+
+language: generic
+
+services:
+- docker
+
+arch:
+  packages:
+  - jdk8-openjdk
+  - java-gnome-bin
+  script:
+  - ./.travis_script_archlinux.sh
+
+env:
+  - LINUX_DISTRO=Ubuntu
+  - LINUX_DISTRO=ArchLinux
+
+script:
+  - if [ $LINUX_DISTRO = "Ubuntu" ]; then 
+      ./.travis_script_ubuntu.sh;
+    elif [ $LINUX_DISTRO = "ArchLinux" ]; then
+      curl -s https://raw.githubusercontent.com/mikkeloscar/arch-travis/master/arch-travis.sh | bash;
+    else
+      exit 1;
+    fi

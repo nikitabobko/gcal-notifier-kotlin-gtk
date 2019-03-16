@@ -1,3 +1,4 @@
+import junit.framework.TestCase
 import ru.nikitabobko.gcalnotifier.controller.Controller
 import ru.nikitabobko.gcalnotifier.createEvent
 import ru.nikitabobko.gcalnotifier.createReminder
@@ -8,7 +9,7 @@ import java.util.concurrent.CyclicBarrier
 import kotlin.concurrent.thread
 import kotlin.properties.ReadOnlyProperty
 import kotlin.reflect.KProperty
-import kotlin.test.*
+import kotlin.test.assertNotEquals
 
 open class EmptyFakeController : Controller {
     override fun applicationStarted(): Unit = TODO("not implemented")
@@ -48,9 +49,8 @@ open class EmptyLocalDataManager : LocalDataManager {
 
 }
 
-class EventReminderTrackerTests {
-    @Test
-    fun simpleTest() {
+class EventReminderTrackerTests : TestCase() {
+    fun testSimple() {
         val startUNIXTime = System.currentTimeMillis() + 10.seconds
         doTest(events = listOf(
                 createEvent("title", startUNIXTime, listOf(createReminder(0))),
@@ -66,8 +66,7 @@ class EventReminderTrackerTests {
         }
     }
 
-    @Test
-    fun simpleTest2() {
+    fun testSimple2() {
         val startUNIXTime = System.currentTimeMillis() + 10.seconds
         doTest(events = listOf(
                 createEvent("title", startUNIXTime, listOf(createReminder(0))),
@@ -82,8 +81,7 @@ class EventReminderTrackerTests {
         }
     }
 
-    @Test
-    fun simpleTest3() {
+    fun testSimple3() {
         doTest(events = listOf(
                 createEvent("title", System.currentTimeMillis() + 30.minutes, listOf(createReminder(30.minutes - 30.seconds)))
         ), numberOfTriggers = 1) { event: MyEvent, count: Int ->
@@ -95,8 +93,7 @@ class EventReminderTrackerTests {
         }
     }
 
-    @Test
-    fun eventTrackerDaemonIsSleepingTest(): Unit = repeat(4) {
+    fun testEventTrackerDaemonIsSleeping(): Unit = repeat(4) {
         val trackerWrapper: EventReminderTrackerWrapper = doTest(events = listOf(
                 createEvent("title", System.currentTimeMillis() + 60.seconds, listOf(createReminder(0.minutes)))
         ), numberOfTriggers = 0)
@@ -109,8 +106,7 @@ class EventReminderTrackerTests {
         assertEquals(Thread.State.TIMED_WAITING, eventTrackerDaemon!!.state)
     }
 
-    @Test
-    fun lastNotifiedIsConsideredTest() {
+    fun testLastNotifiedIsConsidered() {
         val lastNotifiedUNIXTime = System.currentTimeMillis() + 3.seconds
         val trackerWrapper: EventReminderTrackerWrapper = doTest(events = listOf(
                 createEvent("title", lastNotifiedUNIXTime, listOf(createReminder(0)))
@@ -145,8 +141,7 @@ class EventReminderTrackerTests {
         }
     }
 
-    @Test
-    fun newDataCameRaceConditionTest() {
+    fun testNewDataCameRaceCondition() {
         val events = listOf(
                 createEvent("0", System.currentTimeMillis() + 1.seconds, listOf(createReminder(0))),
                 createEvent("1", System.currentTimeMillis() + 10.seconds, listOf(createReminder(0)))
