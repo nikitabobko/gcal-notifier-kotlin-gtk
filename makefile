@@ -1,5 +1,5 @@
 # Search appname in settings.gradle using regex
-APPNAME=$(shell cat settings.gradle | grep -Po "(?<=(rootProject.name = ')).+(?=')")
+APPNAME=gcal-notifier-kotlin-gtk
 VERSION=$(shell cat src/main/resources/version.txt)
 
 MAIN_DIR=$(APPNAME)-v$(VERSION)
