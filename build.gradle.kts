@@ -28,6 +28,7 @@ application {
 
 repositories {
     mavenCentral()
+    jcenter()
     flatDir {
         dirs("/usr/share/java/")
     }
