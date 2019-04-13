@@ -1,18 +1,18 @@
 package ru.nikitabobko.gcalnotifier
 
 import junit.framework.TestCase
-import ru.nikitabobko.gcalnotifier.support.today
-import ru.nikitabobko.gcalnotifier.support.tomorrow
+import ru.nikitabobko.gcalnotifier.support.FactoryImpl
+import ru.nikitabobko.gcalnotifier.support.UtilsImpl
 
 class MyEventTests : TestCase() {
 
     fun testDateTimeString() {
         doTest("Today", System.currentTimeMillis())
-        doTest("Today", today.time)
-        doTest("Tomorrow", tomorrow.time)
+        doTest("Today", UtilsImpl.today.time)
+        doTest("Tomorrow", UtilsImpl.tomorrow.time)
     }
 
     private fun doTest(expected: String, actualTimeInMillis: Long) {
-        assertEquals(expected, createEvent("title", actualTimeInMillis, emptyList()).dateTimeString().split(" ")[0])
+        assertEquals(expected, createEvent("title", actualTimeInMillis).dateTimeString(UtilsImpl).split(" ")[0])
     }
 }

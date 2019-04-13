@@ -2,7 +2,7 @@ package ru.nikitabobko.gcalnotifier
 
 import org.gnome.gtk.Gtk
 import org.gnome.notify.Notify
-import ru.nikitabobko.gcalnotifier.support.MyFactory
+import ru.nikitabobko.gcalnotifier.support.FactoryImpl
 import kotlin.system.exitProcess
 
 const val APPLICATION_NAME = "gcal-notifier-kotlin-gtk"
@@ -26,7 +26,7 @@ fun main(args: Array<String>) {
 
     Gtk.init(arrayOf())
     Notify.init(APPLICATION_NAME)
-    MyFactory.controller.value.applicationStarted()
+    FactoryImpl.controller.value.applicationStarted()
     Gtk.main()
 }
 

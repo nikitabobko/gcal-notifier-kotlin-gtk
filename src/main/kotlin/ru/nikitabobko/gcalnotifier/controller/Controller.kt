@@ -3,9 +3,7 @@ package ru.nikitabobko.gcalnotifier.controller
 import org.gnome.notify.Notification
 import ru.nikitabobko.gcalnotifier.model.MyCalendarListEntry
 import ru.nikitabobko.gcalnotifier.model.MyEvent
-import ru.nikitabobko.gcalnotifier.support.FactoryForController
-import ru.nikitabobko.gcalnotifier.support.EventReminderTracker
-import ru.nikitabobko.gcalnotifier.support.Settings
+import ru.nikitabobko.gcalnotifier.support.*
 import ru.nikitabobko.gcalnotifier.view.RefreshButtonState
 import ru.nikitabobko.gcalnotifier.view.View
 import kotlin.concurrent.thread
@@ -66,18 +64,23 @@ interface Controller {
     fun eventReminderTriggered(event: MyEvent)
 }
 
-class ControllerImpl(factory: FactoryForController) : Controller {
-    private val view by factory.view
-    private val localDataManager by factory.localDataManager
-    private val googleCalendarManager by factory.googleCalendarManager
-    private val eventReminderTracker by factory.eventReminderTracker
+class ControllerImpl(
+        viewProvider: Provider<View>,
+        localDataManagerProvider: Provider<LocalDataManager>,
+        googleCalendarManagerProvider: Provider<GoogleCalendarManager>,
+        eventReminderTrackerProvider: Provider<EventReminderTracker>,
+        private val utils: Utils) : Controller {
+    private val view by viewProvider
+    private val localDataManager by localDataManagerProvider
+    private val googleCalendarManager by googleCalendarManagerProvider
+    private val eventReminderTracker by eventReminderTrackerProvider
 
     private var notifyAboutRefreshFailures = true
 
     override fun eventReminderTriggered(event: MyEvent) {
         view.showInfiniteNotification(
                 event.title ?: "",
-                event.dateTimeString(),
+                event.dateTimeString(utils),
                 "Open in web"
         ) { _: Notification, _: String ->
             view.openURLInDefaultBrowser(event.htmlLink ?: return@showInfiniteNotification)

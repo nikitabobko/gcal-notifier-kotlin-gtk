@@ -1,10 +1,7 @@
 package ru.nikitabobko.gcalnotifier.model
 
 import com.google.api.services.calendar.model.Event
-import ru.nikitabobko.gcalnotifier.support.theDayAfterTomorrow
-import ru.nikitabobko.gcalnotifier.support.today
-import ru.nikitabobko.gcalnotifier.support.tomorrow
-import ru.nikitabobko.gcalnotifier.support.until
+import ru.nikitabobko.gcalnotifier.support.*
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -12,7 +9,7 @@ import java.util.*
  * Internal representation of [Event]
  */
 data class MyEvent(val title: String?, val startUNIXTime: Long, val endUNIXTime: Long,
-                   val isAllDayEvent: Boolean, val reminders: MyReminders? = null,
+                   val reminders: MyReminders?, val isAllDayEvent: Boolean = false,
                    val calendarId: String? = null, val htmlLink: String? = null) {
     /**
      * Internal representation of [Event.Reminders]
@@ -29,11 +26,11 @@ data class MyEvent(val title: String?, val startUNIXTime: Long, val endUNIXTime:
              */
             val overrides: List<MyEventReminder>?)
 
-    fun dateTimeString(): String {
+    fun dateTimeString(utils: Utils): String {
         val eventStart = Date(startUNIXTime)
         var dateTime = when(eventStart) {
-            in today until tomorrow -> "Today"
-            in tomorrow until theDayAfterTomorrow -> "Tomorrow"
+            in utils.today until utils.tomorrow -> "Today"
+            in utils.tomorrow until utils.theDayAfterTomorrow -> "Tomorrow"
             else -> SimpleDateFormat("yyyy/MM/dd").format(eventStart)
         }
         if (!isAllDayEvent) {
