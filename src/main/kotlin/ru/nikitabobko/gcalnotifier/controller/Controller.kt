@@ -113,7 +113,7 @@ class ControllerImpl(
     }
 
     override fun openGoogleCalendarOnWebButtonClicked() {
-        view.openURLInDefaultBrowser("https://calendar.google.com/calendar/r")
+        view.openURLInDefaultBrowser("https://calendar.google.com")
     }
 
     @Synchronized
