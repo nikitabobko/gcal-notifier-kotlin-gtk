@@ -1,92 +1,54 @@
 import junit.framework.TestCase
+import ru.nikitabobko.gcalnotifier.*
 import ru.nikitabobko.gcalnotifier.controller.Controller
-import ru.nikitabobko.gcalnotifier.createEvent
-import ru.nikitabobko.gcalnotifier.createReminder
 import ru.nikitabobko.gcalnotifier.model.MyCalendarListEntry
 import ru.nikitabobko.gcalnotifier.model.MyEvent
 import ru.nikitabobko.gcalnotifier.support.*
 import java.util.concurrent.CyclicBarrier
 import kotlin.concurrent.thread
-import kotlin.properties.ReadOnlyProperty
-import kotlin.reflect.KProperty
 import kotlin.test.assertNotEquals
 
-open class EmptyFakeController : Controller {
-    override fun applicationStarted(): Unit = TODO("not implemented")
-
-    override fun openGoogleCalendarOnWebButtonClicked(): Unit = TODO("not implemented")
-
-    override fun statusIconClicked(): Unit = TODO("not implemented")
-
-    override fun quitClicked(): Unit = TODO("not implemented")
-
-    override fun refreshButtonClicked(): Unit = TODO("not implemented")
-
-    override fun settingsButtonClicked(): Unit = TODO("not implemented")
-
-    override fun logoutButtonClicked(): Unit = TODO("not implemented")
-
-    override fun eventPopupItemClicked(event: MyEvent): Unit = TODO("not implemented")
-
-    override fun eventReminderTriggered(event: MyEvent): Unit = TODO("not implemented")
-}
-
-open class EmptyLocalDataManager : LocalDataManager {
-    override val googleCalendarCredentialsDirPath: String
-        get() = TODO("not implemented")
-
-    override fun safeEventsList(events: Array<MyEvent>): Unit = TODO("not implemented")
-
-    override fun restoreEventsList(): Array<MyEvent>? = TODO("not implemented")
-
-    override fun safeUsersCalendarList(calendarList: Array<MyCalendarListEntry>) = TODO("not implemented")
-
-    override fun restoreUsersCalendarList(): Array<MyCalendarListEntry>? = TODO("not implemented")
-
-    override fun safe(events: Array<MyEvent>, calendarList: Array<MyCalendarListEntry>): Unit = TODO("not implemented")
-
-    override fun removeAllData(): Unit = TODO("not implemented")
-
-}
-
 class EventReminderTrackerTests : TestCase() {
+    override fun setUp() {
+        super.setUp()
+        FakeUtils.resetTime()
+    }
+
     fun testSimple() {
-        val startUNIXTime = System.currentTimeMillis() + 10.seconds
         doTest(events = listOf(
-                createEvent("title", startUNIXTime, listOf(createReminder(0))),
-                createEvent("title", startUNIXTime, listOf(createReminder(0))),
-                createEvent("title", startUNIXTime, listOf(createReminder(0))),
-                createEvent("title2", startUNIXTime + 1.seconds, listOf(createReminder(0)))
+                createEvent("10", 10.seconds, createReminder(0)),
+                createEvent("10", 10.seconds, createReminder(0)),
+                createEvent("10", 10.seconds, createReminder(0)),
+                createEvent("20", 20.seconds, createReminder(0))
         ), numberOfTriggers = 4) { event: MyEvent, count: Int ->
-            when {
-                count <= 2 -> assertEquals("title", event.title)
-                count == 3 -> assertEquals("title2", event.title)
-                else       -> fail()
+            when (count) {
+                in 0..2 -> assertEquals("10", event.title)
+                3 -> assertEquals("20", event.title)
+                else -> fail()
             }
         }
     }
 
     fun testSimple2() {
-        val startUNIXTime = System.currentTimeMillis() + 10.seconds
         doTest(events = listOf(
-                createEvent("title", startUNIXTime, listOf(createReminder(0))),
-                createEvent("not-valid", startUNIXTime, listOf(createReminder(30.seconds))),
-                createEvent("title2", startUNIXTime, listOf(createReminder(0), createReminder(2.seconds)))
+                createEvent("10", 10.seconds, createReminder(0)),
+                createEvent("-20", 10.seconds, createReminder(30.seconds)),
+                createEvent("10, 8", 10.seconds, createReminder(0), createReminder(2.seconds))
         ), numberOfTriggers = 3) { event: MyEvent, count: Int ->
             when (count) {
-                0       -> assertEquals("title2", event.title)
-                in 1..2 -> assertTrue("title" == event.title || "title2" == event.title)
-                else    -> fail()
+                0 -> assertEquals("10, 8", event.title)
+                in 1..2 -> assertTrue("10" == event.title || "10, 8" == event.title)
+                else -> fail()
             }
         }
     }
 
     fun testSimple3() {
         doTest(events = listOf(
-                createEvent("title", System.currentTimeMillis() + 30.minutes, listOf(createReminder(30.minutes - 30.seconds)))
+                createEvent("29", 30.minutes, createReminder(30.minutes - 29.seconds))
         ), numberOfTriggers = 1) { event: MyEvent, count: Int ->
             if (count == 0) {
-                assertEquals("title", event.title)
+                assertEquals("29", event.title)
             } else {
                 fail()
             }
@@ -95,63 +57,62 @@ class EventReminderTrackerTests : TestCase() {
 
     fun testEventTrackerDaemonIsSleeping(): Unit = repeat(4) {
         val trackerWrapper: EventReminderTrackerWrapper = doTest(events = listOf(
-                createEvent("title", System.currentTimeMillis() + 60.seconds, listOf(createReminder(0.minutes)))
+                createEvent("title", 30.seconds, createReminder(0.minutes))
         ), numberOfTriggers = 0)
         val eventTrackerDaemon = trackerWrapper.tracker.javaClass.declaredFields
                 .find { it.name == "eventTrackerDaemon" }!!
                 .apply { isAccessible = true }
                 .get(trackerWrapper.tracker) as Thread?
         assertNotEquals(null, eventTrackerDaemon)
-        Thread.yield()
         assertEquals(Thread.State.TIMED_WAITING, eventTrackerDaemon!!.state)
     }
 
     fun testLastNotifiedIsConsidered() {
-        val lastNotifiedUNIXTime = System.currentTimeMillis() + 3.seconds
+        val lastNotifiedUNIXTime = 3.seconds
         val trackerWrapper: EventReminderTrackerWrapper = doTest(events = listOf(
-                createEvent("title", lastNotifiedUNIXTime, listOf(createReminder(0)))
+                createEvent("title0", lastNotifiedUNIXTime, createReminder(0))
         ), numberOfTriggers = 1) { event: MyEvent, count: Int ->
             if (count == 0) {
-                assertEquals("title", event.title)
+                assertEquals("title0", event.title)
             } else {
                 println(event)
                 fail()
             }
         }
-        Thread.sleep(10.seconds)
+        FakeUtils.currentTimeMillis += 10.seconds
         val actualLastNotifiedEventUNIXTime = trackerWrapper.tracker.javaClass.declaredFields
                 .find { it.name == "lastNotifiedEventUNIXTime" }!!
                 .apply { isAccessible = true }
                 .get(trackerWrapper.tracker) as Long?
         assertEquals(lastNotifiedUNIXTime, actualLastNotifiedEventUNIXTime)
-        val start = System.currentTimeMillis()
+        val start = FakeUtils.currentTimeMillis
         doTest(events = listOf(
-                createEvent("title", start - 2.seconds, listOf(createReminder(0))),
-                createEvent("title", start, listOf(createReminder(2.seconds))),
-                createEvent("title2", start - 1.seconds, listOf(createReminder(0))),
-                createEvent("title2", start, listOf(createReminder(1.seconds))),
-                createEvent("ignore", start - 10.seconds, listOf(createReminder(0))),
-                createEvent("ignore", start, listOf(createReminder(10.seconds)))
+                createEvent("title", start - 2.seconds, createReminder(0)),
+                createEvent("title", start, createReminder(2.seconds)),
+                createEvent("title2", start - 1.seconds, createReminder(0)),
+                createEvent("title2", start, createReminder(1.seconds)),
+                createEvent("ignore", start - 10.seconds, createReminder(0)),
+                createEvent("ignore", start, createReminder(10.seconds))
         ), numberOfTriggers = 4, initTrackerWrapper = trackerWrapper) { event: MyEvent, count: Int ->
             when {
-                count <= 1    -> assertEquals("title", event.title)
+                count <= 1 -> assertEquals("title", event.title)
                 count in 2..3 -> assertEquals("title2", event.title)
-                else          -> fail()
+                else -> fail()
             }
         }
     }
 
-    fun testNewDataCameRaceCondition() {
+    fun testNewDataCameRaceCondition() = repeat(10) {
         val events = listOf(
-                createEvent("0", System.currentTimeMillis() + 1.seconds, listOf(createReminder(0))),
-                createEvent("1", System.currentTimeMillis() + 10.seconds, listOf(createReminder(0)))
+                createEvent("0", 1.seconds, createReminder(0)),
+                createEvent("1", 10.seconds, createReminder(0))
         )
         var count = 0
         val tracker = createEventReminderTrackerImpl(object : EmptyFakeController() {
             override fun eventReminderTriggered(event: MyEvent) {
                 when (count) {
-                    0    -> assertEquals("0", event.title)
-                    1    -> assertEquals("1", event.title)
+                    0 -> assertEquals("0", event.title)
+                    1 -> assertEquals("1", event.title)
                     else -> fail()
                 }
                 count++
@@ -166,7 +127,6 @@ class EventReminderTrackerTests : TestCase() {
                 tracker.newDataCame(events, emptyList())
             }
         }
-        Thread.yield()
         barrier.await()
         threads.forEach { it.join() }
 
@@ -174,11 +134,64 @@ class EventReminderTrackerTests : TestCase() {
         assertEquals(2, count)
     }
 
-    private class ControllerProvider(var controller: Controller) : ReadOnlyProperty<Any?, Controller> {
-        override fun getValue(thisRef: Any?, property: KProperty<*>): Controller = controller
+    fun testCalendarRemainderSimpleTest() {
+        val calendarId = "calendarId"
+        doTest(events = listOf(
+                createEvent("10", 20.seconds, createCalendarReminder(), calendarId)
+        ), calendars = listOf(
+                MyCalendarListEntry(calendarId, listOf(createReminder(10.seconds)))
+        ), numberOfTriggers = 1) { event: MyEvent, count: Int ->
+            when (count) {
+                0 -> assertEquals("10", event.title)
+                else -> fail()
+            }
+        }
     }
 
-    private data class EventReminderTrackerWrapper(val tracker: EventReminderTracker, val controllerProvider: ControllerProvider)
+    fun testCalendarMultipleReminders() {
+        val calendarId = "calendarId"
+        doTest(events = listOf(
+                createEvent("10, 15", 20.seconds, createCalendarReminder(), calendarId)
+        ), calendars = listOf(
+                MyCalendarListEntry(calendarId, listOf(createReminder(10.seconds), createReminder(5.seconds)))
+        ), numberOfTriggers = 2) { event: MyEvent, count: Int ->
+            when (count) {
+                0 -> assertEquals("10, 15", event.title)
+                1 -> assertEquals("10, 15", event.title)
+                else -> fail()
+            }
+        }
+    }
+
+    fun testMixEventsAndCalendarReminders() {
+        val calendarId1 = "calendarId1"
+        val calendarId2 = "calendarId2"
+        doTest(events = listOf(
+                createEvent("5", 10.seconds, createReminder(5.seconds)),
+                createEvent("10, -15", 20.seconds, createCalendarReminder(), calendarId1),
+                createEvent("10, 25", 35.seconds, createCalendarReminder(), calendarId1),
+                createEvent("15", 30.seconds, createCalendarReminder(), calendarId2),
+                createEvent("-5", 10.seconds, createCalendarReminder(), calendarId2)
+        ), calendars = listOf(
+                MyCalendarListEntry(calendarId1, listOf(createReminder(10.seconds), createReminder(25.seconds))),
+                MyCalendarListEntry(calendarId2, listOf(createReminder(15.seconds)))
+        ), numberOfTriggers = 5) { event: MyEvent, count: Int ->
+            when (count) {
+                0 -> assertEquals("5", event.title)
+                in 1..2 -> assertTrue("10, -15" == event.title || "10, 25" == event.title)
+                3 -> assertEquals("15", event.title)
+                4 -> assertEquals("10, 25", event.title)
+                else -> fail()
+            }
+        }
+    }
+
+    private class MutableProvider<T>(override var value: T) : Provider<T>
+
+    private fun <T> T.asMutableProvider(): MutableProvider<T> = MutableProvider(this)
+
+    private data class EventReminderTrackerWrapper(val tracker: EventReminderTracker,
+                                                   val controllerProvider: Provider<Controller>)
 
     private fun doTest(events: List<MyEvent>, calendars: List<MyCalendarListEntry> = listOf(),
                        numberOfTriggers: Int, initTrackerWrapper: EventReminderTrackerWrapper? = null,
@@ -190,48 +203,42 @@ class EventReminderTrackerTests : TestCase() {
             }
         }
 
-        val controllerProvider = initTrackerWrapper?.controllerProvider
-                ?.also { it.controller = fakeController } ?: ControllerProvider(fakeController)
+        val controllerProvider = (initTrackerWrapper?.controllerProvider as? MutableProvider)?.apply {
+            value = fakeController
+        } ?: fakeController.asMutableProvider()
 
-        val trackerWrapper = initTrackerWrapper?.tracker
+        val tracker = initTrackerWrapper?.tracker
                 ?: createEventReminderTrackerImpl(controllerProvider, events.toTypedArray(), calendars.toTypedArray())
 
-        trackerWrapper.newDataCame(events, calendars)
+        tracker.newDataCame(events, calendars)
         waitFor { count == numberOfTriggers }
         assertEquals(numberOfTriggers, count)
-        return EventReminderTrackerWrapper(trackerWrapper, controllerProvider)
+        return EventReminderTrackerWrapper(tracker, controllerProvider)
     }
 
-    private fun createEventReminderTrackerImpl(controllerProvider: ReadOnlyProperty<Any?, Controller>,
-                                               events: Array<MyEvent>, calendars: Array<MyCalendarListEntry>): EventReminderTrackerImpl {
-        return EventReminderTrackerImpl(object : FactoryForEventReminderTracker {
-            override val localDataManager: ReadOnlyProperty<Any?, LocalDataManager> = object : ReadOnlyProperty<Any?, LocalDataManager> {
-                override fun getValue(thisRef: Any?, property: KProperty<*>): LocalDataManager = object : EmptyLocalDataManager() {
+    private fun createEventReminderTrackerImpl(controllerProvider: Provider<Controller>,
+                                               events: Array<MyEvent>,
+                                               calendars: Array<MyCalendarListEntry>): EventReminderTrackerImpl {
+        return EventReminderTrackerImpl(
+                controllerProvider,
+                object : EmptyLocalDataManager() {
                     override fun restoreEventsList(): Array<MyEvent>? = events
 
                     override fun restoreUsersCalendarList(): Array<MyCalendarListEntry>? = calendars
-                }
-            }
-            override val controller: ReadOnlyProperty<Any?, Controller> = controllerProvider
-        })
+                }.asProvider(), FakeUtils)
     }
 
     private fun createEventReminderTrackerImpl(controller: Controller, events: Array<MyEvent>,
                                                calendars: Array<MyCalendarListEntry>): EventReminderTrackerImpl {
-        return createEventReminderTrackerImpl(
-                object : ReadOnlyProperty<Any?, Controller> {
-                    override fun getValue(thisRef: Any?, property: KProperty<*>) = controller
-                },
-                events,
-                calendars)
+        return createEventReminderTrackerImpl(controller.asProvider(), events, calendars)
     }
 
-    private inline fun waitFor(maxTime: Long = 10.seconds,callback: () -> Boolean) {
+    private inline fun waitFor(maxTime: Long = 10.seconds, callback: () -> Boolean) {
         var count = 0
         do {
             Thread.yield()
             Thread.sleep(1.seconds)
             count++
-        } while (!callback() && count <= maxTime/1.seconds)
+        } while (!callback() && count <= maxTime / 1.seconds)
     }
 }

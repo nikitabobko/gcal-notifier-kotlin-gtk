@@ -18,8 +18,11 @@ interface EventReminderTracker {
     fun newDataCame(upcomingEvents: List<MyEvent>, calendars: List<MyCalendarListEntry>)
 }
 
-class EventReminderTrackerImpl(factory: FactoryForEventReminderTracker) : EventReminderTracker {
-    private var lastNotifiedEventUNIXTime: Long = System.currentTimeMillis()
+class EventReminderTrackerImpl(
+        controllerProvider: Provider<Controller>,
+        localDataManagerProvider: Provider<LocalDataManager>,
+        private val utils: Utils) : EventReminderTracker {
+    private var lastNotifiedEventUNIXTime: Long = utils.currentTimeMillis
     private var nextEventsToNotify: List<MyEvent> = listOf()
     private var nextEventsToNotifyUNIXTime: Long? = null
     companion object {
@@ -28,8 +31,8 @@ class EventReminderTrackerImpl(factory: FactoryForEventReminderTracker) : EventR
          */
         private const val EPS: Long = 30*1000
     }
-    private val controller: Controller by factory.controller
-    private val localDataManager: LocalDataManager by factory.localDataManager
+    private val controller: Controller by controllerProvider
+    private val localDataManager: LocalDataManager by localDataManagerProvider
     private val upcomingEventsAndUserCalendarsLock = Any()
     private var upcomingEvents: List<MyEvent> by weakRef {
         localDataManager.restoreEventsList()?.toList() ?: emptyList()
@@ -60,7 +63,7 @@ class EventReminderTrackerImpl(factory: FactoryForEventReminderTracker) : EventR
         while (true) {
             var doContinue = false
             synchronized(eventTrackerDaemonLock) {
-                val currentTimeMillis = System.currentTimeMillis()
+                val currentTimeMillis = utils.currentTimeMillis
                 initNextEventsToNotify()
                 if (nextEventsToNotify.isEmpty() || nextEventsToNotifyUNIXTime == null) {
                     eventTrackerDaemon = null
@@ -79,7 +82,7 @@ class EventReminderTrackerImpl(factory: FactoryForEventReminderTracker) : EventR
             }
             if (doContinue) continue
             try {
-                val maxOf = maxOf(nextEventsToNotifyUNIXTime!! - System.currentTimeMillis(), 0L)
+                val maxOf = maxOf(nextEventsToNotifyUNIXTime!! - utils.currentTimeMillis, 0L)
                 Thread.sleep(maxOf)
             } catch (ignored: InterruptedException) { }
         }

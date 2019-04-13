@@ -41,7 +41,9 @@ interface GoogleCalendarManager {
 
 class GoogleCalendarManagerImpl(
         private val openURLInDefaultBrowser: (url: String) -> Unit,
-        private val localDataManager: LocalDataManager) : GoogleCalendarManager {
+        private val utils: Utils,
+        localDataManager: Provider<LocalDataManager>) : GoogleCalendarManager {
+    private val localDataManager: LocalDataManager by localDataManager
     @Volatile
     private var _service: Calendar? = null
     private val service: Calendar
@@ -52,7 +54,7 @@ class GoogleCalendarManagerImpl(
 
     private fun getUpcomingEvents(calendarId: String): List<MyEvent>? = try {
         val cal: java.util.Calendar = java.util.Calendar.getInstance()
-        cal.time = Date(System.currentTimeMillis())
+        cal.time = Date(utils.currentTimeMillis)
         cal.add(java.util.Calendar.MINUTE, -30)
         val start = DateTime(cal.time)
         cal.add(java.util.Calendar.MINUTE, 30)

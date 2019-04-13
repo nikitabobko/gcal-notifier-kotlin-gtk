@@ -6,37 +6,39 @@ import ru.nikitabobko.gcalnotifier.controller.ControllerImpl
 import ru.nikitabobko.gcalnotifier.view.View
 import ru.nikitabobko.gcalnotifier.view.ViewJavaGnome
 import kotlin.properties.ReadOnlyProperty
+import kotlin.reflect.KProperty
 
-interface Factory : FactoryForController, FactoryForView, FactoryForEventReminderTracker
+interface Provider<out T> : ReadOnlyProperty<Any?, T> {
+    val value: T
 
-interface FactoryForController {
-    val eventReminderTracker: ReadOnlyProperty<Any?, EventReminderTracker>
-    val localDataManager: ReadOnlyProperty<Any?, LocalDataManager>
-    val googleCalendarManager: ReadOnlyProperty<Any?, GoogleCalendarManager>
-    val view: ReadOnlyProperty<Any?, View>
+    override fun getValue(thisRef: Any?, property: KProperty<*>): T = value
 }
 
-interface FactoryForView {
-    val controller: ReadOnlyProperty<Any?, Controller>
+interface Factory {
+    val eventReminderTracker: Provider<EventReminderTracker>
+    val localDataManager: Provider<LocalDataManager>
+    val googleCalendarManager: Provider<GoogleCalendarManager>
+    val view: Provider<View>
+    val controller: Provider<Controller>
+    val utils: Utils
 }
 
-interface FactoryForEventReminderTracker {
-    val controller: ReadOnlyProperty<Any?, Controller>
-    val localDataManager: ReadOnlyProperty<Any?, LocalDataManager>
-}
+object FactoryImpl : Factory {
+    override val utils: Utils = UtilsImpl
 
-object MyFactory : Factory {
-    override val view = lazyProp { ViewJavaGnome(UI_THREAD_ID, this) }
+    override val view = lazyProvider {
+        ViewJavaGnome(UI_THREAD_ID, controller, utils)
+    }
 
-    override val controller = lazyProp { ControllerImpl(this) }
+    override val controller: Provider<Controller> = lazyProvider {//
+        ControllerImpl(view, localDataManager, googleCalendarManager, eventReminderTracker, utils)
+    }
 
-    override val eventReminderTracker = lazyProp { EventReminderTrackerImpl(this) }
+    override val eventReminderTracker = lazyProvider { EventReminderTrackerImpl(controller, localDataManager, utils) }
 
-    // todo use softRef
-    override val localDataManager = lazyProp(::LocalDataManagerJSON)
+    override val localDataManager = weakProvider(::LocalDataManagerJSON)
 
-    // todo use softRef
-    override val googleCalendarManager = lazyProp {
-        GoogleCalendarManagerImpl(view.value::openURLInDefaultBrowser, localDataManager.value)
+    override val googleCalendarManager = weakProvider {
+        GoogleCalendarManagerImpl(view.value::openURLInDefaultBrowser, utils, localDataManager)
     }
 }
