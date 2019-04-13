@@ -68,7 +68,7 @@ class GoogleCalendarManagerImpl(
                 .setOrderBy("startTime")
                 .setSingleEvents(true)
                 .execute()
-        events.items.map { it.toInternal() }
+        events.items.map { it.toInternal(calendarId) }
     } catch (ex: Throwable) {
         _service = null
         null

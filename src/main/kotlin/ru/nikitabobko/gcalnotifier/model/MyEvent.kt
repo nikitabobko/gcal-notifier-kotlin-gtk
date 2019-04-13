@@ -50,7 +50,7 @@ data class MyEvent(val title: String?, val startUNIXTime: Long, val endUNIXTime:
 /**
  * Convert to internal representation
  */
-fun Event.toInternal(): MyEvent {
+fun Event.toInternal(calendarId: String): MyEvent {
     return MyEvent(
             title = summary,
             startUNIXTime = (start.dateTime ?: start.date).value,
@@ -61,7 +61,7 @@ fun Event.toInternal(): MyEvent {
                         overrides = reminders.overrides?.map { it.toInternal() }
                 )
             },
-            calendarId = organizer?.email,
+            calendarId = calendarId,
             htmlLink = htmlLink,
             isAllDayEvent = start.date != null
     )
