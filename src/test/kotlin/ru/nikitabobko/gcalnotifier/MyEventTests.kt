@@ -1,7 +1,6 @@
 package ru.nikitabobko.gcalnotifier
 
 import junit.framework.TestCase
-import ru.nikitabobko.gcalnotifier.support.FactoryImpl
 import ru.nikitabobko.gcalnotifier.support.UtilsImpl
 
 class MyEventTests : TestCase() {
