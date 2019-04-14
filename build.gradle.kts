@@ -39,7 +39,7 @@ repositories {
 
 dependencies {
     implementation(kotlin("stdlib-jdk8"))
-    compile("ru.nikitabobko.kotlin.refdelegation:kotlin-ref-delegation:1.0")
+    compile("ru.nikitabobko.kotlin.refdelegation:kotlin-ref-delegation:1.1.2")
     testCompile("org.jetbrains.kotlin:kotlin-test-junit:${extra.get("kotlin_version")}")
     testCompile("org.mockito:mockito-core:2.1.0")
     compile("com.google.oauth-client:google-oauth-client-jetty:1.23.0")
