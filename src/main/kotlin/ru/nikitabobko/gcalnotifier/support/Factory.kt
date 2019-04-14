@@ -20,25 +20,29 @@ interface Factory {
     val googleCalendarManager: Provider<GoogleCalendarManager>
     val view: Provider<View>
     val controller: Provider<Controller>
-    val utils: Utils
+    val utils: Provider<Utils>
 }
 
-object FactoryImpl : Factory {
-    override val utils: Utils = UtilsImpl
+object FactoryImpl : BaseFactory()
 
-    override val view = lazyProvider {
-        ViewJavaGnome(UI_THREAD_ID, controller, utils)
+abstract class BaseFactory : Factory {
+    override val utils: Provider<Utils> = lazyProvider { UtilsImpl }
+
+    override val view: Provider<View> = lazyProvider {
+        ViewJavaGnome(UI_THREAD_ID, controller, utils.value)
     }
 
     override val controller: Provider<Controller> = lazyProvider {
-        ControllerImpl(view, localDataManager, googleCalendarManager, eventReminderTracker, utils)
+        ControllerImpl(view, localDataManager, googleCalendarManager, eventReminderTracker, utils.value)
     }
 
-    override val eventReminderTracker = lazyProvider { EventReminderTrackerImpl(controller, localDataManager, utils) }
+    override val eventReminderTracker: Provider<EventReminderTracker> = lazyProvider {
+        EventReminderTrackerImpl(controller, localDataManager, utils.value)
+    }
 
-    override val localDataManager = weakProvider(::LocalDataManagerJSON)
+    override val localDataManager: Provider<LocalDataManager> = weakProvider(::LocalDataManagerJSON)
 
-    override val googleCalendarManager = weakProvider {
-        GoogleCalendarManagerImpl(view.value::openURLInDefaultBrowser, utils, localDataManager)
+    override val googleCalendarManager: Provider<GoogleCalendarManager> = weakProvider {
+        GoogleCalendarManagerImpl(view.value::openURLInDefaultBrowser, utils.value, localDataManager)
     }
 }
