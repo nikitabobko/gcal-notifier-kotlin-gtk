@@ -30,7 +30,7 @@ object FactoryImpl : Factory {
         ViewJavaGnome(UI_THREAD_ID, controller, utils)
     }
 
-    override val controller: Provider<Controller> = lazyProvider {//
+    override val controller: Provider<Controller> = lazyProvider {
         ControllerImpl(view, localDataManager, googleCalendarManager, eventReminderTracker, utils)
     }
 

@@ -1,23 +1,25 @@
 package ru.nikitabobko.gcalnotifier
 
 import junit.framework.TestCase
+import org.mockito.Mockito.mock
+import org.mockito.Mockito.verify
 import ru.nikitabobko.gcalnotifier.controller.ControllerImpl
+import ru.nikitabobko.gcalnotifier.support.EventReminderTracker
+import ru.nikitabobko.gcalnotifier.support.GoogleCalendarManager
+import ru.nikitabobko.gcalnotifier.support.LocalDataManager
 import ru.nikitabobko.gcalnotifier.support.asProvider
+import ru.nikitabobko.gcalnotifier.view.View
 
 class ControllerTests : TestCase() {
     fun testRemoveAllDataAtLogout() {
-        var removeAllDataCalled = false
+        val localDataManager = mock(LocalDataManager::class.java)
         val controller = ControllerImpl(
-                EmptyView().asProvider(),
-                object : EmptyLocalDataManager() {
-                    override fun removeAllData() {
-                        removeAllDataCalled = true
-                    }
-                }.asProvider(),
-                EmptyGoogleCalendarManager().asProvider(),
-                EmptyEventReminderTracker().asProvider(),
+                mock(View::class.java).asProvider(),
+                localDataManager.asProvider(),
+                mock(GoogleCalendarManager::class.java).asProvider(),
+                mock(EventReminderTracker::class.java).asProvider(),
                 FakeUtils)
         controller.logoutButtonClicked()
-        assertTrue(removeAllDataCalled)
+        verify(localDataManager).removeAllData()
     }
 }

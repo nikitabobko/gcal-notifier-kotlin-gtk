@@ -1,4 +1,6 @@
 import junit.framework.TestCase
+import org.mockito.Mockito.mock
+import org.mockito.invocation.InvocationOnMock
 import ru.nikitabobko.gcalnotifier.*
 import ru.nikitabobko.gcalnotifier.controller.Controller
 import ru.nikitabobko.gcalnotifier.model.MyCalendarListEntry
@@ -108,14 +110,17 @@ class EventReminderTrackerTests : TestCase() {
                 createEvent("1", 10.seconds, createReminder(0))
         )
         var count = 0
-        val tracker = createEventReminderTrackerImpl(object : EmptyFakeController() {
-            override fun eventReminderTriggered(event: MyEvent) {
+
+        val tracker = createEventReminderTrackerImpl(mock(Controller::class.java).apply {
+            whenCalled(this.eventReminderTriggered(any())).thenAnswer { invocation: InvocationOnMock ->
+                val event = invocation.arguments[0] as MyEvent
                 when (count) {
                     0 -> assertEquals("0", event.title)
                     1 -> assertEquals("1", event.title)
                     else -> fail()
                 }
                 count++
+                return@thenAnswer Unit
             }
         }, events.toTypedArray(), emptyArray())
 
@@ -197,9 +202,10 @@ class EventReminderTrackerTests : TestCase() {
                        numberOfTriggers: Int, initTrackerWrapper: EventReminderTrackerWrapper? = null,
                        eventTriggered: ((event: MyEvent, count: Int) -> Unit)? = null): EventReminderTrackerWrapper {
         var count = 0
-        val fakeController = object : EmptyFakeController() {
-            override fun eventReminderTriggered(event: MyEvent) {
-                eventTriggered?.invoke(event, count++)
+
+        val fakeController = mock(Controller::class.java).apply {
+            whenCalled(this.eventReminderTriggered(any())).thenAnswer { invocation: InvocationOnMock ->
+                eventTriggered?.invoke(invocation.arguments[0] as MyEvent, count++)
             }
         }
 
@@ -219,13 +225,14 @@ class EventReminderTrackerTests : TestCase() {
     private fun createEventReminderTrackerImpl(controllerProvider: Provider<Controller>,
                                                events: Array<MyEvent>,
                                                calendars: Array<MyCalendarListEntry>): EventReminderTrackerImpl {
+
         return EventReminderTrackerImpl(
                 controllerProvider,
-                object : EmptyLocalDataManager() {
-                    override fun restoreEventsList(): Array<MyEvent>? = events
-
-                    override fun restoreUsersCalendarList(): Array<MyCalendarListEntry>? = calendars
-                }.asProvider(), FakeUtils)
+                mock(LocalDataManager::class.java).apply {
+                    whenCalled(this.restoreEventsList()).thenReturn(events)
+                    whenCalled(this.restoreUsersCalendarList()).thenReturn(calendars)
+                }.asProvider(),
+                FakeUtils)
     }
 
     private fun createEventReminderTrackerImpl(controller: Controller, events: Array<MyEvent>,
