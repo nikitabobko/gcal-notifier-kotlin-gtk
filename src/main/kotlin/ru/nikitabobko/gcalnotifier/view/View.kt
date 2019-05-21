@@ -87,23 +87,23 @@ class ViewJavaGnome(private val uiThreadId: Long,
     override fun showNotification(summary: String,
                                   body: String?,
                                   actionLabel: String?,
-                                  action: ((Notification, String) -> Unit)?) = runOnUIThread {
+                                  action: ((Notification, String) -> Unit)?) = runInUIThread {
         showNotification(summary, body, false, actionLabel, action)
     }
 
     override fun showInfiniteNotification(summary: String,
                                           body: String?,
                                           actionLabel: String?,
-                                          action: ((Notification, String) -> Unit)?) = runOnUIThread {
+                                          action: ((Notification, String) -> Unit)?) = runInUIThread {
         showNotification(summary, body, true, actionLabel, action)
     }
 
-    override fun showPopupMenu() = runOnUIThread {
-        popupMenu.popup(statusIcon ?: return@runOnUIThread)
+    override fun showPopupMenu() = runInUIThread {
+        popupMenu.popup(statusIcon ?: return@runInUIThread)
     }
 
     @Synchronized
-    override fun update(events: List<MyEvent>) = runOnUIThread {
+    override fun update(events: List<MyEvent>) = runInUIThread {
         val eventsList = events.subList(0, min(Settings.maxNumberOfEventsToShowInPopupMenu, events.size))
         removeAllEventsFromPopupMenu()
         if (eventsList.isEmpty()) {
@@ -135,15 +135,15 @@ class ViewJavaGnome(private val uiThreadId: Long,
         }
     }
 
-    override fun quit() = runOnUIThread {
+    override fun quit() = runInUIThread {
         Gtk.mainQuit()
     }
 
-    override fun showSettingsWindow() = runOnUIThread {
+    override fun showSettingsWindow() = runInUIThread {
         TODO(reason = "not implemented")
     }
 
-    override fun showStatusIcon() = runOnUIThread {
+    override fun showStatusIcon() = runInUIThread {
         statusIcon = StatusIcon(appIcon).apply {
             // left mouse button click
             connect(StatusIcon.Activate { controller.statusIconClicked() })
@@ -199,7 +199,7 @@ class ViewJavaGnome(private val uiThreadId: Long,
         return menu
     }
 
-    private fun runOnUIThread(callback: () -> Unit) {
+    private fun runInUIThread(callback: () -> Unit) {
         if (Thread.currentThread().id != uiThreadId) {
             Glib.idleAdd {
                 callback()
