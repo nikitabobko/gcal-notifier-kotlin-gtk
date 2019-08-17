@@ -28,14 +28,15 @@ data class MyEvent(val title: String?, val startUNIXTime: Long, val endUNIXTime:
 
     fun dateTimeString(utils: Utils): String {
         val eventStart = Date(startUNIXTime)
-        var dateTime = when(eventStart) {
+        var dateTime = ""
+        if (!isAllDayEvent) {
+            dateTime += SimpleDateFormat("HH:mm").format(eventStart)
+            dateTime += SimpleDateFormat(" - HH:mm • ").format(Date(endUNIXTime))
+        }
+        dateTime += when(eventStart) {
             in utils.today until utils.tomorrow -> "Today"
             in utils.tomorrow until utils.theDayAfterTomorrow -> "Tomorrow"
-            else -> SimpleDateFormat("yyyy/MM/dd").format(eventStart)
-        }
-        if (!isAllDayEvent) {
-            dateTime += SimpleDateFormat(" HH:mm").format(eventStart)
-            dateTime += SimpleDateFormat(" - HH:mm").format(Date(endUNIXTime))
+            else -> SimpleDateFormat("dd MMM yyyy").format(eventStart)
         }
         return dateTime
     }
