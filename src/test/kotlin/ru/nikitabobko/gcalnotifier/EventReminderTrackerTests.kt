@@ -1,14 +1,14 @@
+package ru.nikitabobko.gcalnotifier
+
 import junit.framework.TestCase
 import org.mockito.Mockito.mock
 import org.mockito.invocation.InvocationOnMock
-import ru.nikitabobko.gcalnotifier.*
 import ru.nikitabobko.gcalnotifier.controller.Controller
 import ru.nikitabobko.gcalnotifier.model.MyCalendarListEntry
 import ru.nikitabobko.gcalnotifier.model.MyEvent
 import ru.nikitabobko.gcalnotifier.support.*
 import java.util.concurrent.CyclicBarrier
 import kotlin.concurrent.thread
-import kotlin.test.assertNotEquals
 
 class EventReminderTrackerTests : TestCase() {
     override fun setUp() {
@@ -16,7 +16,7 @@ class EventReminderTrackerTests : TestCase() {
         FakeUtils.resetTime()
     }
 
-    fun testSimple() {
+    fun `test simple`() {
         doTest(events = listOf(
                 createEvent("10", 10.seconds, createReminder(0)),
                 createEvent("10", 10.seconds, createReminder(0)),
@@ -31,7 +31,7 @@ class EventReminderTrackerTests : TestCase() {
         }
     }
 
-    fun testSimple2() {
+    fun `test simple 2`() {
         doTest(events = listOf(
                 createEvent("10", 10.seconds, createReminder(0)),
                 createEvent("-20", 10.seconds, createReminder(30.seconds)),
@@ -45,7 +45,7 @@ class EventReminderTrackerTests : TestCase() {
         }
     }
 
-    fun testSimple3() {
+    fun `test assert trigger when notify in 29 seconds`() {
         doTest(events = listOf(
                 createEvent("29", 30.minutes, createReminder(30.minutes - 29.seconds))
         ), numberOfTriggers = 1) { event: MyEvent, count: Int ->
@@ -57,7 +57,7 @@ class EventReminderTrackerTests : TestCase() {
         }
     }
 
-    fun testEventTrackerDaemonIsSleeping(): Unit = repeat(4) {
+    fun `test EventReminderTracker daemon is sleeping and waiting for upcoming 30 seconds event`(): Unit = repeat(4) {
         val trackerWrapper: EventReminderTrackerWrapper = doTest(events = listOf(
                 createEvent("title", 30.seconds, createReminder(0.minutes))
         ), numberOfTriggers = 0)
@@ -65,11 +65,11 @@ class EventReminderTrackerTests : TestCase() {
                 .find { it.name == "eventTrackerDaemon" }!!
                 .apply { isAccessible = true }
                 .get(trackerWrapper.tracker) as Thread?
-        assertNotEquals(null, eventTrackerDaemon)
+        assertNotNull(eventTrackerDaemon)
         assertEquals(Thread.State.TIMED_WAITING, eventTrackerDaemon!!.state)
     }
 
-    fun testLastNotifiedIsConsidered() {
+    fun `test last notified is considered`() {
         val lastNotifiedUNIXTime = 3.seconds
         val trackerWrapper: EventReminderTrackerWrapper = doTest(events = listOf(
                 createEvent("title0", lastNotifiedUNIXTime, createReminder(0))
@@ -104,7 +104,7 @@ class EventReminderTrackerTests : TestCase() {
         }
     }
 
-    fun testNewDataCameRaceCondition() = repeat(10) {
+    fun `test newDataCame race condition`() = repeat(10) {
         val events = listOf(
                 createEvent("0", 1.seconds, createReminder(0)),
                 createEvent("1", 10.seconds, createReminder(0))
@@ -139,7 +139,7 @@ class EventReminderTrackerTests : TestCase() {
         assertEquals(2, count)
     }
 
-    fun testCalendarRemainderSimpleTest() {
+    fun `test calendar reminder simple`() {
         val calendarId = "calendarId"
         doTest(events = listOf(
                 createEvent("10", 20.seconds, createCalendarReminder(), calendarId)
@@ -153,7 +153,7 @@ class EventReminderTrackerTests : TestCase() {
         }
     }
 
-    fun testCalendarMultipleReminders() {
+    fun `test calendar multiple reminders`() {
         val calendarId = "calendarId"
         doTest(events = listOf(
                 createEvent("10, 15", 20.seconds, createCalendarReminder(), calendarId)
@@ -168,7 +168,7 @@ class EventReminderTrackerTests : TestCase() {
         }
     }
 
-    fun testMixEventsAndCalendarReminders() {
+    fun `test mix events reminders and calendar reminders`() {
         val calendarId1 = "calendarId1"
         val calendarId2 = "calendarId2"
         doTest(events = listOf(
@@ -225,7 +225,6 @@ class EventReminderTrackerTests : TestCase() {
     private fun createEventReminderTrackerImpl(controllerProvider: Provider<Controller>,
                                                events: Array<MyEvent>,
                                                calendars: Array<MyCalendarListEntry>): EventReminderTrackerImpl {
-
         return EventReminderTrackerImpl(
                 controllerProvider,
                 mock(LocalDataManager::class.java).apply {
