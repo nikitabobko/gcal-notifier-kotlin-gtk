@@ -25,6 +25,7 @@ fun createCalendarReminder(): MyEvent.MyReminders {
 }
 
 object FakeUtils : Utils() {
+    @Volatile
     override var currentTimeMillis: Long = 0L
 
     fun resetTime() {
