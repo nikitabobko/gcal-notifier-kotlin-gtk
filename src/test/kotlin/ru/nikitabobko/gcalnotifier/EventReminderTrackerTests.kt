@@ -8,6 +8,7 @@ import ru.nikitabobko.gcalnotifier.model.MyCalendarListEntry
 import ru.nikitabobko.gcalnotifier.model.MyEvent
 import ru.nikitabobko.gcalnotifier.support.*
 import java.util.concurrent.CyclicBarrier
+import java.util.concurrent.atomic.AtomicInteger
 import kotlin.concurrent.thread
 
 class EventReminderTrackerTests : TestCase() {
@@ -61,10 +62,7 @@ class EventReminderTrackerTests : TestCase() {
         val trackerWrapper: EventReminderTrackerWrapper = doTest(events = listOf(
                 createEvent("title", 30.seconds, createReminder(0.minutes))
         ), numberOfTriggers = 0)
-        val eventTrackerDaemon = trackerWrapper.tracker.javaClass.declaredFields
-                .find { it.name == "eventTrackerDaemon" }!!
-                .apply { isAccessible = true }
-                .get(trackerWrapper.tracker) as Thread?
+        val eventTrackerDaemon = trackerWrapper.tracker.daemonThread
         assertNotNull(eventTrackerDaemon)
         assertEquals(Thread.State.TIMED_WAITING, eventTrackerDaemon!!.state)
     }
@@ -109,19 +107,15 @@ class EventReminderTrackerTests : TestCase() {
                 createEvent("0", 1.seconds, createReminder(0)),
                 createEvent("1", 10.seconds, createReminder(0))
         )
-        var count = 0
+        val count = AtomicInteger(0)
 
-        val tracker = createEventReminderTrackerImpl(mock(Controller::class.java).apply {
-            whenCalled(this.eventReminderTriggered(any())).thenAnswer { invocation: InvocationOnMock ->
-                val event = invocation.arguments[0] as MyEvent
-                when (count) {
-                    0 -> assertEquals("0", event.title)
-                    1 -> assertEquals("1", event.title)
-                    else -> fail()
-                }
-                count++
-                return@thenAnswer Unit
+        val tracker = createEventReminderTrackerImpl(mockController { event: MyEvent ->
+            when (count.get()) {
+                0 -> assertEquals("0", event.title)
+                1 -> assertEquals("1", event.title)
+                else -> fail()
             }
+            count.getAndIncrement()
         }, events.toTypedArray(), emptyArray())
 
         val numOfThreads = 5_000
@@ -135,8 +129,7 @@ class EventReminderTrackerTests : TestCase() {
         barrier.await()
         threads.forEach { it.join() }
 
-        waitFor { count == 2 }
-        assertEquals(2, count)
+        assertEquals(2, count.get())
     }
 
     fun `test calendar reminder simple`() {
@@ -201,12 +194,10 @@ class EventReminderTrackerTests : TestCase() {
     private fun doTest(events: List<MyEvent>, calendars: List<MyCalendarListEntry> = listOf(),
                        numberOfTriggers: Int, initTrackerWrapper: EventReminderTrackerWrapper? = null,
                        eventTriggered: ((event: MyEvent, count: Int) -> Unit)? = null): EventReminderTrackerWrapper {
-        var count = 0
+        val count = AtomicInteger(0)
 
-        val fakeController = mock(Controller::class.java).apply {
-            whenCalled(this.eventReminderTriggered(any())).thenAnswer { invocation: InvocationOnMock ->
-                eventTriggered?.invoke(invocation.arguments[0] as MyEvent, count++)
-            }
+        val fakeController = mockController { event: MyEvent ->
+            eventTriggered?.invoke(event, count.getAndIncrement())
         }
 
         val controllerProvider = (initTrackerWrapper?.controllerProvider as? MutableProvider)?.apply {
@@ -220,6 +211,14 @@ class EventReminderTrackerTests : TestCase() {
         waitFor { count == numberOfTriggers }
         assertEquals(numberOfTriggers, count)
         return EventReminderTrackerWrapper(tracker, controllerProvider)
+    }
+
+    private fun mockController(eventReminderTriggered: (event: MyEvent) -> Unit): Controller {
+        return mock(Controller::class.java).apply {
+            whenCalled(this.eventReminderTriggered(any())).thenAnswer { invocation: InvocationOnMock ->
+                eventReminderTriggered(invocation.arguments[0] as MyEvent)
+            }
+        }
     }
 
     private fun createEventReminderTrackerImpl(controllerProvider: Provider<Controller>,
