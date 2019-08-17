@@ -1,6 +1,7 @@
 package ru.nikitabobko.gcalnotifier
 
 import junit.framework.TestCase
+import org.mockito.Mockito
 import org.mockito.Mockito.mock
 import org.mockito.invocation.InvocationOnMock
 import ru.nikitabobko.gcalnotifier.controller.Controller
@@ -36,11 +37,11 @@ class EventReminderTrackerTests : TestCase() {
         doTest(events = listOf(
                 createEvent("10", 10.seconds, createReminder(0)),
                 createEvent("-20", 10.seconds, createReminder(30.seconds)),
-                createEvent("10, 8", 10.seconds, createReminder(0), createReminder(2.seconds))
+                createEvent("10, 0.5", 10.seconds, createReminder(0), createReminder(9.seconds + 500))
         ), numberOfTriggers = 3) { event: MyEvent, count: Int ->
             when (count) {
-                0 -> assertEquals("10, 8", event.title)
-                in 1..2 -> assertTrue("10" == event.title || "10, 8" == event.title)
+                0 -> assertEquals("10, 0.5", event.title)
+                in 1..2 -> assertTrue("10" == event.title || "10, 0.5" == event.title)
                 else -> fail()
             }
         }
@@ -135,9 +136,9 @@ class EventReminderTrackerTests : TestCase() {
     fun `test calendar reminder simple`() {
         val calendarId = "calendarId"
         doTest(events = listOf(
-                createEvent("10", 20.seconds, createCalendarReminder(), calendarId)
+                createEvent("10", 20.minutes, createCalendarReminder(), calendarId)
         ), calendars = listOf(
-                MyCalendarListEntry(calendarId, listOf(createReminder(10.seconds)))
+                MyCalendarListEntry(calendarId, listOf(createReminder(20.minutes - 10.seconds)))
         ), numberOfTriggers = 1) { event: MyEvent, count: Int ->
             when (count) {
                 0 -> assertEquals("10", event.title)
@@ -149,9 +150,10 @@ class EventReminderTrackerTests : TestCase() {
     fun `test calendar multiple reminders`() {
         val calendarId = "calendarId"
         doTest(events = listOf(
-                createEvent("10, 15", 20.seconds, createCalendarReminder(), calendarId)
+                createEvent("10, 15", 20.minutes, createCalendarReminder(), calendarId)
         ), calendars = listOf(
-                MyCalendarListEntry(calendarId, listOf(createReminder(10.seconds), createReminder(5.seconds)))
+                MyCalendarListEntry(calendarId,
+                        listOf(createReminder(20.minutes - 10.seconds), createReminder(20.minutes - 5.seconds)))
         ), numberOfTriggers = 2) { event: MyEvent, count: Int ->
             when (count) {
                 0 -> assertEquals("10, 15", event.title)
@@ -165,14 +167,15 @@ class EventReminderTrackerTests : TestCase() {
         val calendarId1 = "calendarId1"
         val calendarId2 = "calendarId2"
         doTest(events = listOf(
-                createEvent("5", 10.seconds, createReminder(5.seconds)),
-                createEvent("10, -15", 20.seconds, createCalendarReminder(), calendarId1),
-                createEvent("10, 25", 35.seconds, createCalendarReminder(), calendarId1),
-                createEvent("15", 30.seconds, createCalendarReminder(), calendarId2),
-                createEvent("-5", 10.seconds, createCalendarReminder(), calendarId2)
+                createEvent("5", 10.minutes, createReminder(10.minutes - 5.seconds)),
+                createEvent("10, -15", 20.minutes, createCalendarReminder(), calendarId1),
+                createEvent("10, 25", 20.minutes + 15.seconds, createCalendarReminder(), calendarId1),
+                createEvent("15", 10.minutes + 20.seconds, createCalendarReminder(), calendarId2),
+                createEvent("-5", 10.minutes, createCalendarReminder(), calendarId2)
         ), calendars = listOf(
-                MyCalendarListEntry(calendarId1, listOf(createReminder(10.seconds), createReminder(25.seconds))),
-                MyCalendarListEntry(calendarId2, listOf(createReminder(15.seconds)))
+                MyCalendarListEntry(calendarId1,
+                        listOf(createReminder(20.minutes - 10.seconds), createReminder(20.minutes + 5.seconds))),
+                MyCalendarListEntry(calendarId2, listOf(createReminder(10.minutes + 5.seconds)))
         ), numberOfTriggers = 5) { event: MyEvent, count: Int ->
             when (count) {
                 0 -> assertEquals("5", event.title)
@@ -184,6 +187,41 @@ class EventReminderTrackerTests : TestCase() {
         }
     }
 
+    fun `test don't notify sooner than EventReminderTrackerImpl#PERCENT_ACCURACY% of notification "pretime"`() {
+        val eventTime = 1.minutes
+        val eventNotification = 40.seconds
+        for (events in listOf(
+                arrayOf(createEvent("doesn't matter title", eventTime, createReminder(eventNotification))),
+                arrayOf(createEvent("doesn't matter title 1", eventTime, createReminder(eventNotification)),
+                        createEvent("doesn't matter title 2", eventTime + 30.minutes, createReminder(eventNotification + 30.minutes)))
+        )) {
+            // setup
+            val controllerProvider = mockController {
+                fail("You shouldn't notify too early for small notifications!")
+            }.asMutableProvider()
+
+            val tracker: EventReminderTrackerImpl = createEventReminderTrackerImpl(
+                    controllerProvider,
+                    events,
+                    emptyArray())
+            FakeUtils.currentTimeMillis = eventTime - eventNotification -
+                    EventReminderTrackerImpl.PERCENT_ACCURACY.percentOf(eventNotification) - 1.seconds
+            // action
+            tracker.newDataCame(events.toList(), emptyList())
+            // assert
+            checkAsyncAssertion { assertEquals(Thread.State.TIMED_WAITING, tracker.daemonThread!!.state) }
+
+            // setup
+            controllerProvider.value = mock(Controller::class.java)
+            // action
+            FakeUtils.currentTimeMillis += 2.seconds
+            tracker.daemonThread!!.interrupt()
+            Thread.sleep(2.seconds)
+            // assert
+            checkAsyncAssertion { Mockito.verify(controllerProvider.value).eventReminderTriggered(events.first()) }
+        }
+    }
+
     private class MutableProvider<T>(override var value: T) : Provider<T>
 
     private fun <T> T.asMutableProvider(): MutableProvider<T> = MutableProvider(this)
@@ -191,8 +229,10 @@ class EventReminderTrackerTests : TestCase() {
     private data class EventReminderTrackerWrapper(val tracker: EventReminderTracker,
                                                    val controllerProvider: Provider<Controller>)
 
-    private fun doTest(events: List<MyEvent>, calendars: List<MyCalendarListEntry> = listOf(),
-                       numberOfTriggers: Int, initTrackerWrapper: EventReminderTrackerWrapper? = null,
+    private fun doTest(events: List<MyEvent>,
+                       calendars: List<MyCalendarListEntry> = listOf(),
+                       numberOfTriggers: Int,
+                       initTrackerWrapper: EventReminderTrackerWrapper? = null,
                        eventTriggered: ((event: MyEvent, count: Int) -> Unit)? = null): EventReminderTrackerWrapper {
         val count = AtomicInteger(0)
 
@@ -208,8 +248,7 @@ class EventReminderTrackerTests : TestCase() {
                 ?: createEventReminderTrackerImpl(controllerProvider, events.toTypedArray(), calendars.toTypedArray())
 
         tracker.newDataCame(events, calendars)
-        waitFor { count == numberOfTriggers }
-        assertEquals(numberOfTriggers, count)
+        checkAsyncAssertion { assertEquals(numberOfTriggers, count.get()) }
         return EventReminderTrackerWrapper(tracker, controllerProvider)
     }
 
@@ -238,12 +277,39 @@ class EventReminderTrackerTests : TestCase() {
         return createEventReminderTrackerImpl(controller.asProvider(), events, calendars)
     }
 
-    private inline fun waitFor(maxTime: Long = 10.seconds, callback: () -> Boolean) {
+    private fun checkAsyncAssertion(maxTime: Long = 10.seconds, assertion: () -> Unit) {
         var count = 0
+        val sleepTimeout = 100L
+
+        // Wait for assertion to become true
         do {
             Thread.yield()
-            Thread.sleep(1.seconds)
+            Thread.sleep(sleepTimeout)
             count++
-        } while (!callback() && count <= maxTime / 1.seconds)
+        } while (!assertion.assertionToPredicate() && count <= maxTime / 1.seconds)
+        assertion()
+
+        // Check that assertion is still valid for a while
+        do {
+            Thread.yield()
+            Thread.sleep(sleepTimeout)
+            count++
+        } while (assertion.assertionToPredicate() && count <= maxTime / 1.seconds)
+
+        assertion()
     }
+
+    private fun (() -> Unit).assertionToPredicate(): Boolean {
+        try {
+            this()
+            return true
+        } catch (ex: AssertionError) {
+            return false
+        }
+    }
+
+    private val EventReminderTracker.daemonThread: Thread?
+        get() = this.javaClass.getDeclaredField("eventTrackerDaemon")
+                .apply { isAccessible = true }
+                .get(this) as Thread?
 }

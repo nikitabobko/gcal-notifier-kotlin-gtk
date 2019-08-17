@@ -17,6 +17,11 @@ private fun Date.plusDays(days: Int): Date {
     return cal.time
 }
 
+fun Int.percentOf(value: Long): Long {
+    check(this in 0..100)
+    return value * this / 100L
+}
+
 class AuthorizationCodeInstalledAppHack(
         flow: AuthorizationCodeFlow,
         receiver: VerificationCodeReceiver,

@@ -25,12 +25,6 @@ class EventReminderTrackerImpl(
     private var lastNotifiedEventUNIXTime: Long = utils.currentTimeMillis
     private var nextEventsToNotify: List<MyEvent> = listOf()
     private var nextEventsToNotifyUNIXTime: Long? = null
-    companion object {
-        /**
-         * 30 seconds in milliseconds
-         */
-        private const val EPS: Long = 30*1000
-    }
     private val controller: Controller by controllerProvider
     private val localDataManager: LocalDataManager by localDataManagerProvider
     private val upcomingEventsAndUserCalendarsLock = Any()
@@ -69,7 +63,13 @@ class EventReminderTrackerImpl(
                     eventTrackerDaemon = null
                     return@thread
                 }
-                if (nextEventsToNotifyUNIXTime!! - EPS < currentTimeMillis) {
+                val epsilon: Long = minOf(
+                        30.seconds,
+                        PERCENT_ACCURACY.percentOf(nextEventsToNotify.map { it.startUNIXTime }.min()!! - nextEventsToNotifyUNIXTime!!)
+                                .takeIf { it > 0 }
+                                ?: Long.MAX_VALUE
+                )
+                if (nextEventsToNotifyUNIXTime!! - epsilon < currentTimeMillis) {
                     for (event in nextEventsToNotify) {
                         controller.eventReminderTriggered(event)
                     }
@@ -88,7 +88,7 @@ class EventReminderTrackerImpl(
         }
     }
 
-    private fun MyEvent.getNextToNotifyTime(): Long? = this.getReminders(userCalendarList)
+    private fun MyEvent.calculateNextToNotifyTime(): Long? = this.getReminders(userCalendarList)
             ?.filter { it.method == MyEventReminderMethod.POPUP }
             ?.mapNotNull { if (it.milliseconds != null) this.startUNIXTime - it.milliseconds else null }
             ?.filter { it > lastNotifiedEventUNIXTime }
@@ -96,10 +96,14 @@ class EventReminderTrackerImpl(
 
     private fun initNextEventsToNotify() = synchronized(upcomingEventsAndUserCalendarsLock) {
         val candidates = upcomingEvents.mapNotNull { event ->
-            event.getNextToNotifyTime()?.let { Pair(event, it) }
+            event.calculateNextToNotifyTime()?.let { Pair(event, it) }
         }
 
         nextEventsToNotifyUNIXTime = candidates.minBy { it.second }?.second
         nextEventsToNotify = candidates.filter { it.second == nextEventsToNotifyUNIXTime }.map { it.first }
+    }
+
+    companion object {
+        const val PERCENT_ACCURACY = 10
     }
 }
