@@ -4,10 +4,7 @@ import com.google.gson.Gson
 import ru.nikitabobko.gcalnotifier.APPLICATION_NAME
 import ru.nikitabobko.gcalnotifier.model.MyCalendarListEntry
 import ru.nikitabobko.gcalnotifier.model.MyEvent
-import java.io.BufferedReader
-import java.io.File
-import java.io.FileReader
-import java.io.PrintWriter
+import java.io.*
 
 /**
  * Manages user's local data (Such as list of events and calendars to be able work in offline)
@@ -70,7 +67,7 @@ class LocalDataManagerJSON : LocalDataManager {
             PrintWriter(fileName).use {
                 it.println(gson.toJson(any))
             }
-        } catch (ex: Throwable) { }
+        } catch (ex: FileNotFoundException) { }
     }
 
     private inline fun <reified T : Any> restore(fileName: String) : T? = synchronized(lock) {
@@ -81,10 +78,8 @@ class LocalDataManagerJSON : LocalDataManager {
             BufferedReader(FileReader(fileName)).use {
                 gson.fromJson(it.readLine(), T::class.java)
             }
-        } catch (ex: Throwable) {
-            try {
-                File(fileName).delete()
-            } catch (ex: Throwable) { }
+        } catch (ex: IOException) {
+            File(fileName).delete()
             null
         }
     }

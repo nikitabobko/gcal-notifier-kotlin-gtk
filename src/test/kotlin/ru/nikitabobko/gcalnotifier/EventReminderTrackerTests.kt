@@ -190,11 +190,16 @@ class EventReminderTrackerTests : TestCase() {
     fun `test don't notify sooner than EventReminderTrackerImpl#PERCENT_ACCURACY% of notification "pretime"`() {
         val eventTime = 1.minutes
         val eventNotification = 40.seconds
-        for (events in listOf(
-                arrayOf(createEvent("doesn't matter title", eventTime, createReminder(eventNotification))),
-                arrayOf(createEvent("doesn't matter title 1", eventTime, createReminder(eventNotification)),
-                        createEvent("doesn't matter title 2", eventTime + 30.minutes, createReminder(eventNotification + 30.minutes)))
-        )) {
+
+        val events1 = arrayOf(
+                createEvent("doesn't matter title", eventTime, createReminder(eventNotification))
+        )
+        val events2 = arrayOf(
+                createEvent("doesn't matter title 1", eventTime, createReminder(eventNotification)),
+                createEvent("doesn't matter title 2", eventTime + 30.minutes, createReminder(eventNotification + 30.minutes))
+        )
+
+        for (events in listOf(events1, events2)) {
             // setup
             val controllerProvider = mockController {
                 fail("You shouldn't notify too early for small notifications!")

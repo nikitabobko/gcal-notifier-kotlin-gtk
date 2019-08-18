@@ -36,12 +36,12 @@ fun parseArgs(args: Array<out String>) {
     if (args.isNotEmpty()) printHelpAndExit()
 }
 
-fun printVersionAndExit() {
+fun printVersionAndExit(): Nothing {
     println("$APPLICATION_NAME version: $APPLICATION_VERSION")
     exitProcess(0)
 }
 
-fun printHelpAndExit() {
+fun printHelpAndExit(): Nothing {
     println("""
         usage: $APPLICATION_NAME [options]
         where possible [options] include:
