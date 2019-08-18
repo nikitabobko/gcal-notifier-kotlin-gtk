@@ -69,7 +69,7 @@ class GoogleCalendarManagerImpl(
                 .setSingleEvents(true)
                 .execute()
         events.items.map { it.toInternal(calendarId) }
-    } catch (ex: Throwable) {
+    } catch (ex: IOException) {
         _service = null
         null
     }
@@ -81,9 +81,8 @@ class GoogleCalendarManagerImpl(
                 val calendars: List<MyCalendarListEntry>? = getUserCalendarList()
                 val events: List<MyEvent>? = calendars
                         ?.mapNotNull { getUpcomingEvents(it.id) }
-                        ?.fold(mutableListOf()) { acc: MutableList<MyEvent>, list: List<MyEvent> ->
-                            acc.apply { addAll(list) }
-                        }?.sortedWith(compareBy({ it.startUNIXTime }, { it.title }))
+                        ?.flatten()
+                        ?.sortedWith(compareBy({ it.startUNIXTime }, { it.title }))
                 onRefreshedListener(events, calendars)
             }
         }
@@ -98,7 +97,7 @@ class GoogleCalendarManagerImpl(
 
     private fun getUserCalendarList(): List<MyCalendarListEntry>? = try {
         service.calendarList().list().execute().items.map { it.toInternal() }
-    } catch (ex: Throwable) {
+    } catch (ex: IOException) {
         _service = null
         null
     }
