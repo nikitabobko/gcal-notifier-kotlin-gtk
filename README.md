@@ -69,14 +69,11 @@ Execute `./gradlew jar` to generate jar file in `build/libs/` directory.
 #### Run debug gcal-notifier version from sources
 `./gradlew runJar`
 
-#### Build both tar and deb archives
-`make build`
-
 #### Build tar archive only
-`make tar`
+`./gradlew tar`
 
 #### Build deb archive only
-`make deb`
+`./gradlew deb`
 
 #### Running tests
 `./gradlew test`
