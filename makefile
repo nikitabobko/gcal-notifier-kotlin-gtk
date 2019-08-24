@@ -4,8 +4,6 @@ VERSION=$(shell cat src/main/resources/version.txt)
 
 MAIN_DIR=$(APPNAME)-v$(VERSION)
 
-DEBIAN_SUPPORT_DIR=debian-support
-
 JAR_FILE=$(MAIN_DIR)/$(APPNAME).jar
 JAR_FILE_GRADLE=build/libs/$(APPNAME)-$(VERSION).jar
 
@@ -41,7 +39,7 @@ $(SRCINFO_FILE): $(PKGBUILD_FILE)
 	(cd archlinux && makepkg --printsrcinfo) > $@
 
 $(PKGBUILD_FILE): $(TAR_FILE)
-	./archlinux-support/print-pkgbuild.sh $(VERSION) $$(sha256sum $< | cut -d" " -f1) > $@
+	./distribution/archlinux/print-pkgbuild.sh $(VERSION) $$(sha256sum $< | cut -d" " -f1) > $@
 
 ######################
 ### Debian package ###
@@ -54,7 +52,7 @@ $(DEB_DIR): $(MAIN_DIR)
 	mkdir -p $(DEB_DIR)
 	$(MAIN_DIR)/install.sh $(DEB_DIR)
 	mkdir -p $(DEB_DIR)/DEBIAN
-	cat $(DEBIAN_SUPPORT_DIR)/control > $@/DEBIAN/control
+	cat distribution/debian/control > $@/DEBIAN/control
 	echo "Version: ${VERSION}" >> $@/DEBIAN/control
 	echo "Installed-Size: $$(du -s $(DEB_DIR) | cut -f1)" >> $@/DEBIAN/control
 
@@ -71,7 +69,7 @@ $(TAR_FILE): $(MAIN_DIR)
 
 $(MAIN_DIR): $(JAR_FILE)
 	mkdir -p $@
-	cp -r support/. $@
+	cp -r distribution/installer/. $@
 	cp src/main/resources/icon.png $@
 
 #############################
