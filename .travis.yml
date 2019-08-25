@@ -1,26 +1,16 @@
 sudo: required
-
 language: generic
-
 services:
 - docker
-
 arch:
   packages:
   - jdk8-openjdk
   - java-gnome-bin
+  - dpkg # For building Debian's deb file
   script:
-  - ./.travis_script_archlinux.sh
-
-env:
-  - LINUX_DISTRO=Ubuntu
-  - LINUX_DISTRO=ArchLinux
-
+  # Otherwise get such error: ERROR: JAVA_HOME is set to an invalid directory: /usr/lib/jvm/java-8-oracle
+  - set -e
+  - export JAVA_HOME="/usr/lib/jvm/java-8-openjdk"
+  - ./gradlew test
 script:
-  - if [ $LINUX_DISTRO = "Ubuntu" ]; then 
-      ./.travis_script_ubuntu.sh;
-    elif [ $LINUX_DISTRO = "ArchLinux" ]; then
-      curl -s https://raw.githubusercontent.com/mikkeloscar/arch-travis/master/arch-travis.sh | bash;
-    else
-      exit 1;
-    fi
+- curl -s https://raw.githubusercontent.com/mikkeloscar/arch-travis/master/arch-travis.sh | bash;
