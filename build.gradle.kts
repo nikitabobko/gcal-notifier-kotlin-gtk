@@ -1,4 +1,6 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import java.security.MessageDigest
+import java.io.PrintWriter
 
 val mainClassName = "ru.nikitabobko.gcalnotifier.MainKt"
 val appName = "gcal-notifier-kotlin-gtk"
@@ -14,8 +16,8 @@ buildscript {
 }
 
 plugins {
-    id("java")
     kotlin("jvm") version "1.3.21"
+    id("co.riiid.gradle") version "0.4.2"
 }
 
 repositories {
@@ -96,13 +98,60 @@ open class BashExec : DefaultTask() {
     }
 }
 
+fun sha256(file: File): String {
+    val bytes = file.readBytes()
+    val md = MessageDigest.getInstance("SHA-256")
+    val digest = md.digest(bytes)
+    return digest.fold("") { str, it -> str + "%02x".format(it) }
+}
+
+fun check(value: Boolean, message: Any) {
+    if (!value) {
+        throw IllegalStateException(message.toString())
+    }
+}
+
+fun String.exec(): String {
+    val process: Process = Runtime.getRuntime().exec(arrayOf("bash", "-c", this))
+    val output: String = process.inputStream.bufferedReader().use { it.readText() }
+    val exitCode: Int = process.waitFor()
+    if (exitCode != 0) {
+        throw RuntimeException("""
+            "$this" exited with non-zero exit code: $exitCode
+        """.trimIndent())
+    }
+    return output
+}
+
+/**
+ * The same as [org.gradle.api.Task#setDependsOn] but also set `this.inputs`
+ * to `dependency.output` for any `dependency` in `dependencies`
+ */
+var Task.smartDependsOn: Iterable<Any>
+    set(dependencies) {
+        dependencies
+                .map { if (it is String) tasks.getByName(it) else it }
+                .also { check(it.all { it is Task }, "Only Strings and Tasks are supported") }
+                .filterIsInstance<Task>()
+                .forEach { inputs.files(it.outputs.files) }
+        setDependsOn(dependencies)
+    }
+    get() = this.getDependsOn()
+
 val assembledInstaller = file("build/installer")
 task("assemblyInstallerDir", BashExec::class) {
-    setDependsOn(listOf("jar"))
+    smartDependsOn = listOf(jar)
+
+    val icon = file("src/main/resources/icon.png")
+    val installerResDir = file("distribution/installer")
+    inputs.files(icon)
+    inputs.dir(installerResDir)
+    outputs.dir(assembledInstaller)
+
     command = """
         mkdir -p $assembledInstaller
-        cp distribution/installer/* $assembledInstaller
-        cp src/main/resources/icon.png $assembledInstaller
+        cp $installerResDir/* $assembledInstaller
+        cp $icon $assembledInstaller
         cp ${jar.archivePath} $assembledInstaller
     """.trimIndent()
 }
@@ -111,14 +160,17 @@ val tarFile = file("build/tar/$appName-v$appVersion.tar")
 task("tar", BashExec::class) {
     group = "Distribution"
     description = "Build tar archive for distribution."
-    setDependsOn(listOf("assemblyInstallerDir"))
-    val tmpDir = file("build/tmp/$appName-v$appVersion")
+    smartDependsOn = listOf("assemblyInstallerDir")
+
+    outputs.file(tarFile)
+
+    val tmpDir = file("build/tmp/tar/$appName-v$appVersion")
     command = """
         rm -rf $tmpDir
-            cp -r $assembledInstaller $tmpDir
-            mkdir -p ${tarFile.parent}
-            tar -cf $tarFile -C build/tmp/ ${tmpDir.name}
-        rm -rf $tmpDir
+        mkdir -p ${tmpDir.parent}
+        cp -r $assembledInstaller $tmpDir
+        mkdir -p ${tarFile.parent}
+        tar -cf $tarFile -C ${tmpDir.parent} ${tmpDir.name}
     """.trimIndent()
 }
 
@@ -126,17 +178,74 @@ val debFile = file("build/deb/$appName-v$appVersion.deb")
 task("deb", BashExec::class) {
     group = "Distribution"
     description = "Build deb archive for distribution."
-    setDependsOn(listOf("assemblyInstallerDir"))
+    smartDependsOn = listOf("assemblyInstallerDir")
     val tmpDir = file("build/tmp/deb")
+    val debianDistributionResDir = file("distribution/debian")
+
+    inputs.dir(debianDistributionResDir)
+    outputs.file(debFile)
+
     command = """
         rm -rf $tmpDir
-            mkdir -p $tmpDir
-            $assembledInstaller/install.sh $tmpDir
-            mkdir -p $tmpDir/DEBIAN
-            cat distribution/debian/control > $tmpDir/DEBIAN/control
-            echo 'Version: $appVersion' >> $tmpDir/DEBIAN/control
-            mkdir -p ${debFile.parent}
-            dpkg-deb --build $tmpDir $debFile
-        rm -rf $tmpDir
+        mkdir -p $tmpDir
+        $assembledInstaller/install.sh $tmpDir
+        mkdir -p $tmpDir/DEBIAN
+        cat ${debianDistributionResDir}/control > $tmpDir/DEBIAN/control
+        echo 'Version: $appVersion' >> $tmpDir/DEBIAN/control
+        mkdir -p ${debFile.parent}
+        dpkg-deb --build $tmpDir $debFile
     """.trimIndent()
+}
+
+task("allDistributionArchives") {
+    group = "Distribution"
+    description = "Build all distribution archives."
+    smartDependsOn = listOf("tar", "deb")
+}
+
+val pkgbuildFile = buildDir.resolve("archlinux").resolve("PKGBUILD")
+task("pkgbuild") {
+    group = "Distribution"
+    description = "Generates ArchLinux's PKGBUILD file."
+
+    smartDependsOn = listOf("tar")
+    outputs.file(pkgbuildFile)
+
+    doLast {
+        val d = "$"
+        val pkgbuildFileContent = """
+            # Maintainer: Nikita Bobko <echo bmlraXRhYm9ia29AZ21haWwuY29tCg== | base64 -d>
+
+            pkgname=gcal-notifier-kotlin-gtk
+            pkgver=${appVersion}
+            pkgrel=1
+            pkgdesc='Simple Google Calendar notifier for Linux written in Kotlin using GTK lib'
+            arch=('x86_64' 'i686')
+            url='https://github.com/nikitabobko/${appName}'
+            license=('GPL')
+            depends=('java-gnome-bin' 'java-runtime=8' 'libnotify' 'librsvg')
+            source=("https://github.com/nikitabobko/${appName}/releases/download/v$d{pkgver//_/-}/${appName}-v$d{pkgver//_/-}.tar")
+            sha256sums=("${sha256(tarFile)}")
+
+            package() {
+                cd $d{srcdir}/${appName}-v$d{pkgver}
+                ./install.sh ${d}pkgdir/
+            }
+        """.trimIndent()
+        pkgbuildFile.delete()
+        PrintWriter(pkgbuildFile).use { it.println(pkgbuildFileContent) }
+    }
+}
+
+github {
+    owner = "nikitabobko"
+    repo = "foo" // todo
+    token = File("secrets/github_access_token.txt").takeIf { it.exists() }?.readText()?.trim() ?: "..."
+    tagName = "v${appVersion}"
+    body = "git log -1 --pretty=%B".exec().trim()
+    setAssets(tarFile.absolutePath, debFile.absolutePath)
+}
+
+tasks.getByName("githubRelease") {
+    smartDependsOn = listOf("tar", "deb")
 }
