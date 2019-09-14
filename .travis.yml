@@ -6,7 +6,6 @@ arch:
   packages:
   - jdk8-openjdk
   - java-gnome-bin
-  - dpkg # For building Debian's deb file
   script:
   # Otherwise get such error: ERROR: JAVA_HOME is set to an invalid directory: /usr/lib/jvm/java-8-oracle
   - set -e
