@@ -47,6 +47,7 @@ git tag v$version
 ###########################
 ### Push release commit ###
 ###########################
+git show
 input "> Check that you are satisfied with created commit and tag and then press ENTER to push"
 git push origin v$version
 git push origin master
@@ -74,5 +75,6 @@ makepkg # Check that package is building before publishing to AUR
 makepkg --printsrcinfo > .SRCINFO
 git add .SRCINFO PKGBUILD
 git commit --file=$changelogFile
+git show
 input "> Check that you are satisfied with created commit and tag and then press ENTER to push to AUR"
 git push origin master
