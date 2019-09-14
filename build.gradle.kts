@@ -259,7 +259,7 @@ task("pkgbuild") {
 
 github {
     owner = "nikitabobko"
-    repo = "foo" // todo
+    repo = appName
     token = File("secrets/github_access_token.txt").takeIf { it.exists() }?.readText()?.trim() ?: "..."
     tagName = "v${appVersion}"
     body = "git log -1 --pretty=%B".exec().trim()
