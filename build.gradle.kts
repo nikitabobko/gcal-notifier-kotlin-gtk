@@ -1,6 +1,7 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import java.security.MessageDigest
 import java.io.PrintWriter
+import com.adarshr.gradle.testlogger.theme.ThemeType
 
 val mainClassName = "ru.nikitabobko.gcalnotifier.MainKt"
 val appName = "gcal-notifier-kotlin-gtk"
@@ -18,6 +19,7 @@ buildscript {
 plugins {
     kotlin("jvm") version "1.3.21"
     id("co.riiid.gradle") version "0.4.2"
+    id("com.adarshr.test-logger") version "1.7.0" // https://github.com/radarsh/gradle-test-logger-plugin
 }
 
 repositories {
@@ -52,6 +54,24 @@ val jar = tasks.getByName("jar", type = Jar::class) {
         @Suppress("IMPLICIT_CAST_TO_ANY")
         return@map if (it.isDirectory) it else zipTree(it)
     })
+}
+
+testlogger {
+    theme = ThemeType.STANDARD
+    showExceptions = true
+    showStackTraces = true
+    showFullStackTraces = false
+    showCauses = true
+    slowThreshold = 2000
+    showSummary = true
+    showSimpleNames = false
+    showPassed = true
+    showSkipped = true
+    showFailed = true
+    showStandardStreams = true
+    showPassedStandardStreams = true
+    showSkippedStandardStreams = true
+    showFailedStandardStreams = true
 }
 
 task("runJar", type = Exec::class) {
