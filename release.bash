@@ -59,7 +59,6 @@ while [ ! -f secrets/github_access_token.txt ]; do
     input "> Please setup github access token at: https://github.com/settings/tokens \n
     > And then put token into secrets/github_access_token.txt \n
     > Then press ENTER"
-    read
 done
 ./gradlew githubRelease
 
@@ -78,3 +77,9 @@ git commit --file=$changelogFile
 git show
 input "> Check that you are satisfied with created commit and tag and then press ENTER to push to AUR"
 git push origin master
+
+#################
+### Congrats! ###
+#################
+
+echo_green "Congrats! New version (v$version) released!"
