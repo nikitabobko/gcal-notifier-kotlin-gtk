@@ -2,7 +2,7 @@ sudo: required
 language: generic
 services:
 - docker
-arch:
+archlinux:
   packages:
   - jdk8-openjdk
   - java-gnome-bin
