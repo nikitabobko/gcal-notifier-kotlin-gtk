@@ -8,139 +8,139 @@ val appName = "gcal-notifier-kotlin-gtk"
 val appVersion = rootProject.file("src/main/resources/version.txt").readText().trim()
 
 buildscript {
-    repositories {
-        mavenCentral()
-    }
-    dependencies {
-        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:1.3.21")
-    }
+  repositories {
+    mavenCentral()
+  }
+  dependencies {
+    classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:1.3.21")
+  }
 }
 
 plugins {
-    kotlin("jvm") version "1.3.21"
-    id("co.riiid.gradle") version "0.4.2"
-    id("com.adarshr.test-logger") version "1.7.0" // https://github.com/radarsh/gradle-test-logger-plugin
+  kotlin("jvm") version "1.3.21"
+  id("co.riiid.gradle") version "0.4.2"
+  id("com.adarshr.test-logger") version "1.7.0" // https://github.com/radarsh/gradle-test-logger-plugin
 }
 
 repositories {
-    mavenCentral()
-    jcenter()
-    flatDir {
-        dirs("/usr/share/java/")
-    }
-    maven {
-        setUrl("https://dl.bintray.com/bobko/kotlin-ref-delegation")
-    }
+  mavenCentral()
+  jcenter()
+  flatDir {
+    dirs("/usr/share/java/")
+  }
+  maven {
+    setUrl("https://dl.bintray.com/bobko/kotlin-ref-delegation")
+  }
 }
 
 dependencies {
-    implementation(kotlin("stdlib-jdk8"))
-    compile("ru.nikitabobko.kotlin.refdelegation:kotlin-ref-delegation:1.1.2")
-    compile("com.google.oauth-client:google-oauth-client-jetty:1.23.0")
-    compile("com.google.apis:google-api-services-calendar:v3-rev305-1.23.0")
-    compile("com.google.code.gson:gson:2.8.0")
-    compile(group = "", name = "gtk")
+  implementation(kotlin("stdlib-jdk8"))
+  compile("ru.nikitabobko.kotlin.refdelegation:kotlin-ref-delegation:1.1.2")
+  compile("com.google.oauth-client:google-oauth-client-jetty:1.23.0")
+  compile("com.google.apis:google-api-services-calendar:v3-rev305-1.23.0")
+  compile("com.google.code.gson:gson:2.8.0")
+  compile(group = "", name = "gtk")
 
-    // Test dependencies
-    testCompile("org.jetbrains.kotlin:kotlin-test-junit:1.3.21")
-    testCompile("org.mockito:mockito-core:2.1.0")
+  // Test dependencies
+  testCompile("org.jetbrains.kotlin:kotlin-test-junit:1.3.21")
+  testCompile("org.mockito:mockito-core:2.1.0")
 }
 
 val jar = tasks.getByName("jar", type = Jar::class) {
-    manifest {
-        attributes(mapOf("Main-Class" to mainClassName))
-    }
-    from(configurations.compile.filter { !it.name.contains("gtk") }.map {
-        @Suppress("IMPLICIT_CAST_TO_ANY")
-        return@map if (it.isDirectory) it else zipTree(it)
-    })
+  manifest {
+    attributes(mapOf("Main-Class" to mainClassName))
+  }
+  from(configurations.compile.filter { !it.name.contains("gtk") }.map {
+    @Suppress("IMPLICIT_CAST_TO_ANY")
+    return@map if (it.isDirectory) it else zipTree(it)
+  })
 }
 
 testlogger {
-    theme = ThemeType.STANDARD
-    showExceptions = true
-    showStackTraces = true
-    showFullStackTraces = false
-    showCauses = true
-    slowThreshold = 2000
-    showSummary = true
-    showSimpleNames = false
-    showPassed = true
-    showSkipped = true
-    showFailed = true
-    showStandardStreams = true
-    showPassedStandardStreams = true
-    showSkippedStandardStreams = true
-    showFailedStandardStreams = true
+  theme = ThemeType.STANDARD
+  showExceptions = true
+  showStackTraces = true
+  showFullStackTraces = false
+  showCauses = true
+  slowThreshold = 2000
+  showSummary = true
+  showSimpleNames = false
+  showPassed = true
+  showSkipped = true
+  showFailed = true
+  showStandardStreams = true
+  showPassedStandardStreams = true
+  showSkippedStandardStreams = true
+  showFailedStandardStreams = true
 }
 
 task("runJar", type = Exec::class) {
-    group = "Run"
-    description = "Run compiled jar."
-    setDependsOn(listOf("jar"))
-    commandLine = listOf("java", "-cp", "${jar.archivePath}:/usr/share/java/gtk.jar", mainClassName)
+  group = "Run"
+  description = "Run compiled jar."
+  setDependsOn(listOf("jar"))
+  commandLine = listOf("java", "-cp", "${jar.archivePath}:/usr/share/java/gtk.jar", mainClassName)
 }
 
 tasks.withType<KotlinCompile> {
-    kotlinOptions.jvmTarget = "1.8"
+  kotlinOptions.jvmTarget = "1.8"
 }
 
 tasks.withType<Test> {
-    testLogging.showStandardStreams = true
+  testLogging.showStandardStreams = true
 }
 
 open class BashExec : DefaultTask() {
-    var command: String? = null
+  var command: String? = null
 
-    @TaskAction
-    fun exec() {
-        val command: String = command ?: throw Exception("Please specify command")
-        command.split("\n").map { it.trim() }.filter { it != "" }.forEach { commandUnit ->
-            println("> $commandUnit")
-            val process: Process = Runtime.getRuntime().exec(arrayOf("bash", "-c", commandUnit))
-            process.inputStream.bufferedReader().use {
-                while (true) {
-                    println(it.readLine() ?: break)
-                }
-            }
-            process.errorStream.bufferedReader().use {
-                while (true) {
-                    System.err.println(it.readLine() ?: break)
-                }
-            }
-            val exitCode: Int = process.waitFor()
-            if (exitCode != 0) {
-                throw RuntimeException("""
-                    "$command" exited with non-zero exit code: $exitCode
-                """.trimIndent())
-            }
+  @TaskAction
+  fun exec() {
+    val command: String = command ?: throw Exception("Please specify command")
+    command.split("\n").map { it.trim() }.filter { it != "" }.forEach { commandUnit ->
+      println("> $commandUnit")
+      val process: Process = Runtime.getRuntime().exec(arrayOf("bash", "-c", commandUnit))
+      process.inputStream.bufferedReader().use {
+        while (true) {
+          println(it.readLine() ?: break)
         }
+      }
+      process.errorStream.bufferedReader().use {
+        while (true) {
+          System.err.println(it.readLine() ?: break)
+        }
+      }
+      val exitCode: Int = process.waitFor()
+      if (exitCode != 0) {
+        throw RuntimeException("""
+          "$command" exited with non-zero exit code: $exitCode
+        """.trimIndent())
+      }
     }
+  }
 }
 
 fun sha256(file: File): String {
-    val bytes = file.readBytes()
-    val md = MessageDigest.getInstance("SHA-256")
-    val digest = md.digest(bytes)
-    return digest.fold("") { str, it -> str + "%02x".format(it) }
+  val bytes = file.readBytes()
+  val md = MessageDigest.getInstance("SHA-256")
+  val digest = md.digest(bytes)
+  return digest.fold("") { str, it -> str + "%02x".format(it) }
 }
 
 fun check(value: Boolean, message: Any) {
-    if (!value) {
-        throw IllegalStateException(message.toString())
-    }
+  if (!value) {
+    throw IllegalStateException(message.toString())
+  }
 }
 
 fun String.exec(): String {
-    val process: Process = Runtime.getRuntime().exec(arrayOf("bash", "-c", this))
-    val output: String = process.inputStream.bufferedReader().use { it.readText() }
-    val exitCode: Int = process.waitFor()
-    if (exitCode != 0) {
-        throw RuntimeException("""
-            "$this" exited with non-zero exit code: $exitCode
-        """.trimIndent())
-    }
-    return output
+  val process: Process = Runtime.getRuntime().exec(arrayOf("bash", "-c", this))
+  val output: String = process.inputStream.bufferedReader().use { it.readText() }
+  val exitCode: Int = process.waitFor()
+  if (exitCode != 0) {
+    throw RuntimeException("""
+      "$this" exited with non-zero exit code: $exitCode
+    """.trimIndent())
+  }
+  return output
 }
 
 /**
@@ -148,124 +148,124 @@ fun String.exec(): String {
  * to `dependency.output` for any `dependency` in `dependencies`
  */
 var Task.smartDependsOn: Iterable<Any>
-    set(dependencies) {
-        dependencies
-                .map { if (it is String) tasks.getByName(it) else it }
-                .also { check(it.all { it is Task }, "Only Strings and Tasks are supported") }
-                .filterIsInstance<Task>()
-                .forEach { inputs.files(it.outputs.files) }
-        setDependsOn(dependencies)
-    }
-    get() = this.getDependsOn()
+  set(dependencies) {
+    dependencies
+      .map { if (it is String) tasks.getByName(it) else it }
+      .also { check(it.all { it is Task }, "Only Strings and Tasks are supported") }
+      .filterIsInstance<Task>()
+      .forEach { inputs.files(it.outputs.files) }
+    setDependsOn(dependencies)
+  }
+  get() = this.getDependsOn()
 
 val assembledInstaller = file("build/installer")
 task("assemblyInstallerDir", BashExec::class) {
-    smartDependsOn = listOf(jar)
+  smartDependsOn = listOf(jar)
 
-    val icon = file("src/main/resources/icon.png")
-    val installerResDir = file("distribution/installer")
-    inputs.files(icon)
-    inputs.dir(installerResDir)
-    outputs.dir(assembledInstaller)
+  val icon = file("src/main/resources/icon.png")
+  val installerResDir = file("distribution/installer")
+  inputs.files(icon)
+  inputs.dir(installerResDir)
+  outputs.dir(assembledInstaller)
 
-    command = """
-        mkdir -p $assembledInstaller
-        cp $installerResDir/* $assembledInstaller
-        cp $icon $assembledInstaller
-        cp ${jar.archivePath} $assembledInstaller
-    """.trimIndent()
+  command = """
+    mkdir -p $assembledInstaller
+    cp $installerResDir/* $assembledInstaller
+    cp $icon $assembledInstaller
+    cp ${jar.archivePath} $assembledInstaller
+  """.trimIndent()
 }
 
 val tarFile = file("build/tar/$appName-v$appVersion.tar")
 task("tar", BashExec::class) {
-    group = "Distribution"
-    description = "Build tar archive for distribution."
-    smartDependsOn = listOf("assemblyInstallerDir")
+  group = "Distribution"
+  description = "Build tar archive for distribution."
+  smartDependsOn = listOf("assemblyInstallerDir")
 
-    outputs.file(tarFile)
+  outputs.file(tarFile)
 
-    val tmpDir = file("build/tmp/tar/$appName-v$appVersion")
-    command = """
-        rm -rf $tmpDir
-        mkdir -p ${tmpDir.parent}
-        cp -r $assembledInstaller $tmpDir
-        mkdir -p ${tarFile.parent}
-        tar -cf $tarFile -C ${tmpDir.parent} ${tmpDir.name}
-    """.trimIndent()
+  val tmpDir = file("build/tmp/tar/$appName-v$appVersion")
+  command = """
+    rm -rf $tmpDir
+    mkdir -p ${tmpDir.parent}
+    cp -r $assembledInstaller $tmpDir
+    mkdir -p ${tarFile.parent}
+    tar -cf $tarFile -C ${tmpDir.parent} ${tmpDir.name}
+  """.trimIndent()
 }
 
 val debFile = file("build/deb/$appName-v$appVersion.deb")
 task("deb", BashExec::class) {
-    group = "Distribution"
-    description = "Build deb archive for distribution."
-    smartDependsOn = listOf("assemblyInstallerDir")
-    val tmpDir = file("build/tmp/deb")
-    val debianDistributionResDir = file("distribution/debian")
+  group = "Distribution"
+  description = "Build deb archive for distribution."
+  smartDependsOn = listOf("assemblyInstallerDir")
+  val tmpDir = file("build/tmp/deb")
+  val debianDistributionResDir = file("distribution/debian")
 
-    inputs.dir(debianDistributionResDir)
-    outputs.file(debFile)
+  inputs.dir(debianDistributionResDir)
+  outputs.file(debFile)
 
-    command = """
-        rm -rf $tmpDir
-        mkdir -p $tmpDir
-        $assembledInstaller/install.sh $tmpDir
-        mkdir -p $tmpDir/DEBIAN
-        cat ${debianDistributionResDir}/control > $tmpDir/DEBIAN/control
-        echo 'Version: $appVersion' >> $tmpDir/DEBIAN/control
-        mkdir -p ${debFile.parent}
-        dpkg-deb --build $tmpDir $debFile
-    """.trimIndent()
+  command = """
+    rm -rf $tmpDir
+    mkdir -p $tmpDir
+    $assembledInstaller/install.sh $tmpDir
+    mkdir -p $tmpDir/DEBIAN
+    cat ${debianDistributionResDir}/control > $tmpDir/DEBIAN/control
+    echo 'Version: $appVersion' >> $tmpDir/DEBIAN/control
+    mkdir -p ${debFile.parent}
+    dpkg-deb --build $tmpDir $debFile
+  """.trimIndent()
 }
 
 task("allDistributionArchives") {
-    group = "Distribution"
-    description = "Build all distribution archives."
-    smartDependsOn = listOf("tar", "deb")
+  group = "Distribution"
+  description = "Build all distribution archives."
+  smartDependsOn = listOf("tar", "deb")
 }
 
 val pkgbuildFile = buildDir.resolve("archlinux").resolve("PKGBUILD")
 task("pkgbuild") {
-    group = "Distribution"
-    description = "Generates ArchLinux's PKGBUILD file."
+  group = "Distribution"
+  description = "Generates ArchLinux's PKGBUILD file."
 
-    smartDependsOn = listOf("tar")
-    outputs.file(pkgbuildFile)
+  smartDependsOn = listOf("tar")
+  outputs.file(pkgbuildFile)
 
-    doLast {
-        val d = "$"
-        val pkgbuildFileContent = """
-            # Maintainer: Nikita Bobko <echo bmlraXRhYm9ia29AZ21haWwuY29tCg== | base64 -d>
+  doLast {
+    val d = "$"
+    val pkgbuildFileContent = """
+      # Maintainer: Nikita Bobko <echo bmlraXRhYm9ia29AZ21haWwuY29tCg== | base64 -d>
 
-            pkgname=gcal-notifier-kotlin-gtk
-            pkgver=${appVersion}
-            pkgrel=1
-            pkgdesc='Simple Google Calendar notifier for Linux written in Kotlin using GTK lib'
-            arch=('x86_64' 'i686')
-            url='https://github.com/nikitabobko/${appName}'
-            license=('GPL')
-            depends=('java-gnome-bin' 'java-runtime=8' 'libnotify' 'librsvg')
-            source=("https://github.com/nikitabobko/${appName}/releases/download/v$d{pkgver//_/-}/${appName}-v$d{pkgver//_/-}.tar")
-            sha256sums=("${sha256(tarFile)}")
+      pkgname=gcal-notifier-kotlin-gtk
+      pkgver=${appVersion}
+      pkgrel=1
+      pkgdesc='Simple Google Calendar notifier for Linux written in Kotlin using GTK lib'
+      arch=('x86_64' 'i686')
+      url='https://github.com/nikitabobko/${appName}'
+      license=('GPL')
+      depends=('java-gnome-bin' 'java-runtime=8' 'libnotify' 'librsvg')
+      source=("https://github.com/nikitabobko/${appName}/releases/download/v$d{pkgver//_/-}/${appName}-v$d{pkgver//_/-}.tar")
+      sha256sums=("${sha256(tarFile)}")
 
-            package() {
-                cd $d{srcdir}/${appName}-v$d{pkgver}
-                ./install.sh ${d}pkgdir/
-            }
-        """.trimIndent()
-        pkgbuildFile.delete()
-        PrintWriter(pkgbuildFile).use { it.println(pkgbuildFileContent) }
-    }
+      package() {
+        cd $d{srcdir}/${appName}-v$d{pkgver}
+        ./install.sh ${d}pkgdir/
+      }
+    """.trimIndent()
+    pkgbuildFile.delete()
+    PrintWriter(pkgbuildFile).use { it.println(pkgbuildFileContent) }
+  }
 }
 
 github {
-    owner = "nikitabobko"
-    repo = appName
-    token = File("secrets/github_access_token.txt").takeIf { it.exists() }?.readText()?.trim() ?: "..."
-    tagName = "v${appVersion}"
-    body = "git log -1 --pretty=%B".exec().trim()
-    setAssets(tarFile.absolutePath, debFile.absolutePath)
+  owner = "nikitabobko"
+  repo = appName
+  token = File("secrets/github_access_token.txt").takeIf { it.exists() }?.readText()?.trim() ?: "..."
+  tagName = "v${appVersion}"
+  body = "git log -1 --pretty=%B".exec().trim()
+  setAssets(tarFile.absolutePath, debFile.absolutePath)
 }
 
 tasks.getByName("githubRelease") {
-    smartDependsOn = listOf("tar", "deb")
+  smartDependsOn = listOf("tar", "deb")
 }

@@ -11,74 +11,73 @@ import kotlin.reflect.KProperty
 val USER_HOME_FOLDER: String = System.getProperty("user.home")!!
 
 private fun Date.plusDays(days: Int): Date {
-    val cal = Calendar.getInstance()
-    cal.time = this
-    cal.add(Calendar.DAY_OF_YEAR, days)
-    return cal.time
+  val cal = Calendar.getInstance()
+  cal.time = this
+  cal.add(Calendar.DAY_OF_YEAR, days)
+  return cal.time
 }
 
 fun Int.percentOf(value: Long): Long {
-    check(this in 0..100)
-    return value * this / 100L
+  check(this in 0..100)
+  return value * this / 100L
 }
 
-class AuthorizationCodeInstalledAppHack(
-        flow: AuthorizationCodeFlow,
-        receiver: VerificationCodeReceiver,
-        private val openURLInDefaultBrowser: (url: String) -> Unit
+class AuthorizationCodeInstalledAppHack(flow: AuthorizationCodeFlow,
+                                        receiver: VerificationCodeReceiver,
+                                        private val openURLInDefaultBrowser: (url: String) -> Unit
 ) : AuthorizationCodeInstalledApp(flow, receiver) {
-    override fun onAuthorization(authorizationUrl: AuthorizationCodeRequestUrl?) {
-        // HACK: real onAuthorization method calls some AWT methods which
-        // will lead to program crash as long as we use GTK
-        openURLInDefaultBrowser(authorizationUrl?.build() ?: return)
-    }
+  override fun onAuthorization(authorizationUrl: AuthorizationCodeRequestUrl?) {
+    // HACK: real onAuthorization method calls some AWT methods which
+    // will lead to program crash as long as we use GTK
+    openURLInDefaultBrowser(authorizationUrl?.build() ?: return)
+  }
 }
 
 val Int.seconds: Long
-    get() = this * 1000L
+  get() = this * 1000L
 
 val Int.minutes: Long
-    get() = this * 1000L * 60L
+  get() = this * 1000L * 60L
 
 infix fun Date.until(exclusive: Date): ClosedRange<Date> {
-    return this..Date(exclusive.time - 1.seconds)
+  return this..Date(exclusive.time - 1.seconds)
 }
 
 fun <T> lazyProvider(init: () -> T): Provider<T> = object : Provider<T> {
-    override val value: T by lazy(init)
+  override val value: T by lazy(init)
 }
 
 fun <T> weakProvider(init: () -> T): Provider<T> = object : Provider<T> {
-    override val value: T by weakRef(init)
+  override val value: T by weakRef(init)
 }
 
 fun <T> T.asProvider(): Provider<T> = object : Provider<T> {
-    override val value: T
-        get() = this@asProvider
+  override val value: T
+    get() = this@asProvider
 }
 
 abstract class Utils {
-    abstract val currentTimeMillis: Long
+  abstract val currentTimeMillis: Long
 
-    val today: Date
-        get() {
-            val cal = Calendar.getInstance()
-            cal.time = Date(currentTimeMillis)
-            cal.set(Calendar.HOUR_OF_DAY, 0)
-            cal.set(Calendar.MINUTE, 0)
-            cal.set(Calendar.SECOND, 0)
-            cal.set(Calendar.MILLISECOND, 0)
-            return cal.time
-        }
+  val today: Date
+    get() {
+      val cal = Calendar.getInstance()
+      cal.time = Date(currentTimeMillis)
+      cal.set(Calendar.HOUR_OF_DAY, 0)
+      cal.set(Calendar.MINUTE, 0)
+      cal.set(Calendar.SECOND, 0)
+      cal.set(Calendar.MILLISECOND, 0)
+      return cal.time
+    }
 
-    val tomorrow: Date
-        get() = today.plusDays(1)
+  val tomorrow: Date
+    get() = today.plusDays(1)
 
-    val theDayAfterTomorrow: Date
-        get() = today.plusDays(2)
+  val theDayAfterTomorrow: Date
+    get() = today.plusDays(2)
 }
 
 object UtilsImpl : Utils() {
-    override val currentTimeMillis: Long
-        get() = System.currentTimeMillis()
+  override val currentTimeMillis: Long
+    get() = System.currentTimeMillis()
 }
