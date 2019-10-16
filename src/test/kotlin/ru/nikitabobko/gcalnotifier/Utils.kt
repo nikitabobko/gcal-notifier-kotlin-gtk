@@ -2,11 +2,19 @@ package ru.nikitabobko.gcalnotifier
 
 import org.mockito.Mockito
 import org.mockito.stubbing.OngoingStubbing
+import org.spekframework.spek2.dsl.GroupBody
+import org.spekframework.spek2.dsl.Skip
+import org.spekframework.spek2.style.specification.Suite
 import ru.nikitabobko.gcalnotifier.model.MyEvent
 import ru.nikitabobko.gcalnotifier.model.MyEventReminder
 import ru.nikitabobko.gcalnotifier.model.MyEventReminderMethod
 import ru.nikitabobko.gcalnotifier.support.Utils
 import ru.nikitabobko.gcalnotifier.support.minutes
+import org.spekframework.spek2.style.specification.describe
+
+fun GroupBody.describe(any: Any, skip: Skip = Skip.No, body: Suite.() -> Unit) {
+  describe(any.toString(), skip, body)
+}
 
 fun createEvent(title: String, start: Long, reminders: MyEvent.MyReminders, calendarId: String? = null): MyEvent {
   return MyEvent(title, start, start + 60.minutes, reminders, calendarId = calendarId)

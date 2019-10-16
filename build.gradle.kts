@@ -44,6 +44,10 @@ dependencies {
   // Test dependencies
   testCompile("org.jetbrains.kotlin:kotlin-test-junit:1.3.21")
   testCompile("org.mockito:mockito-core:2.1.0")
+  val spekVersion = "2.0.8"
+  testImplementation("org.spekframework.spek2:spek-dsl-jvm:$spekVersion")
+  testRuntimeOnly("org.spekframework.spek2:spek-runner-junit5:$spekVersion")
+  testRuntimeOnly("org.jetbrains.kotlin:kotlin-reflect:1.3.21")
 }
 
 val jar = tasks.getByName("jar", type = Jar::class) {
@@ -87,6 +91,9 @@ tasks.withType<KotlinCompile> {
 
 tasks.withType<Test> {
   testLogging.showStandardStreams = true
+  useJUnitPlatform {
+    includeEngines("spek2")
+  }
 }
 
 open class BashExec : DefaultTask() {
