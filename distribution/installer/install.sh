@@ -1,7 +1,7 @@
 #!/usr/bin/env sh
 root=/
 if [ "$#" -eq 1 ]; then
-    root=$1
+  root=$1
 fi
 
 cur=$(dirname $0)

@@ -1,7 +1,7 @@
 Project home page: https://github.com/nikitabobko/gcal-notifier-kotlin-gtk
 
 In order to install gcal-notifier-kotlin-gtk perform:
-    $ sudo ./install.sh
+  $ sudo ./install.sh
 
 Be sure you have installed java-gnome lib: http://java-gnome.sourceforge.net/
 

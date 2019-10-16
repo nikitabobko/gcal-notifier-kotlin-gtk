@@ -10,9 +10,9 @@ data class MyCalendarListEntry(val id: String, val defaultReminders: List<MyEven
 /**
  * Convert to internal representation
  */
-fun CalendarListEntry.toInternal(): MyCalendarListEntry{
-    return MyCalendarListEntry(
-            id = id,
-            defaultReminders = defaultReminders?.map { it.toInternal() }
-    )
+fun CalendarListEntry.toInternal(): MyCalendarListEntry {
+  return MyCalendarListEntry(
+    id = id,
+    defaultReminders = defaultReminders?.map { it.toInternal() }
+  )
 }
