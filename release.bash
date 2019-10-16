@@ -1,6 +1,5 @@
 #!/bin/bash
-set -e
-set -v
+set -ex
 
 echo_green() {
     echo -e "\e[1;32m$@\e[0m"
@@ -81,5 +80,4 @@ git push origin master
 #################
 ### Congrats! ###
 #################
-
 echo_green "Congrats! New version (v$version) released!"
