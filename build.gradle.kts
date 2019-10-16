@@ -20,6 +20,12 @@ plugins {
     kotlin("jvm") version "1.3.21"
     id("co.riiid.gradle") version "0.4.2"
     id("com.adarshr.test-logger") version "1.7.0" // https://github.com/radarsh/gradle-test-logger-plugin
+    id("info.solidsoft.pitest") version "1.4.5"
+}
+
+pitest {
+    targetClasses.set(listOf("ru.nikitabobko.gcalnotifier.*"))
+//    targetClasses(setOf())
 }
 
 repositories {
