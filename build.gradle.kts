@@ -12,12 +12,12 @@ buildscript {
     mavenCentral()
   }
   dependencies {
-    classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:1.3.21")
+    classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:1.3.61")
   }
 }
 
 plugins {
-  kotlin("jvm") version "1.3.21"
+  kotlin("jvm") version "1.3.61"
   id("co.riiid.gradle") version "0.4.2"
   id("com.adarshr.test-logger") version "1.7.0" // https://github.com/radarsh/gradle-test-logger-plugin
 }
@@ -42,7 +42,7 @@ dependencies {
   compile(group = "", name = "gtk")
 
   // Test dependencies
-  testCompile("org.jetbrains.kotlin:kotlin-test-junit:1.3.21")
+  testCompile("org.jetbrains.kotlin:kotlin-test-junit:1.3.61")
   testCompile("org.mockito:mockito-core:2.1.0")
 }
 
