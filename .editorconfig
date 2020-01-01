@@ -1,6 +1,6 @@
 root = true
 
-[*]
+[*.{kt,kts,java,bash,sh}]
 indent_style = space
 indent_size = 2
 charset = utf-8
