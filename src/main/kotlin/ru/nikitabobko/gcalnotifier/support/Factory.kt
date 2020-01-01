@@ -43,6 +43,6 @@ abstract class BaseFactory : Factory {
   override val localDataManager: Provider<LocalDataManager> = weakProvider(::LocalDataManagerJSON)
 
   override val googleCalendarManager: Provider<GoogleCalendarManager> = weakProvider {
-    GoogleCalendarManagerImpl(view.value::openURLInDefaultBrowser, utils.value, localDataManager)
+    GoogleCalendarManagerImpl(view.value::openUrlInDefaultBrowser, utils.value, localDataManager)
   }
 }

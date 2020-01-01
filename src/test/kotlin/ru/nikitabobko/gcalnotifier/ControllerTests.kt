@@ -44,7 +44,7 @@ class ControllerTests : TestCase() {
     val someHtmlLink = "http://some-html-link"
     val event = MyEvent("title", 0L, 10.seconds, null, htmlLink = someHtmlLink)
     controller.eventPopupItemClicked(event)
-    verify(view).openURLInDefaultBrowser(someHtmlLink)
+    verify(view).openUrlInDefaultBrowser(someHtmlLink)
   }
 
   fun `test View_quit when controller_quitClicked`() {
