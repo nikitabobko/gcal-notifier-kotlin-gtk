@@ -82,7 +82,7 @@ class ControllerImpl(viewProvider: Provider<View>,
       event.dateTimeString(utils),
       "Open in web"
     ) { _: Notification, _: String ->
-      view.openURLInDefaultBrowser(event.htmlLink ?: return@showInfiniteNotification)
+      view.openUrlInDefaultBrowser(event.htmlLink ?: return@showInfiniteNotification)
     }
   }
 
@@ -91,7 +91,7 @@ class ControllerImpl(viewProvider: Provider<View>,
   }
 
   override fun eventPopupItemClicked(event: MyEvent) {
-    view.openURLInDefaultBrowser(event.htmlLink ?: return)
+    view.openUrlInDefaultBrowser(event.htmlLink ?: return)
   }
 
   override fun logoutButtonClicked() {
@@ -112,7 +112,7 @@ class ControllerImpl(viewProvider: Provider<View>,
   }
 
   override fun openGoogleCalendarOnWebButtonClicked() {
-    view.openURLInDefaultBrowser("https://calendar.google.com")
+    view.openUrlInDefaultBrowser("https://calendar.google.com")
   }
 
   @Synchronized
