@@ -12,7 +12,10 @@ import com.google.api.client.util.store.FileDataStoreFactory
 import com.google.api.services.calendar.Calendar
 import com.google.api.services.calendar.CalendarScopes
 import com.google.api.services.calendar.model.Events
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import ru.nikitabobko.gcalnotifier.APPLICATION_NAME
+import ru.nikitabobko.gcalnotifier.model.EventsCalendarsPair
 import ru.nikitabobko.gcalnotifier.model.MyCalendarListEntry
 import ru.nikitabobko.gcalnotifier.model.MyEvent
 import ru.nikitabobko.gcalnotifier.model.toInternal
@@ -21,7 +24,6 @@ import java.io.IOException
 import java.io.InputStream
 import java.io.InputStreamReader
 import java.util.*
-import kotlin.concurrent.thread
 
 private val JSON_FACTORY = JacksonFactory.getDefaultInstance()
 private const val CLIENT_SECRET_DIR = "/client_secret.json"
@@ -31,13 +33,7 @@ private val SCOPES: List<String> = Collections.singletonList(CalendarScopes.CALE
  * Performs Google Calendar API calls
  */
 interface GoogleCalendarManager {
-  fun getUpcomingEventsAsync(
-    onRefreshedListener: (events: List<MyEvent>?, calendarList: List<MyCalendarListEntry>?) -> Unit
-  )
-
-  fun getUserCalendarListAsync(
-    onReceivedUserCalendarListListener: (calendarList: List<MyCalendarListEntry>?) -> Unit
-  )
+  suspend fun fetchUpcomingEventsAsync(): EventsCalendarsPair?
 }
 
 class GoogleCalendarManagerImpl(private val openURLInDefaultBrowser: (url: String) -> Unit,
@@ -50,9 +46,8 @@ class GoogleCalendarManagerImpl(private val openURLInDefaultBrowser: (url: Strin
     get(): Calendar {
       return _service ?: buildService().also { _service = it }
     }
-  private val lock = Any()
 
-  private fun getUpcomingEvents(calendarId: String): List<MyEvent>? = try {
+  private fun fetchUpcomingEventsForCalendar(calendarId: String): List<MyEvent>? = try {
     val cal: java.util.Calendar = java.util.Calendar.getInstance()
     cal.time = Date(utils.currentTimeMillis)
     cal.add(java.util.Calendar.MINUTE, -30)
@@ -74,28 +69,16 @@ class GoogleCalendarManagerImpl(private val openURLInDefaultBrowser: (url: Strin
     null
   }
 
-  override fun getUpcomingEventsAsync(
-    onRefreshedListener: (events: List<MyEvent>?, calendarList: List<MyCalendarListEntry>?) -> Unit) {
-    thread(priority = Thread.MIN_PRIORITY) {
-      synchronized(lock) {
-        val calendars: List<MyCalendarListEntry>? = getUserCalendarList()
-        val events: List<MyEvent>? = calendars
-          ?.mapNotNull { getUpcomingEvents(it.id) }
-          ?.flatten()
-          ?.sortedWith(compareBy({ it.startUNIXTime }, { it.title }))
-        onRefreshedListener(events, calendars)
-      }
-    }
+  override suspend fun fetchUpcomingEventsAsync(): EventsCalendarsPair? = withContext(Dispatchers.IO) {
+    val calendars = fetchUserCalendars()
+    val events = calendars
+      ?.mapNotNull { fetchUpcomingEventsForCalendar(it.id) }
+      ?.flatten()
+      ?.sortedWith(compareBy({ it.startUNIXTime }, { it.title }))
+    return@withContext EventsCalendarsPair(events ?: return@withContext null, calendars)
   }
 
-  override fun getUserCalendarListAsync(
-    onReceivedUserCalendarListListener: (calendarList: List<MyCalendarListEntry>?) -> Unit) {
-    thread(priority = Thread.MIN_PRIORITY) {
-      synchronized(lock) { onReceivedUserCalendarListListener(getUserCalendarList()) }
-    }
-  }
-
-  private fun getUserCalendarList(): List<MyCalendarListEntry>? = try {
+  private fun fetchUserCalendars(): List<MyCalendarListEntry>? = try {
     service.calendarList().list().execute().items.map { it.toInternal() }
   } catch (ex: IOException) {
     _service = null
