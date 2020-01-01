@@ -60,7 +60,7 @@ class ViewJavaGnome(private val uiThreadId: Long,
     Resources.toByteArray(Class::class.java.getResource("/icon.png"))
   )
   override var refreshButtonState: RefreshButtonState = RefreshButtonState.NORMAL
-    set(value) {
+    set(value) = runOnUiThread {
       field = value
       (refreshMenuItem.child as? Label)?.label = if (field == RefreshButtonState.NORMAL) "Refresh"
       else "Refreshing..."
@@ -68,7 +68,7 @@ class ViewJavaGnome(private val uiThreadId: Long,
       popupMenu.showAll()
     }
 
-  override fun openUrlInDefaultBrowser(url: String) {
+  override fun openUrlInDefaultBrowser(url: String) = runOnUiThread {
     Gtk.showURI(URI(url))
   }
 
