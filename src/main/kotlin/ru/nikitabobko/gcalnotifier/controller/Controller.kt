@@ -1,14 +1,12 @@
 package ru.nikitabobko.gcalnotifier.controller
 
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import org.gnome.notify.Notification
 import ru.nikitabobko.gcalnotifier.model.MyCalendarListEntry
 import ru.nikitabobko.gcalnotifier.model.MyEvent
 import ru.nikitabobko.gcalnotifier.support.*
 import ru.nikitabobko.gcalnotifier.view.RefreshButtonState
 import ru.nikitabobko.gcalnotifier.view.View
+import kotlin.concurrent.thread
 
 /**
  * Controls app flow. All decisions are made by it.
@@ -39,7 +37,7 @@ interface Controller {
   /**
    * Notify [Controller] that user clicked "Refresh" button. Should be called by [View].
    */
-  suspend fun refreshButtonClicked()
+  fun refreshButtonClicked()
 
   /**
    * Notify [Controller] that user clicked "Settings" button. Should be called by [View].
@@ -105,7 +103,7 @@ class ControllerImpl(viewProvider: Provider<View>,
     TODO("not implemented")
   }
 
-  override suspend fun refreshButtonClicked() {
+  override fun refreshButtonClicked() {
     refresh()
   }
 
@@ -117,21 +115,19 @@ class ControllerImpl(viewProvider: Provider<View>,
     view.openUrlInDefaultBrowser("https://calendar.google.com")
   }
 
-  private suspend fun refresh(notifyAboutRefreshFailuresForce: Boolean = true) {
+  @Synchronized
+  private fun refresh(notifyAboutRefreshFailuresForce: Boolean = true) {
     view.refreshButtonState = RefreshButtonState.REFRESHING
-    try {
-      val pair = googleCalendarManager.fetchUpcomingEventsAsync()
-      if (pair != null) {
-        val (events, calendars) = pair
-        localDataManager.safe(events.toTypedArray(), calendars.toTypedArray())
-        eventReminderTracker.newDataCame(events, calendars)
+    googleCalendarManager.getUpcomingEventsAsync { events, calendarList ->
+      if (events != null && calendarList != null) {
+        localDataManager.safe(events.toTypedArray(), calendarList.toTypedArray())
+        eventReminderTracker.newDataCame(events, calendarList)
         view.update(events)
         notifyAboutRefreshFailures = true
       } else if (notifyAboutRefreshFailuresForce && notifyAboutRefreshFailures) {
         view.showNotification("Error", "Unable to connect to Google Calendar")
         notifyAboutRefreshFailures = false
       }
-    } finally {
       view.refreshButtonState = RefreshButtonState.NORMAL
     }
   }
@@ -148,14 +144,14 @@ class ControllerImpl(viewProvider: Provider<View>,
     view.update(events)
     eventReminderTracker.newDataCame(events, calendars)
     // refresh thread
-    GlobalScope.launch {
+    thread(isDaemon = true, priority = Thread.MIN_PRIORITY) {
       // If user set up our app to autostart then it would annoy user
       // that "Unable to connect to Google Calendar" if gcal-notifier launches
       // faster than connected to wifi network. So we don't notify user about
       // failed initial refresh.
       refresh(notifyAboutRefreshFailuresForce = false)
       while (true) {
-        delay(Settings.refreshFrequencyInMinutes * 60 * 1000)
+        Thread.sleep(Settings.refreshFrequencyInMinutes * 60 * 1000)
         refresh()
       }
     }

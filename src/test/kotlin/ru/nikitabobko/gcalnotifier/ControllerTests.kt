@@ -1,7 +1,6 @@
 package ru.nikitabobko.gcalnotifier
 
 import junit.framework.TestCase
-import kotlinx.coroutines.runBlocking
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.verify
 import ru.nikitabobko.gcalnotifier.controller.ControllerImpl
@@ -22,7 +21,7 @@ class ControllerTests : TestCase() {
     verify(localDataManager).removeAllData()
   }
 
-  fun `test getUpcomingEventsAsync when refreshButtonClicked`() = runBlocking {
+  fun `test getUpcomingEventsAsync when refreshButtonClicked`() {
     val googleCalendarManager = mock(GoogleCalendarManager::class.java)
     val controller = ControllerImpl(
       mock(View::class.java).asProvider(),
@@ -31,7 +30,7 @@ class ControllerTests : TestCase() {
       mock(EventReminderTracker::class.java).asProvider(),
       FakeUtils)
     controller.refreshButtonClicked()
-    verify(googleCalendarManager).fetchUpcomingEventsAsync()
+    verify(googleCalendarManager).getUpcomingEventsAsync(any())
   }
 
   fun `test openUrlInDefaultBrowser when eventPopupItemClicked`() {

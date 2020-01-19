@@ -1,8 +1,6 @@
 package ru.nikitabobko.gcalnotifier.view
 
 import com.google.common.io.Resources
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
 import org.gnome.gdk.Pixbuf
 import org.gnome.glib.Glib
 import org.gnome.gtk.*
@@ -169,11 +167,7 @@ class ViewJavaGnome(private val uiThreadId: Long,
 
     refreshMenuItem = MenuItem(
       "Refresh",
-      MenuItem.Activate {
-        GlobalScope.launch {
-          controller.refreshButtonClicked()
-        }
-      }
+      MenuItem.Activate { controller.refreshButtonClicked() }
     )
     menu.add(refreshMenuItem)
 
