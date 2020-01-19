@@ -34,7 +34,6 @@ repositories {
 }
 
 dependencies {
-  implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.3.3")
   implementation(kotlin("stdlib-jdk8"))
   compile("ru.nikitabobko.kotlin.refdelegation:kotlin-ref-delegation:1.1.2")
   compile("com.google.oauth-client:google-oauth-client-jetty:1.23.0")
@@ -51,7 +50,7 @@ val jar = tasks.getByName("jar", type = Jar::class) {
   manifest {
     attributes(mapOf("Main-Class" to mainClassName))
   }
-  from(configurations.compileClasspath.filter { !it.name.contains("gtk") }.map {
+  from(configurations.compile.filter { !it.name.contains("gtk") }.map {
     @Suppress("IMPLICIT_CAST_TO_ANY")
     return@map if (it.isDirectory) it else zipTree(it)
   })
