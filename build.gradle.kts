@@ -243,7 +243,7 @@ task("pkgbuild") {
       arch=('x86_64' 'i686')
       url='https://github.com/nikitabobko/${appName}'
       license=('GPL')
-      depends=('java-gnome-bin' 'java-runtime=8' 'libnotify' 'librsvg')
+      depends=('java-gnome-bin' 'java-runtime>=8' 'libnotify' 'librsvg')
       source=("https://github.com/nikitabobko/${appName}/releases/download/v$d{pkgver//_/-}/${appName}-v$d{pkgver//_/-}.tar")
       sha256sums=("${sha256(tarFile)}")
 
