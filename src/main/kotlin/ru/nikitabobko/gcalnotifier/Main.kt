@@ -7,7 +7,7 @@ import kotlin.system.exitProcess
 
 const val APPLICATION_NAME = "gcal-notifier-kotlin-gtk"
 
-val APPLICATION_VERSION: String = Class::class.java.getResourceAsStream("/version.txt").bufferedReader().use {
+val APPLICATION_VERSION: String = object {}::class.java.getResourceAsStream("/version.txt").bufferedReader().use {
   it.readLine()!!
 }
 
