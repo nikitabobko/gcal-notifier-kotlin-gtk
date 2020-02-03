@@ -36,14 +36,14 @@ repositories {
 dependencies {
   implementation(kotlin("stdlib-jdk8"))
   compile("ru.nikitabobko.kotlin.refdelegation:kotlin-ref-delegation:1.1.2")
-  compile("com.google.oauth-client:google-oauth-client-jetty:1.23.0")
-  compile("com.google.apis:google-api-services-calendar:v3-rev305-1.23.0")
-  compile("com.google.code.gson:gson:2.8.0")
+  compile("com.google.oauth-client:google-oauth-client-jetty:1.30.5")
+  compile("com.google.apis:google-api-services-calendar:v3-rev402-1.25.0")
+  compile("com.google.code.gson:gson:2.8.6")
   compile(group = "", name = "gtk")
 
   // Test dependencies
   testCompile("org.jetbrains.kotlin:kotlin-test-junit:1.3.61")
-  testCompile("org.mockito:mockito-core:2.1.0")
+  testCompile("org.mockito:mockito-core:3.2.4")
 }
 
 val jar = tasks.getByName("jar", type = Jar::class) {
