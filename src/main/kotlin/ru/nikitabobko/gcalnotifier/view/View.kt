@@ -57,8 +57,7 @@ class ViewJavaGnome(private val uiThreadId: Long,
   private var firstEventItemIndexInPopupMenu = 0
   private var statusIcon: StatusIcon? = null
   private val appIcon: Pixbuf = Pixbuf(
-    Resources.toByteArray(Class::class.java.getResource("/icon.png"))
-  )
+    Resources.toByteArray(View::class.java.getResource("/icon.png")))
   override var refreshButtonState: RefreshButtonState = RefreshButtonState.NORMAL
     set(value) = runOnUiThread {
       field = value
