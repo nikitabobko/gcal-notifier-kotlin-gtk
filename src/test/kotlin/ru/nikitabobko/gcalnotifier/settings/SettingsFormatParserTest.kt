@@ -70,6 +70,11 @@ class SettingsFormatParserTest : TestCase() {
     foo: ba:r
   """.trimIndent(), listOf(KeyValuePairWithOptionalComment("foo", "ba:r", null)))
 
+  fun `test completely broken format does not yield crash`() = doParseTest("""
+    fjlasjfl;sajf;# l sf;lsj flsj;lfws
+    fjlasjfl;sa  :    jf;# l sf;lsj flsj;lfws
+  """.trimIndent(), listOf())
+
   private fun doParseTest(text: String, expected: List<KeyValuePairWithOptionalComment>) {
     val parser = YamlLikeSettingsFormatParser()
     assertEquals(expected, parser.parse(text))
