@@ -45,17 +45,17 @@ For all uninstallation methods it's recommended to log out from gcal-notifier fi
 
 #### Debian/Ubuntu
 
-Execute from terminal:  
+Execute in terminal:  
 `sudo apt autoremove gcal-notifier-kotlin-gtk`
 
 #### Arch Linux
 
-Execute from terminal:  
+Execute in terminal:  
 `sudo pacman -Rsn gcal-notifier-kotlin-gtk`
 
 #### Other Linux distributions
 
-* Execute from terminal:  
+* Execute in terminal:  
   `sudo /opt/gcal-notifier-kotlin-gtk/uninstall.sh`
 * Don't forget to uninstall [dependencies](#dependencies) if you don't need them anymore
 
