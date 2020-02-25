@@ -256,7 +256,7 @@ class EventReminderTrackerTests : TestCase() {
                                              calendars: Array<MyCalendarListEntry>): EventReminderTrackerImpl {
     return EventReminderTrackerImpl(
       controller,
-      mock(LocalDataManager::class.java).apply {
+      mock(UserDataManager::class.java).apply {
         whenCalled(this.restoreEventsList()).thenReturn(events)
         whenCalled(this.restoreUsersCalendarList()).thenReturn(calendars)
       },

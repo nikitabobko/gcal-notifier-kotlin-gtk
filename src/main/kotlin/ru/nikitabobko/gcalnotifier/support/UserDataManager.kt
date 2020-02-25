@@ -9,7 +9,7 @@ import java.io.*
 /**
  * Manages user's local data (Such as list of events and calendars to be able work in offline)
  */
-interface LocalDataManager {
+interface UserDataManager {
   /**
    * Path to directory where Google Calendar API stores credentials
    */
@@ -31,7 +31,7 @@ interface LocalDataManager {
 /**
  * Implementation based on JSON
  */
-class LocalDataManagerJSON : LocalDataManager {
+class JsonUserDataManager : UserDataManager {
   private val localDataFolderPath = "$USER_HOME_FOLDER/.config/$APPLICATION_NAME"
   private val eventsListFileLocation = "$localDataFolderPath/events.json"
   private val userCalendarFileLocation = "$localDataFolderPath/calendars.json"
