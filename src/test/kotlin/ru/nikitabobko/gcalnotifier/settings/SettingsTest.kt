@@ -39,6 +39,15 @@ class SettingsTest : TestCase() {
     maxNumberOfEventsToShowInPopupMenu: 10
   """.trimIndent())
 
+  fun `test remove key value pairs which are not exist`() = doTestAndReadFromAnyProperty("""
+    refreshFrequencyInMinutes: 5
+    maxNumberOfEventsToShowInPopupMenu: 10
+    foo: 1
+  """.trimIndent(), """
+    refreshFrequencyInMinutes: 5
+    maxNumberOfEventsToShowInPopupMenu: 10
+  """.trimIndent())
+
   /**
    * Reading from any property is required for triggering [Settings] object to read for file do validation
    */
