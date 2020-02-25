@@ -42,8 +42,7 @@ interface GoogleCalendarManager {
 
 class GoogleCalendarManagerImpl(private val openURLInDefaultBrowser: (url: String) -> Unit,
                                 private val utils: Utils,
-                                localDataManager: Provider<LocalDataManager>) : GoogleCalendarManager {
-  private val localDataManager: LocalDataManager by localDataManager
+                                private val localDataManager: LocalDataManager) : GoogleCalendarManager {
   @Volatile
   private var _service: Calendar? = null
   private val service: Calendar

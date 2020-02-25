@@ -18,14 +18,12 @@ interface EventReminderTracker {
   fun newDataCame(upcomingEvents: List<MyEvent>, calendars: List<MyCalendarListEntry>)
 }
 
-class EventReminderTrackerImpl(controllerProvider: Provider<Controller>,
-                               localDataManagerProvider: Provider<LocalDataManager>,
+class EventReminderTrackerImpl(private val controller: Controller,
+                               private val localDataManager: LocalDataManager,
                                private val utils: Utils) : EventReminderTracker {
   private var lastNotifiedEventUNIXTime: Long = utils.currentTimeMillis
   private var nextEventsToNotify: List<MyEvent> = listOf()
   private var nextEventsToNotifyUNIXTime: Long? = null
-  private val controller: Controller by controllerProvider
-  private val localDataManager: LocalDataManager by localDataManagerProvider
   private val upcomingEventsAndUserCalendarsLock = Any()
   private var upcomingEvents: List<MyEvent> by weakRef {
     localDataManager.restoreEventsList()?.toList() ?: emptyList()

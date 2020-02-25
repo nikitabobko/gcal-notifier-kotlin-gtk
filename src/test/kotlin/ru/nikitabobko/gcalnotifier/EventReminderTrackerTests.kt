@@ -201,12 +201,12 @@ class EventReminderTrackerTests : TestCase() {
 
     for (events in listOf(events1, events2)) {
       // setup
-      val controllerProvider = mockController {
+      val controller = ControllerWithSwapableEventReminderTriggeredHandler.create {
         fail("You shouldn't notify too early for small notifications!")
-      }.asMutableProvider()
+      }
 
       val tracker: EventReminderTrackerImpl = createEventReminderTrackerImpl(
-        controllerProvider,
+        controller,
         events,
         emptyArray())
       FakeUtils.currentTimeMillis = eventTime - eventNotification -
@@ -217,22 +217,18 @@ class EventReminderTrackerTests : TestCase() {
       checkAsyncAssertion { assertEquals(Thread.State.TIMED_WAITING, tracker.daemonThread!!.state) }
 
       // setup
-      controllerProvider.value = mock(Controller::class.java)
+      controller.eventReminderTriggeredHandler = {}
       // action
       FakeUtils.currentTimeMillis += 2.seconds
       tracker.daemonThread!!.interrupt()
       Thread.sleep(2.seconds)
       // assert
-      checkAsyncAssertion { Mockito.verify(controllerProvider.value).eventReminderTriggered(events.first()) }
+      checkAsyncAssertion { Mockito.verify(controller).eventReminderTriggered(events.first()) }
     }
   }
 
-  private class MutableProvider<T>(override var value: T) : Provider<T>
-
-  private fun <T> T.asMutableProvider(): MutableProvider<T> = MutableProvider(this)
-
   private data class EventReminderTrackerWrapper(val tracker: EventReminderTracker,
-                                                 val controllerProvider: Provider<Controller>)
+                                                 val controller: ControllerWithSwapableEventReminderTriggeredHandler)
 
   private fun doTest(events: List<MyEvent>,
                      calendars: List<MyCalendarListEntry> = listOf(),
@@ -241,45 +237,30 @@ class EventReminderTrackerTests : TestCase() {
                      eventTriggered: ((event: MyEvent, count: Int) -> Unit)? = null): EventReminderTrackerWrapper {
     val count = AtomicInteger(0)
 
-    val fakeController = mockController { event: MyEvent ->
-      eventTriggered?.invoke(event, count.getAndIncrement())
+    val controller = (initTrackerWrapper?.controller ?: ControllerWithSwapableEventReminderTriggeredHandler.create()).apply {
+      eventReminderTriggeredHandler = { event: MyEvent ->
+        eventTriggered?.invoke(event, count.getAndIncrement())
+      }
     }
 
-    val controllerProvider = (initTrackerWrapper?.controllerProvider as? MutableProvider)?.apply {
-      value = fakeController
-    } ?: fakeController.asMutableProvider()
-
     val tracker = initTrackerWrapper?.tracker
-      ?: createEventReminderTrackerImpl(controllerProvider, events.toTypedArray(), calendars.toTypedArray())
+      ?: createEventReminderTrackerImpl(controller, events.toTypedArray(), calendars.toTypedArray())
 
     tracker.newDataCame(events, calendars)
     checkAsyncAssertion { assertEquals(numberOfTriggers, count.get()) }
-    return EventReminderTrackerWrapper(tracker, controllerProvider)
+    return EventReminderTrackerWrapper(tracker, controller)
   }
 
-  private fun mockController(eventReminderTriggered: (event: MyEvent) -> Unit): Controller {
-    return mock(Controller::class.java).apply {
-      whenCalled(this.eventReminderTriggered(any())).thenAnswer { invocation: InvocationOnMock ->
-        eventReminderTriggered(invocation.arguments[0] as MyEvent)
-      }
-    }
-  }
-
-  private fun createEventReminderTrackerImpl(controllerProvider: Provider<Controller>,
+  private fun createEventReminderTrackerImpl(controller: Controller,
                                              events: Array<MyEvent>,
                                              calendars: Array<MyCalendarListEntry>): EventReminderTrackerImpl {
     return EventReminderTrackerImpl(
-      controllerProvider,
+      controller,
       mock(LocalDataManager::class.java).apply {
         whenCalled(this.restoreEventsList()).thenReturn(events)
         whenCalled(this.restoreUsersCalendarList()).thenReturn(calendars)
-      }.asProvider(),
+      },
       FakeUtils)
-  }
-
-  private fun createEventReminderTrackerImpl(controller: Controller, events: Array<MyEvent>,
-                                             calendars: Array<MyCalendarListEntry>): EventReminderTrackerImpl {
-    return createEventReminderTrackerImpl(controller.asProvider(), events, calendars)
   }
 
   private fun checkAsyncAssertion(maxTime: Long = 10.seconds, assertion: () -> Unit) {
@@ -317,4 +298,27 @@ class EventReminderTrackerTests : TestCase() {
     get() = this.javaClass.getDeclaredField("eventTrackerDaemon")
       .apply { isAccessible = true }
       .get(this) as Thread?
+}
+
+abstract class ControllerWithSwapableEventReminderTriggeredHandler : Controller {
+  var eventReminderTriggeredHandler: (event: MyEvent) -> Unit = {}
+
+  companion object {
+    fun create(handler: (event: MyEvent) -> Unit = {}): ControllerWithSwapableEventReminderTriggeredHandler {
+      return mock(ControllerWithSwapableEventReminderTriggeredHandler::class.java).apply {
+        eventReminderTriggeredHandler = handler
+        whenCalled(this.eventReminderTriggered(any())).thenAnswer { invocation: InvocationOnMock ->
+          eventReminderTriggeredHandler(invocation.arguments[0] as MyEvent)
+        }
+      }
+    }
+  }
+}
+
+private fun mockController(eventReminderTriggered: (event: MyEvent) -> Unit): Controller {
+  return mock(Controller::class.java).apply {
+    whenCalled(this.eventReminderTriggered(any())).thenAnswer { invocation: InvocationOnMock ->
+      eventReminderTriggered(invocation.arguments[0] as MyEvent)
+    }
+  }
 }

@@ -12,10 +12,10 @@ class ControllerTests : TestCase() {
   fun `test removeAllData when logoutButtonClicked`() {
     val localDataManager = mock(LocalDataManager::class.java)
     val controller = ControllerImpl(
-      mock(View::class.java).asProvider(),
-      localDataManager.asProvider(),
-      mock(GoogleCalendarManager::class.java).asProvider(),
-      mock(EventReminderTracker::class.java).asProvider(),
+      mock(View::class.java),
+      localDataManager,
+      mock(GoogleCalendarManager::class.java),
+      mock(EventReminderTracker::class.java),
       FakeUtils)
     controller.logoutButtonClicked()
     verify(localDataManager).removeAllData()
@@ -24,10 +24,10 @@ class ControllerTests : TestCase() {
   fun `test getUpcomingEventsAsync when refreshButtonClicked`() {
     val googleCalendarManager = mock(GoogleCalendarManager::class.java)
     val controller = ControllerImpl(
-      mock(View::class.java).asProvider(),
-      mock(LocalDataManager::class.java).asProvider(),
-      googleCalendarManager.asProvider(),
-      mock(EventReminderTracker::class.java).asProvider(),
+      mock(View::class.java),
+      mock(LocalDataManager::class.java),
+      googleCalendarManager,
+      mock(EventReminderTracker::class.java),
       FakeUtils)
     controller.refreshButtonClicked()
     verify(googleCalendarManager).getUpcomingEventsAsync(any())
@@ -36,10 +36,10 @@ class ControllerTests : TestCase() {
   fun `test openUrlInDefaultBrowser when eventPopupItemClicked`() {
     val view = mock(View::class.java)
     val controller = ControllerImpl(
-      view.asProvider(),
-      mock(LocalDataManager::class.java).asProvider(),
-      mock(GoogleCalendarManager::class.java).asProvider(),
-      mock(EventReminderTracker::class.java).asProvider(),
+      view,
+      mock(LocalDataManager::class.java),
+      mock(GoogleCalendarManager::class.java),
+      mock(EventReminderTracker::class.java),
       FakeUtils)
     val someHtmlLink = "http://some-html-link"
     val event = MyEvent("title", 0L, 10.seconds, null, htmlLink = someHtmlLink)
@@ -50,10 +50,10 @@ class ControllerTests : TestCase() {
   fun `test View_quit when controller_quitClicked`() {
     val view = mock(View::class.java)
     val controller = ControllerImpl(
-      view.asProvider(),
-      mock(LocalDataManager::class.java).asProvider(),
-      mock(GoogleCalendarManager::class.java).asProvider(),
-      mock(EventReminderTracker::class.java).asProvider(),
+      view,
+      mock(LocalDataManager::class.java),
+      mock(GoogleCalendarManager::class.java),
+      mock(EventReminderTracker::class.java),
       FakeUtils)
     controller.quitClicked()
     verify(view).quit()
