@@ -88,12 +88,12 @@ class SettingsImpl(
     }
 
     @Suppress("UNCHECKED_CAST")
-    private fun String.toT(): T {
+    private fun String.toT(): T? {
       return when (type.classifier) {
-        Int::class -> this.toInt()
+        Int::class -> this.toIntOrNull()
         String::class -> this
         else -> throw UnsupportedOperationException("$type isn't supported yet")
-      } as T
+      } as T?
     }
 
     fun validateString(string: String): T {

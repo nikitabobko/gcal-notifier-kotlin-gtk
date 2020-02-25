@@ -42,6 +42,18 @@ class SettingsTest : TestCase() {
     refreshFrequencyInMinutes: 5
   """.trimIndent())
 
+  fun `test settings with wrong value type are validated`() = doTestAndReadFromAnyProperty("""
+    refreshFrequencyInMinutes: foo
+    maxNumberOfEventsToShowInPopupMenu: bar
+    dateFormat: baz
+    timeFormat: quix
+  """.trimIndent(), """
+    refreshFrequencyInMinutes: 5
+    maxNumberOfEventsToShowInPopupMenu: 10
+    dateFormat: baz
+    timeFormat: quix
+  """.trimIndent())
+
   fun `test refreshFrequencyInMinutes is validated to be at minimum 1`() = doTestAndReadFromAnyProperty("""
     refreshFrequencyInMinutes: 0
     maxNumberOfEventsToShowInPopupMenu: 10
