@@ -19,6 +19,18 @@ class SettingsTest : TestCase() {
     timeFormat: HH:mm
   """.trimIndent())
 
+  fun `test completely custom settings are preserved`() = doTestAndReadFromAnyProperty("""
+    refreshFrequencyInMinutes: 100
+    maxNumberOfEventsToShowInPopupMenu: 65
+    dateFormat: dd yyyy
+    timeFormat: foo
+  """.trimIndent(), """
+    refreshFrequencyInMinutes: 100
+    maxNumberOfEventsToShowInPopupMenu: 65
+    dateFormat: dd yyyy
+    timeFormat: foo
+  """.trimIndent())
+
   fun `test missing setting item is restored after validation`() = doTestAndReadFromAnyProperty("""
     maxNumberOfEventsToShowInPopupMenu: 10
     dateFormat: dd MMM yyyy
