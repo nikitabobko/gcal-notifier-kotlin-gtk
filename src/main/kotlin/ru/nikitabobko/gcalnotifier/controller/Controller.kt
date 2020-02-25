@@ -64,16 +64,11 @@ interface Controller {
   fun eventReminderTriggered(event: MyEvent)
 }
 
-class ControllerImpl(viewProvider: Provider<View>,
-                     localDataManagerProvider: Provider<LocalDataManager>,
-                     googleCalendarManagerProvider: Provider<GoogleCalendarManager>,
-                     eventReminderTrackerProvider: Provider<EventReminderTracker>,
+class ControllerImpl(private val view: View,
+                     private val localDataManager: LocalDataManager,
+                     private val googleCalendarManager: GoogleCalendarManager,
+                     private val eventReminderTracker: EventReminderTracker,
                      private val utils: Utils) : Controller {
-  private val view by viewProvider
-  private val localDataManager by localDataManagerProvider
-  private val googleCalendarManager by googleCalendarManagerProvider
-  private val eventReminderTracker by eventReminderTrackerProvider
-
   private var notifyAboutRefreshFailures = true
 
   override fun eventReminderTriggered(event: MyEvent) {

@@ -4,9 +4,7 @@ import com.google.api.client.auth.oauth2.AuthorizationCodeFlow
 import com.google.api.client.auth.oauth2.AuthorizationCodeRequestUrl
 import com.google.api.client.extensions.java6.auth.oauth2.AuthorizationCodeInstalledApp
 import com.google.api.client.extensions.java6.auth.oauth2.VerificationCodeReceiver
-import ru.nikitabobko.kotlin.refdelegation.weakRef
 import java.util.*
-import kotlin.reflect.KProperty
 
 val USER_HOME_FOLDER: String = System.getProperty("user.home")!!
 
@@ -41,19 +39,6 @@ val Int.minutes: Long
 
 infix fun Date.until(exclusive: Date): ClosedRange<Date> {
   return this..Date(exclusive.time - 1.seconds)
-}
-
-fun <T> lazyProvider(init: () -> T): Provider<T> = object : Provider<T> {
-  override val value: T by lazy(init)
-}
-
-fun <T> weakProvider(init: () -> T): Provider<T> = object : Provider<T> {
-  override val value: T by weakRef(init)
-}
-
-fun <T> T.asProvider(): Provider<T> = object : Provider<T> {
-  override val value: T
-    get() = this@asProvider
 }
 
 abstract class Utils {

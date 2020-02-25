@@ -20,6 +20,11 @@ plugins {
   kotlin("jvm") version "1.3.61"
   id("co.riiid.gradle") version "0.4.2"
   id("com.adarshr.test-logger") version "1.7.0" // https://github.com/radarsh/gradle-test-logger-plugin
+  id("org.jetbrains.kotlin.plugin.allopen") version "1.3.61"
+}
+
+allOpen {
+  annotation("ru.nikitabobko.gcalnotifier.injector.InjectorAllOpen")
 }
 
 repositories {
