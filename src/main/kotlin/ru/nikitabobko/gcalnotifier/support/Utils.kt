@@ -66,3 +66,11 @@ object UtilsImpl : Utils() {
   override val currentTimeMillis: Long
     get() = System.currentTimeMillis()
 }
+
+fun <T : Any, K> T?.ifNotNull(block: (T) -> K): K? {
+  if (this != null) {
+    return block(this)
+  } else {
+    return null
+  }
+}

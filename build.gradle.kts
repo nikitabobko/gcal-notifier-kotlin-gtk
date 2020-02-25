@@ -40,6 +40,7 @@ repositories {
 
 dependencies {
   implementation(kotlin("stdlib-jdk8"))
+  compile(kotlin("reflect"))
   compile("ru.nikitabobko.kotlin.refdelegation:kotlin-ref-delegation:1.1.2")
   compile("com.google.oauth-client:google-oauth-client-jetty:1.23.0")
   compile("com.google.apis:google-api-services-calendar:v3-rev402-1.25.0")

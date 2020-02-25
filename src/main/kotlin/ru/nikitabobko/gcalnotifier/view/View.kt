@@ -7,7 +7,7 @@ import org.gnome.gtk.*
 import org.gnome.notify.Notification
 import ru.nikitabobko.gcalnotifier.controller.Controller
 import ru.nikitabobko.gcalnotifier.model.MyEvent
-import ru.nikitabobko.gcalnotifier.support.Settings
+import ru.nikitabobko.gcalnotifier.settings.Settings
 import ru.nikitabobko.gcalnotifier.support.Utils
 import java.net.URI
 import kotlin.math.min
@@ -16,6 +16,7 @@ import kotlin.math.min
  * Just receives requests by [Controller] and performs them.
  */
 interface View {
+  fun registerController(controller: Controller)
   fun showStatusIcon()
   fun showSettingsWindow()
   fun update(events: List<MyEvent>)
@@ -40,8 +41,9 @@ enum class RefreshButtonState {
  * Implementation based on java-gnome lib
  */
 class ViewJavaGnome(private val uiThreadId: Long,
-                    private val controller: Controller,
-                    private val utils: Utils) : View {
+                    private val utils: Utils,
+                    private val settings: Settings) : View {
+  private var controller: Controller? = null
   private var popupMenu: Menu = buildEmptySystemTrayPopupMenu()
   /**
    * Initialized in [buildEmptySystemTrayPopupMenu]
@@ -64,6 +66,10 @@ class ViewJavaGnome(private val uiThreadId: Long,
       refreshMenuItem.sensitive = field == RefreshButtonState.NORMAL
       popupMenu.showAll()
     }
+
+  override fun registerController(controller: Controller) {
+    this.controller = controller
+  }
 
   override fun openUrlInDefaultBrowser(url: String) = runOnUiThread {
     Gtk.showURI(URI(url))
@@ -103,7 +109,7 @@ class ViewJavaGnome(private val uiThreadId: Long,
 
   @Synchronized
   override fun update(events: List<MyEvent>) = runOnUiThread {
-    val eventsList = events.subList(0, min(Settings.maxNumberOfEventsToShowInPopupMenu, events.size))
+    val eventsList = events.subList(0, min(settings.maxNumberOfEventsToShowInPopupMenu, events.size))
     removeAllEventsFromPopupMenu()
     if (eventsList.isEmpty()) {
       val item = MenuItem("No upcoming events")
@@ -122,7 +128,7 @@ class ViewJavaGnome(private val uiThreadId: Long,
         eventsDateTime[index],
         myEvent.title ?: "",
         dateTimeCharWidth
-      ) { controller.eventPopupItemClicked(myEvent) }
+      ) { controller?.eventPopupItemClicked(myEvent) }
     }.reversed().forEach { popupMenu.insert(it, firstEventItemIndexInPopupMenu) }
 
     popupMenu.showAll()
@@ -145,9 +151,9 @@ class ViewJavaGnome(private val uiThreadId: Long,
   override fun showStatusIcon() = runOnUiThread {
     statusIcon = StatusIcon(appIcon).apply {
       // left mouse button click
-      connect(StatusIcon.Activate { controller.statusIconClicked() })
+      connect(StatusIcon.Activate { controller?.statusIconClicked() })
       // right mouse button click
-      connect { _, _, _ -> controller.statusIconClicked() }
+      connect { _, _, _ -> controller?.statusIconClicked() }
     }
   }
 
@@ -159,12 +165,12 @@ class ViewJavaGnome(private val uiThreadId: Long,
 
     menu.add(MenuItem(
       "Open Google Calendar on web",
-      MenuItem.Activate { controller.openGoogleCalendarOnWebButtonClicked() }
+      MenuItem.Activate { controller?.openGoogleCalendarOnWebButtonClicked() }
     ))
 
     refreshMenuItem = MenuItem(
       "Refresh",
-      MenuItem.Activate { controller.refreshButtonClicked() }
+      MenuItem.Activate { controller?.refreshButtonClicked() }
     )
     menu.add(refreshMenuItem)
 
@@ -186,12 +192,12 @@ class ViewJavaGnome(private val uiThreadId: Long,
 
     menu.add(MenuItem(
       "Log out",
-      MenuItem.Activate { controller.logoutButtonClicked() }
+      MenuItem.Activate { controller?.logoutButtonClicked() }
     ))
 
     menu.add(MenuItem(
       "Quit",
-      MenuItem.Activate { controller.quitClicked() }
+      MenuItem.Activate { controller?.quitClicked() }
     ))
 
     menu.showAll()

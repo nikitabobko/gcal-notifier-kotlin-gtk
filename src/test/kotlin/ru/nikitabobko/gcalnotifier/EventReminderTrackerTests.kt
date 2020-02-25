@@ -3,8 +3,6 @@ package ru.nikitabobko.gcalnotifier
 import junit.framework.TestCase
 import org.mockito.Mockito
 import org.mockito.Mockito.mock
-import org.mockito.invocation.InvocationOnMock
-import ru.nikitabobko.gcalnotifier.controller.Controller
 import ru.nikitabobko.gcalnotifier.model.MyCalendarListEntry
 import ru.nikitabobko.gcalnotifier.model.MyEvent
 import ru.nikitabobko.gcalnotifier.support.*
@@ -110,14 +108,14 @@ class EventReminderTrackerTests : TestCase() {
     )
     val count = AtomicInteger(0)
 
-    val tracker = createEventReminderTrackerImpl(mockController { event: MyEvent ->
+    val tracker = EventReminderTrackerWrapper({ event: MyEvent ->
       when (count.get()) {
         0 -> assertEquals("0", event.title)
         1 -> assertEquals("1", event.title)
         else -> fail()
       }
       count.getAndIncrement()
-    }, events.toTypedArray(), emptyArray())
+    }, events.toTypedArray(), emptyArray()).tracker
 
     val numOfThreads = 5_000
     val barrier = CyclicBarrier(numOfThreads + 1)
@@ -201,34 +199,45 @@ class EventReminderTrackerTests : TestCase() {
 
     for (events in listOf(events1, events2)) {
       // setup
-      val controller = ControllerWithSwapableEventReminderTriggeredHandler.create {
+      val trackerWrapper = EventReminderTrackerWrapper({
         fail("You shouldn't notify too early for small notifications!")
-      }
-
-      val tracker: EventReminderTrackerImpl = createEventReminderTrackerImpl(
-        controller,
-        events,
-        emptyArray())
+      }, events, emptyArray())
       FakeUtils.currentTimeMillis = eventTime - eventNotification -
         EventReminderTrackerImpl.PERCENT_ACCURACY.percentOf(eventNotification) - 1.seconds
       // action
-      tracker.newDataCame(events.toList(), emptyList())
+      trackerWrapper.tracker.newDataCame(events.toList(), emptyList())
       // assert
-      checkAsyncAssertion { assertEquals(Thread.State.TIMED_WAITING, tracker.daemonThread!!.state) }
+      checkAsyncAssertion { assertEquals(Thread.State.TIMED_WAITING, trackerWrapper.tracker.daemonThread!!.state) }
 
+      val counter = AtomicInteger(0)
       // setup
-      controller.eventReminderTriggeredHandler = {}
+      trackerWrapper.eventReminderTriggeredHandler = { counter.incrementAndGet() }
       // action
       FakeUtils.currentTimeMillis += 2.seconds
-      tracker.daemonThread!!.interrupt()
+      trackerWrapper.tracker.daemonThread!!.interrupt()
       Thread.sleep(2.seconds)
       // assert
-      checkAsyncAssertion { Mockito.verify(controller).eventReminderTriggered(events.first()) }
+      checkAsyncAssertion { assertEquals(events.size, counter.get()) }
     }
   }
 
-  private data class EventReminderTrackerWrapper(val tracker: EventReminderTracker,
-                                                 val controller: ControllerWithSwapableEventReminderTriggeredHandler)
+  private class EventReminderTrackerWrapper(var eventReminderTriggeredHandler: (MyEvent) -> Unit,
+                                            events: Array<MyEvent>,
+                                            calendars: Array<MyCalendarListEntry>) {
+    var tracker: EventReminderTracker
+      private set
+
+    init {
+      tracker = EventReminderTrackerImpl(
+        mock(UserDataManager::class.java).apply {
+          whenCalled(this.restoreEventsList()).thenReturn(events)
+          whenCalled(this.restoreUsersCalendarList()).thenReturn(calendars)
+        },
+        FakeUtils).apply {
+        registerEventReminderTriggeredHandler { eventReminderTriggeredHandler(it) }
+      }
+    }
+  }
 
   private fun doTest(events: List<MyEvent>,
                      calendars: List<MyCalendarListEntry> = listOf(),
@@ -237,30 +246,16 @@ class EventReminderTrackerTests : TestCase() {
                      eventTriggered: ((event: MyEvent, count: Int) -> Unit)? = null): EventReminderTrackerWrapper {
     val count = AtomicInteger(0)
 
-    val controller = (initTrackerWrapper?.controller ?: ControllerWithSwapableEventReminderTriggeredHandler.create()).apply {
-      eventReminderTriggeredHandler = { event: MyEvent ->
-        eventTriggered?.invoke(event, count.getAndIncrement())
+    val trackerWrapper =
+      (initTrackerWrapper ?: EventReminderTrackerWrapper({}, events.toTypedArray(), calendars.toTypedArray())).apply {
+        eventReminderTriggeredHandler = {
+          eventTriggered?.invoke(it, count.getAndIncrement())
+        }
       }
-    }
 
-    val tracker = initTrackerWrapper?.tracker
-      ?: createEventReminderTrackerImpl(controller, events.toTypedArray(), calendars.toTypedArray())
-
-    tracker.newDataCame(events, calendars)
+    trackerWrapper.tracker.newDataCame(events, calendars)
     checkAsyncAssertion { assertEquals(numberOfTriggers, count.get()) }
-    return EventReminderTrackerWrapper(tracker, controller)
-  }
-
-  private fun createEventReminderTrackerImpl(controller: Controller,
-                                             events: Array<MyEvent>,
-                                             calendars: Array<MyCalendarListEntry>): EventReminderTrackerImpl {
-    return EventReminderTrackerImpl(
-      controller,
-      mock(UserDataManager::class.java).apply {
-        whenCalled(this.restoreEventsList()).thenReturn(events)
-        whenCalled(this.restoreUsersCalendarList()).thenReturn(calendars)
-      },
-      FakeUtils)
+    return trackerWrapper
   }
 
   private fun checkAsyncAssertion(maxTime: Long = 10.seconds, assertion: () -> Unit) {
@@ -298,27 +293,4 @@ class EventReminderTrackerTests : TestCase() {
     get() = this.javaClass.getDeclaredField("eventTrackerDaemon")
       .apply { isAccessible = true }
       .get(this) as Thread?
-}
-
-abstract class ControllerWithSwapableEventReminderTriggeredHandler : Controller {
-  var eventReminderTriggeredHandler: (event: MyEvent) -> Unit = {}
-
-  companion object {
-    fun create(handler: (event: MyEvent) -> Unit = {}): ControllerWithSwapableEventReminderTriggeredHandler {
-      return mock(ControllerWithSwapableEventReminderTriggeredHandler::class.java).apply {
-        eventReminderTriggeredHandler = handler
-        whenCalled(this.eventReminderTriggered(any())).thenAnswer { invocation: InvocationOnMock ->
-          eventReminderTriggeredHandler(invocation.arguments[0] as MyEvent)
-        }
-      }
-    }
-  }
-}
-
-private fun mockController(eventReminderTriggered: (event: MyEvent) -> Unit): Controller {
-  return mock(Controller::class.java).apply {
-    whenCalled(this.eventReminderTriggered(any())).thenAnswer { invocation: InvocationOnMock ->
-      eventReminderTriggered(invocation.arguments[0] as MyEvent)
-    }
-  }
 }
