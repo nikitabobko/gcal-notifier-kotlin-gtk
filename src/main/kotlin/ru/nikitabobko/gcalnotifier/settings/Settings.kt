@@ -29,11 +29,14 @@ class SettingsImpl(
     val userSettingsString = fileReaderWriter.readFromFile(settingsFilePath)
     val userSettings = userSettingsString.ifNotNull { parser.parse(it) }
 
-    val validatedUserSettings = userSettings?.mapNotNull {
-      val manipulator = registeredSettingsItems[it.key] ?: return@mapNotNull null
-      SettingsFormatParser.KeyValuePairWithOptionalComment(
-        it.key, manipulator.validateString(it.value).toString(), manipulator.comment)
-    } ?: emptyList()
+    val validatedUserSettings = userSettings
+      ?.mapNotNull {
+        val manipulator = registeredSettingsItems[it.key] ?: return@mapNotNull null
+        SettingsFormatParser.KeyValuePairWithOptionalComment(
+          it.key, manipulator.validateString(it.value).toString(), manipulator.comment)
+      }
+      ?.distinctBy { it.key }
+      ?: emptyList()
 
     val inUserConfig = validatedUserSettings.map { it.key }
 
