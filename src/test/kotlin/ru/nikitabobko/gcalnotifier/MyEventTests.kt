@@ -1,6 +1,8 @@
 package ru.nikitabobko.gcalnotifier
 
 import junit.framework.TestCase
+import org.mockito.Mockito.mock
+import ru.nikitabobko.gcalnotifier.settings.Settings
 import ru.nikitabobko.gcalnotifier.support.UtilsImpl
 
 class MyEventTests : TestCase() {
@@ -12,6 +14,6 @@ class MyEventTests : TestCase() {
   }
 
   private fun doTest(expected: String, actualTimeInMillis: Long) {
-    assertEquals(expected, createEvent("title", actualTimeInMillis).dateString(UtilsImpl))
+    assertEquals(expected, createEvent("title", actualTimeInMillis).dateString(UtilsImpl, mock(Settings::class.java)))
   }
 }

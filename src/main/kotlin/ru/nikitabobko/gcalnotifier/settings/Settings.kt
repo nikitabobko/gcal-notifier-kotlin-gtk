@@ -11,6 +11,8 @@ import kotlin.reflect.KType
 interface Settings {
   val refreshFrequencyInMinutes: Int
   val maxNumberOfEventsToShowInPopupMenu: Int
+  val timeFormat: String
+  val dateFormat: String
 }
 
 /**
@@ -62,6 +64,10 @@ class SettingsImpl(
 
   override val maxNumberOfEventsToShowInPopupMenu: Int by SettingRegistrar { it ?: 10 }
 
+  override val timeFormat: String by SettingRegistrar { it ?: "HH:mm" }
+
+  override val dateFormat: String by SettingRegistrar { it ?: "dd MMM yyyy" }
+
   private inner class SettingRegistrar<T : Any>(
     val comment: String? = null,
     private val validateItem: (T?) -> T
@@ -85,6 +91,7 @@ class SettingsImpl(
     private fun String.toT(): T {
       return when (type.classifier) {
         Int::class -> this.toInt()
+        String::class -> this
         else -> throw UnsupportedOperationException("$type isn't supported yet")
       } as T
     }

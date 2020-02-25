@@ -99,7 +99,7 @@ class ControllerImpl private constructor(
   override fun eventReminderTriggered(event: MyEvent) {
     view.showInfiniteNotification(
       event.title ?: "",
-      concatTimeAndDate(event.timeString(), event.dateString(utils)),
+      concatTimeAndDate(event.timeString(settings), event.dateString(utils, settings)),
       "Open in web"
     ) { _: Notification, _: String ->
       view.openUrlInDefaultBrowser(event.htmlLink ?: return@showInfiniteNotification)
