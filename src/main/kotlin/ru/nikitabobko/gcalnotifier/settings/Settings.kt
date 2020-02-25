@@ -13,6 +13,8 @@ interface Settings {
   val maxNumberOfEventsToShowInPopupMenu: Int
   val timeFormat: String
   val dateFormat: String
+
+  val settingsFilePath: String
 }
 
 /**
@@ -25,7 +27,6 @@ class SettingsImpl(
   private val parser: SettingsFormatParser
 ) : Settings {
   private val localDataFolderPath = "$USER_HOME_FOLDER/.config/$APPLICATION_NAME"
-  private val settingsFilePath = Paths.get(localDataFolderPath, "settings.yml").toString()
   private val registeredSettingsItems = HashMap<String, SettingItem<*>>()
   private val memoizedSettings: Map<String, Any> by lazy {
     val userSettingsString = fileReaderWriter.readFromFile(settingsFilePath)
@@ -59,6 +60,8 @@ class SettingsImpl(
         return@map it.key to manipulator.validateString(it.value)
       }.toMap()
   }
+
+  override val settingsFilePath = Paths.get(localDataFolderPath, "settings.yml").toString()
 
   override val refreshFrequencyInMinutes: Int by SettingRegistrar { maxOf(it ?: 5, 1) }
 

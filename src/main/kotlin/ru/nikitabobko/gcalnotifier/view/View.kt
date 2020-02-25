@@ -9,6 +9,7 @@ import ru.nikitabobko.gcalnotifier.controller.Controller
 import ru.nikitabobko.gcalnotifier.model.MyEvent
 import ru.nikitabobko.gcalnotifier.settings.Settings
 import ru.nikitabobko.gcalnotifier.support.Utils
+import java.io.File
 import java.net.URI
 import kotlin.math.min
 
@@ -31,6 +32,8 @@ interface View {
                                action: ((Notification, String) -> Unit)? = null)
 
   fun openUrlInDefaultBrowser(url: String)
+
+  fun openFileInDefaultFileEditor(filePath: String)
 }
 
 enum class RefreshButtonState {
@@ -73,6 +76,10 @@ class ViewJavaGnome(private val uiThreadId: Long,
 
   override fun openUrlInDefaultBrowser(url: String) = runOnUiThread {
     Gtk.showURI(URI(url))
+  }
+
+  override fun openFileInDefaultFileEditor(filePath: String) {
+    Gtk.showURI(File(filePath).toURI())
   }
 
   private fun showNotification(summary: String,
@@ -189,11 +196,10 @@ class ViewJavaGnome(private val uiThreadId: Long,
 
     menu.add(SeparatorMenuItem())
 
-    // todo upcoming feature
-//        menu.add(MenuItem(
-//            "Settings",
-//            MenuItem.Activate { CONTROLLER.settingsButtonClicked() }
-//        ))
+    menu.add(MenuItem(
+      "Settings",
+      MenuItem.Activate { controller?.settingsButtonClicked() }
+    ))
 
     menu.add(MenuItem(
       "Log out",
