@@ -4,7 +4,10 @@ import org.gnome.notify.Notification
 import ru.nikitabobko.gcalnotifier.model.MyCalendarListEntry
 import ru.nikitabobko.gcalnotifier.model.MyEvent
 import ru.nikitabobko.gcalnotifier.settings.Settings
-import ru.nikitabobko.gcalnotifier.support.*
+import ru.nikitabobko.gcalnotifier.support.EventReminderTracker
+import ru.nikitabobko.gcalnotifier.support.GoogleCalendarManager
+import ru.nikitabobko.gcalnotifier.support.UserDataManager
+import ru.nikitabobko.gcalnotifier.support.Utils
 import ru.nikitabobko.gcalnotifier.view.RefreshButtonState
 import ru.nikitabobko.gcalnotifier.view.View
 import kotlin.concurrent.thread
@@ -120,7 +123,7 @@ class ControllerImpl private constructor(
   }
 
   override fun settingsButtonClicked() {
-    TODO("not implemented")
+    view.openFileInDefaultFileEditor(settings.settingsFilePath)
   }
 
   override fun refreshButtonClicked() {
