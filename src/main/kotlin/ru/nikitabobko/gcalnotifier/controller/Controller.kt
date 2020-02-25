@@ -3,6 +3,7 @@ package ru.nikitabobko.gcalnotifier.controller
 import org.gnome.notify.Notification
 import ru.nikitabobko.gcalnotifier.model.MyCalendarListEntry
 import ru.nikitabobko.gcalnotifier.model.MyEvent
+import ru.nikitabobko.gcalnotifier.settings.Settings
 import ru.nikitabobko.gcalnotifier.support.*
 import ru.nikitabobko.gcalnotifier.view.RefreshButtonState
 import ru.nikitabobko.gcalnotifier.view.View
@@ -64,12 +65,29 @@ interface Controller {
   fun eventReminderTriggered(event: MyEvent)
 }
 
-class ControllerImpl(private val view: View,
-                     private val userDataManager: UserDataManager,
-                     private val googleCalendarManager: GoogleCalendarManager,
-                     private val eventReminderTracker: EventReminderTracker,
-                     private val utils: Utils) : Controller {
+class ControllerImpl private constructor(
+  private val view: View,
+  private val userDataManager: UserDataManager,
+  private val googleCalendarManager: GoogleCalendarManager,
+  private val eventReminderTracker: EventReminderTracker,
+  private val utils: Utils,
+  private val settings: Settings
+) : Controller {
   private var notifyAboutRefreshFailures = true
+
+  companion object {
+    fun create(view: View,
+               userDataManager: UserDataManager,
+               googleCalendarManager: GoogleCalendarManager,
+               eventReminderTracker: EventReminderTracker,
+               utils: Utils,
+               settings: Settings): Controller {
+      return ControllerImpl(view, userDataManager, googleCalendarManager, eventReminderTracker, utils, settings).also { controller ->
+        view.registerController(controller)
+        eventReminderTracker.registerEventReminderTriggeredHandler(controller::eventReminderTriggered)
+      }
+    }
+  }
 
   override fun eventReminderTriggered(event: MyEvent) {
     view.showInfiniteNotification(
@@ -146,7 +164,7 @@ class ControllerImpl(private val view: View,
       // failed initial refresh.
       refresh(notifyAboutRefreshFailuresForce = false)
       while (true) {
-        Thread.sleep(Settings.refreshFrequencyInMinutes * 60 * 1000)
+        Thread.sleep((settings.refreshFrequencyInMinutes * 60 * 1000).toLong())
         refresh()
       }
     }

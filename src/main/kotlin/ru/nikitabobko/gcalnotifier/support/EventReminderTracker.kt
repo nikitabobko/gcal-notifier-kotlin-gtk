@@ -16,10 +16,11 @@ interface EventReminderTracker {
    * Usually called by [Controller] after data has been refreshed
    */
   fun newDataCame(upcomingEvents: List<MyEvent>, calendars: List<MyCalendarListEntry>)
+
+  fun registerEventReminderTriggeredHandler(handler: (MyEvent) -> Unit)
 }
 
-class EventReminderTrackerImpl(private val controller: Controller,
-                               private val userDataManager: UserDataManager,
+class EventReminderTrackerImpl(private val userDataManager: UserDataManager,
                                private val utils: Utils) : EventReminderTracker {
   private var lastNotifiedEventUNIXTime: Long = utils.currentTimeMillis
   private var nextEventsToNotify: List<MyEvent> = listOf()
@@ -34,6 +35,7 @@ class EventReminderTrackerImpl(private val controller: Controller,
   private val eventTrackerDaemonLock = Any()
   @Volatile
   private var eventTrackerDaemon: Thread? = null
+  private var eventReminderHandler: ((MyEvent) -> Unit)? = null
 
   @Synchronized
   override fun newDataCame(upcomingEvents: List<MyEvent>, calendars: List<MyCalendarListEntry>) {
@@ -48,6 +50,10 @@ class EventReminderTrackerImpl(private val controller: Controller,
         eventTrackerDaemon = buildEventTrackerThread().also { it.start() }
       }
     }
+  }
+
+  override fun registerEventReminderTriggeredHandler(handler: (MyEvent) -> Unit) {
+    eventReminderHandler = handler
   }
 
   private fun buildEventTrackerThread(): Thread = thread(isDaemon = true, start = false, priority = Thread.MIN_PRIORITY) {
@@ -68,7 +74,7 @@ class EventReminderTrackerImpl(private val controller: Controller,
         )
         if (nextEventsToNotifyUNIXTime!! - epsilon < currentTimeMillis) {
           for (event in nextEventsToNotify) {
-            controller.eventReminderTriggered(event)
+            eventReminderHandler?.invoke(event)
           }
           lastNotifiedEventUNIXTime = nextEventsToNotifyUNIXTime!!
 
