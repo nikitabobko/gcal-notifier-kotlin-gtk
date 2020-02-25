@@ -26,19 +26,22 @@ data class MyEvent(val title: String?, val startUNIXTime: Long, val endUNIXTime:
      */
     val overrides: List<MyEventReminder>?)
 
-  fun dateTimeString(utils: Utils): String {
-    val eventStart = Date(startUNIXTime)
-    var dateTime = ""
-    if (!isAllDayEvent) {
-      dateTime += SimpleDateFormat("HH:mm").format(eventStart)
-      dateTime += SimpleDateFormat(" - HH:mm • ").format(Date(endUNIXTime))
+  fun timeString(): String? {
+    if (isAllDayEvent) {
+      return null
     }
-    dateTime += when (eventStart) {
+    val eventStart = Date(startUNIXTime)
+    val eventEnd = Date(endUNIXTime)
+    return SimpleDateFormat("HH:mm").format(eventStart) + SimpleDateFormat(" - HH:mm").format(eventEnd)
+  }
+
+  fun dateString(utils: Utils): String {
+    val eventStart = Date(startUNIXTime)
+    return when (eventStart) {
       in utils.today until utils.tomorrow -> "Today"
       in utils.tomorrow until utils.theDayAfterTomorrow -> "Tomorrow"
       else -> SimpleDateFormat("dd MMM yyyy").format(eventStart)
     }
-    return dateTime
   }
 
   fun getReminders(calendars: List<MyCalendarListEntry>): List<MyEventReminder>? = when {
