@@ -30,6 +30,15 @@ class SettingsTest : TestCase() {
     maxNumberOfEventsToShowInPopupMenu: 10
   """.trimIndent())
 
+  fun `test duplicated key value pair is reduced`() = doTestAndReadFromAnyProperty("""
+    refreshFrequencyInMinutes: 5
+    refreshFrequencyInMinutes: 15
+    maxNumberOfEventsToShowInPopupMenu: 10
+  """.trimIndent(), """
+    refreshFrequencyInMinutes: 5
+    maxNumberOfEventsToShowInPopupMenu: 10
+  """.trimIndent())
+
   /**
    * Reading from any property is required for triggering [Settings] object to read for file do validation
    */
