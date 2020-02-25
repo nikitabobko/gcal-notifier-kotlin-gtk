@@ -3,15 +3,21 @@ package ru.nikitabobko.gcalnotifier.view
 import org.gnome.gtk.MenuItem
 import org.gnome.gtk.Orientation
 
-class EventMenuItem(dateTime: String,
+class EventMenuItem(date: String,
+                    time: String,
                     eventTitle: String,
-                    dateTimeLabelCharWidth: Int = dateTime.length,
+                    dateLabelCharWidth: Int,
+                    timeLabelCharWidth: Int,
                     handler: (MenuItem) -> Unit) : MenuItem() {
   init {
     box(Orientation.HORIZONTAL, 4) {
-      label(dateTime) {
+      label(date) {
         setAlignment(0f, 0f)
-        setWidthChars(dateTimeLabelCharWidth)
+        setWidthChars(dateLabelCharWidth)
+      }
+      label(time) {
+        setAlignment(0f, 0f)
+        setWidthChars(timeLabelCharWidth)
       }
       label(eventTitle)
     }

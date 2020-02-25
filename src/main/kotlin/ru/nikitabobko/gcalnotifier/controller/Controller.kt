@@ -89,10 +89,17 @@ class ControllerImpl private constructor(
     }
   }
 
+  private fun concatTimeAndDate(time: String?, date: String): String {
+    if (time == null) {
+      return date
+    }
+    return "$time • $date"
+  }
+
   override fun eventReminderTriggered(event: MyEvent) {
     view.showInfiniteNotification(
       event.title ?: "",
-      event.dateTimeString(utils),
+      concatTimeAndDate(event.timeString(), event.dateString(utils)),
       "Open in web"
     ) { _: Notification, _: String ->
       view.openUrlInDefaultBrowser(event.htmlLink ?: return@showInfiniteNotification)

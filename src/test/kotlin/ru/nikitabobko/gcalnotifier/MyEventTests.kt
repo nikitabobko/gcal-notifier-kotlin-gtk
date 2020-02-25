@@ -12,6 +12,6 @@ class MyEventTests : TestCase() {
   }
 
   private fun doTest(expected: String, actualTimeInMillis: Long) {
-    assertEquals(expected, createEvent("title", actualTimeInMillis).dateTimeString(UtilsImpl).split("•")[1].trim())
+    assertEquals(expected, createEvent("title", actualTimeInMillis).dateString(UtilsImpl))
   }
 }
