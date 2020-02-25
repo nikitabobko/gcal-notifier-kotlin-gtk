@@ -48,6 +48,9 @@ class YamlLikeSettingsFormatParser : SettingsFormatParser {
         LexerNode.Comment(line.substring(1).trim())
       } else {
         val indexOfSemicolon = line.indexOf(":")
+        if (indexOfSemicolon == -1) {
+          return emptyList()
+        }
         LexerNode.KeyValuePair(line.substring(0, indexOfSemicolon).trim(), line.substring(indexOfSemicolon + 1).trim())
       }
     }
