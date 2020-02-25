@@ -10,42 +10,62 @@ class SettingsTest : TestCase() {
   fun `test simple default config`() = doTestAndReadFromAnyProperty("""
     refreshFrequencyInMinutes: 5
     maxNumberOfEventsToShowInPopupMenu: 10
+    dateFormat: dd MMM yyyy
+    timeFormat: HH:mm
   """.trimIndent(), """
     refreshFrequencyInMinutes: 5
     maxNumberOfEventsToShowInPopupMenu: 10
+    dateFormat: dd MMM yyyy
+    timeFormat: HH:mm
   """.trimIndent())
 
   fun `test missing setting item is restored after validation`() = doTestAndReadFromAnyProperty("""
     maxNumberOfEventsToShowInPopupMenu: 10
+    dateFormat: dd MMM yyyy
+    timeFormat: HH:mm
   """.trimIndent(), """
     maxNumberOfEventsToShowInPopupMenu: 10
+    dateFormat: dd MMM yyyy
+    timeFormat: HH:mm
     refreshFrequencyInMinutes: 5
   """.trimIndent())
 
   fun `test refreshFrequencyInMinutes is validated to be at minimum 1`() = doTestAndReadFromAnyProperty("""
     refreshFrequencyInMinutes: 0
     maxNumberOfEventsToShowInPopupMenu: 10
+    dateFormat: dd MMM yyyy
+    timeFormat: HH:mm
   """.trimIndent(), """
     refreshFrequencyInMinutes: 1
     maxNumberOfEventsToShowInPopupMenu: 10
+    dateFormat: dd MMM yyyy
+    timeFormat: HH:mm
   """.trimIndent())
 
   fun `test duplicated key value pair is reduced`() = doTestAndReadFromAnyProperty("""
     refreshFrequencyInMinutes: 5
     refreshFrequencyInMinutes: 15
     maxNumberOfEventsToShowInPopupMenu: 10
+    dateFormat: dd MMM yyyy
+    timeFormat: HH:mm
   """.trimIndent(), """
     refreshFrequencyInMinutes: 5
     maxNumberOfEventsToShowInPopupMenu: 10
+    dateFormat: dd MMM yyyy
+    timeFormat: HH:mm
   """.trimIndent())
 
   fun `test remove key value pairs which are not exist`() = doTestAndReadFromAnyProperty("""
     refreshFrequencyInMinutes: 5
     maxNumberOfEventsToShowInPopupMenu: 10
     foo: 1
+    dateFormat: dd MMM yyyy
+    timeFormat: HH:mm
   """.trimIndent(), """
     refreshFrequencyInMinutes: 5
     maxNumberOfEventsToShowInPopupMenu: 10
+    dateFormat: dd MMM yyyy
+    timeFormat: HH:mm
   """.trimIndent())
 
   /**

@@ -120,8 +120,8 @@ class ViewJavaGnome(private val uiThreadId: Long,
   }
 
   private fun insertEventsInPopupMenu(events: List<MyEvent>) {
-    val eventsDates = events.map { it.dateString(utils) }
-    val eventsTimes = events.map { it.timeString() }
+    val eventsDates = events.map { it.dateString(utils, settings) }
+    val eventsTimes = events.map { it.timeString(settings) }
 
     val dateCharWidth: Int = eventsDates.map { it.length }.max() ?: 0
     val timeCharWidth: Int = eventsTimes.map { it?.length ?: 0 }.max() ?: 0

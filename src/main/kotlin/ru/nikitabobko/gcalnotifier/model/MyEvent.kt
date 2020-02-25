@@ -1,6 +1,7 @@
 package ru.nikitabobko.gcalnotifier.model
 
 import com.google.api.services.calendar.model.Event
+import ru.nikitabobko.gcalnotifier.settings.Settings
 import ru.nikitabobko.gcalnotifier.support.*
 import java.text.SimpleDateFormat
 import java.util.*
@@ -26,21 +27,21 @@ data class MyEvent(val title: String?, val startUNIXTime: Long, val endUNIXTime:
      */
     val overrides: List<MyEventReminder>?)
 
-  fun timeString(): String? {
+  fun timeString(settings: Settings): String? {
     if (isAllDayEvent) {
       return null
     }
     val eventStart = Date(startUNIXTime)
     val eventEnd = Date(endUNIXTime)
-    return SimpleDateFormat("HH:mm").format(eventStart) + SimpleDateFormat(" - HH:mm").format(eventEnd)
+    return SimpleDateFormat(settings.timeFormat).format(eventStart) + SimpleDateFormat(" - ${settings.timeFormat}").format(eventEnd)
   }
 
-  fun dateString(utils: Utils): String {
+  fun dateString(utils: Utils, settings: Settings): String {
     val eventStart = Date(startUNIXTime)
     return when (eventStart) {
       in utils.today until utils.tomorrow -> "Today"
       in utils.tomorrow until utils.theDayAfterTomorrow -> "Tomorrow"
-      else -> SimpleDateFormat("dd MMM yyyy").format(eventStart)
+      else -> SimpleDateFormat(settings.dateFormat).format(eventStart)
     }
   }
 
