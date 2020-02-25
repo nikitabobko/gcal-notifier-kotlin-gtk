@@ -42,7 +42,7 @@ interface GoogleCalendarManager {
 
 class GoogleCalendarManagerImpl(private val openURLInDefaultBrowser: (url: String) -> Unit,
                                 private val utils: Utils,
-                                private val localDataManager: LocalDataManager) : GoogleCalendarManager {
+                                private val userDataManager: UserDataManager) : GoogleCalendarManager {
   @Volatile
   private var _service: Calendar? = null
   private val service: Calendar
@@ -115,7 +115,7 @@ class GoogleCalendarManagerImpl(private val openURLInDefaultBrowser: (url: Strin
     val flow = GoogleAuthorizationCodeFlow.Builder(
       HTTP_TRANSPORT, JSON_FACTORY, clientSecrets, SCOPES)
       .setDataStoreFactory(FileDataStoreFactory(
-        File(localDataManager.googleCalendarCredentialsDirPath)))
+        File(userDataManager.googleCalendarCredentialsDirPath)))
       .setAccessType("offline")
       .build()
     val authorizationCodeInstalledApp = AuthorizationCodeInstalledAppHack(

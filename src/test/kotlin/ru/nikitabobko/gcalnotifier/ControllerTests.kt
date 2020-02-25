@@ -10,7 +10,7 @@ import ru.nikitabobko.gcalnotifier.view.View
 
 class ControllerTests : TestCase() {
   fun `test removeAllData when logoutButtonClicked`() {
-    val localDataManager = mock(LocalDataManager::class.java)
+    val localDataManager = mock(UserDataManager::class.java)
     val controller = ControllerImpl(
       mock(View::class.java),
       localDataManager,
@@ -25,7 +25,7 @@ class ControllerTests : TestCase() {
     val googleCalendarManager = mock(GoogleCalendarManager::class.java)
     val controller = ControllerImpl(
       mock(View::class.java),
-      mock(LocalDataManager::class.java),
+      mock(UserDataManager::class.java),
       googleCalendarManager,
       mock(EventReminderTracker::class.java),
       FakeUtils)
@@ -37,7 +37,7 @@ class ControllerTests : TestCase() {
     val view = mock(View::class.java)
     val controller = ControllerImpl(
       view,
-      mock(LocalDataManager::class.java),
+      mock(UserDataManager::class.java),
       mock(GoogleCalendarManager::class.java),
       mock(EventReminderTracker::class.java),
       FakeUtils)
@@ -51,7 +51,7 @@ class ControllerTests : TestCase() {
     val view = mock(View::class.java)
     val controller = ControllerImpl(
       view,
-      mock(LocalDataManager::class.java),
+      mock(UserDataManager::class.java),
       mock(GoogleCalendarManager::class.java),
       mock(EventReminderTracker::class.java),
       FakeUtils)

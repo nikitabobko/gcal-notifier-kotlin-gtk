@@ -65,7 +65,7 @@ interface Controller {
 }
 
 class ControllerImpl(private val view: View,
-                     private val localDataManager: LocalDataManager,
+                     private val userDataManager: UserDataManager,
                      private val googleCalendarManager: GoogleCalendarManager,
                      private val eventReminderTracker: EventReminderTracker,
                      private val utils: Utils) : Controller {
@@ -90,7 +90,7 @@ class ControllerImpl(private val view: View,
   }
 
   override fun logoutButtonClicked() {
-    localDataManager.removeAllData()
+    userDataManager.removeAllData()
     view.quit()
   }
 
@@ -115,7 +115,7 @@ class ControllerImpl(private val view: View,
     view.refreshButtonState = RefreshButtonState.REFRESHING
     googleCalendarManager.getUpcomingEventsAsync { events, calendarList ->
       if (events != null && calendarList != null) {
-        localDataManager.safe(events.toTypedArray(), calendarList.toTypedArray())
+        userDataManager.safe(events.toTypedArray(), calendarList.toTypedArray())
         eventReminderTracker.newDataCame(events, calendarList)
         view.update(events)
         notifyAboutRefreshFailures = true
@@ -131,9 +131,9 @@ class ControllerImpl(private val view: View,
     view.showStatusIcon()
 
     // Trying to load saved events
-    val events: List<MyEvent> = localDataManager.restoreEventsList()?.toList() ?: listOf()
+    val events: List<MyEvent> = userDataManager.restoreEventsList()?.toList() ?: listOf()
 
-    val calendars: List<MyCalendarListEntry> = localDataManager.restoreUsersCalendarList()
+    val calendars: List<MyCalendarListEntry> = userDataManager.restoreUsersCalendarList()
       ?.toList() ?: listOf()
 
     view.update(events)

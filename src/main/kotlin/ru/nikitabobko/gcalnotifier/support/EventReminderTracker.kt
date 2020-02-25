@@ -19,17 +19,17 @@ interface EventReminderTracker {
 }
 
 class EventReminderTrackerImpl(private val controller: Controller,
-                               private val localDataManager: LocalDataManager,
+                               private val userDataManager: UserDataManager,
                                private val utils: Utils) : EventReminderTracker {
   private var lastNotifiedEventUNIXTime: Long = utils.currentTimeMillis
   private var nextEventsToNotify: List<MyEvent> = listOf()
   private var nextEventsToNotifyUNIXTime: Long? = null
   private val upcomingEventsAndUserCalendarsLock = Any()
   private var upcomingEvents: List<MyEvent> by weakRef {
-    localDataManager.restoreEventsList()?.toList() ?: emptyList()
+    userDataManager.restoreEventsList()?.toList() ?: emptyList()
   }
   private var userCalendarList: List<MyCalendarListEntry> by weakRef {
-    localDataManager.restoreUsersCalendarList()?.toList() ?: emptyList()
+    userDataManager.restoreUsersCalendarList()?.toList() ?: emptyList()
   }
   private val eventTrackerDaemonLock = Any()
   @Volatile

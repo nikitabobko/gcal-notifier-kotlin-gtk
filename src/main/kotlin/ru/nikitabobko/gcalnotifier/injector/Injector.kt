@@ -20,19 +20,19 @@ annotation class InjectorAllOpen
 @InjectorAllOpen
 abstract class Injector {
   val eventReminderTracker: EventReminderTracker by injectedSingleton {
-    EventReminderTrackerImpl(controller, localDataManager, utils)
+    EventReminderTrackerImpl(controller, userDataManager, utils)
   }
 
-  val localDataManager: LocalDataManager by injectedSingleton { LocalDataManagerJSON() }
+  val userDataManager: UserDataManager by injectedSingleton { JsonUserDataManager() }
 
   val googleCalendarManager: GoogleCalendarManager by injectedSingleton {
-    GoogleCalendarManagerImpl(view::openUrlInDefaultBrowser, utils, localDataManager)
+    GoogleCalendarManagerImpl(view::openUrlInDefaultBrowser, utils, userDataManager)
   }
 
   val view: View by injectedSingleton { ViewJavaGnome(UI_THREAD_ID, controller, utils) }
 
   val controller: Controller by injectedSingleton {
-    ControllerImpl(view, localDataManager, googleCalendarManager, eventReminderTracker, utils)
+    ControllerImpl(view, userDataManager, googleCalendarManager, eventReminderTracker, utils)
   }
 
   val utils: Utils by injectedSingleton {
