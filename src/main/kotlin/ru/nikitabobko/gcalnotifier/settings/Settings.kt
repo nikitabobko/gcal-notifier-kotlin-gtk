@@ -67,9 +67,15 @@ class SettingsImpl(
 
   override val maxNumberOfEventsToShowInPopupMenu: Int by SettingRegistrar { it ?: 10 }
 
-  override val timeFormat: String by SettingRegistrar { it ?: "HH:mm" }
+  override val timeFormat: String by SettingRegistrar("""
+    For time format documentation refer to:
+    https://docs.oracle.com/en/java/javase/13/docs/api/java.base/java/text/SimpleDateFormat.html
+  """.trimIndent()) { it ?: "HH:mm" }
 
-  override val dateFormat: String by SettingRegistrar { it ?: "dd MMM yyyy" }
+  override val dateFormat: String by SettingRegistrar("""
+    For date format documentation refer to:
+    https://docs.oracle.com/en/java/javase/13/docs/api/java.base/java/text/SimpleDateFormat.html
+  """.trimIndent()) { it ?: "dd MMM yyyy" }
 
   private inner class SettingRegistrar<T : Any>(
     val comment: String? = null,
