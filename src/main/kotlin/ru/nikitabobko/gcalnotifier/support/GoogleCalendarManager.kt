@@ -75,7 +75,7 @@ class GoogleCalendarManagerImpl(private val openURLInDefaultBrowser: (url: Strin
 
   override fun getUpcomingEventsAsync(
     onRefreshedListener: (events: List<MyEvent>?, calendarList: List<MyCalendarListEntry>?) -> Unit) {
-    thread(priority = Thread.MIN_PRIORITY) {
+    thread {
       synchronized(lock) {
         val calendars: List<MyCalendarListEntry>? = getUserCalendarList()
         val events: List<MyEvent>? = calendars
@@ -89,7 +89,7 @@ class GoogleCalendarManagerImpl(private val openURLInDefaultBrowser: (url: Strin
 
   override fun getUserCalendarListAsync(
     onReceivedUserCalendarListListener: (calendarList: List<MyCalendarListEntry>?) -> Unit) {
-    thread(priority = Thread.MIN_PRIORITY) {
+    thread {
       synchronized(lock) { onReceivedUserCalendarListListener(getUserCalendarList()) }
     }
   }

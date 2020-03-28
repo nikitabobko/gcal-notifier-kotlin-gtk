@@ -167,7 +167,7 @@ class ControllerImpl private constructor(
     view.update(events)
     eventReminderTracker.newDataCame(events, calendars)
     // refresh thread
-    thread(isDaemon = true, priority = Thread.MIN_PRIORITY) {
+    thread(isDaemon = true) {
       // If user set up our app to autostart then it would annoy user
       // that "Unable to connect to Google Calendar" if gcal-notifier launches
       // faster than connected to wifi network. So we don't notify user about

@@ -56,7 +56,7 @@ class EventReminderTrackerImpl(private val userDataManager: UserDataManager,
     eventReminderHandler = handler
   }
 
-  private fun buildEventTrackerThread(): Thread = thread(isDaemon = true, start = false, priority = Thread.MIN_PRIORITY) {
+  private fun buildEventTrackerThread(): Thread = thread(isDaemon = true, start = false) {
     while (true) {
       var doContinue = false
       synchronized(eventTrackerDaemonLock) {
