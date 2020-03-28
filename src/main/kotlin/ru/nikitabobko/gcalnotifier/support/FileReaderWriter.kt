@@ -14,6 +14,7 @@ object FileReaderWriterImpl : FileReaderWriter {
   }
 
   override fun writeToFile(path: String, content: String) {
+    File(path).parentFile.mkdirs()
     PrintWriter(path).use { it.print(content) }
   }
 }
