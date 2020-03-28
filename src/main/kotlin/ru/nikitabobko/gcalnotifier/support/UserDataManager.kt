@@ -15,15 +15,11 @@ interface UserDataManager {
    */
   val googleCalendarCredentialsDirPath: String
 
-  fun safeEventsList(events: Array<MyEvent>)
-
   fun restoreEventsList(): Array<MyEvent>?
-
-  fun safeUsersCalendarList(calendarList: Array<MyCalendarListEntry>)
 
   fun restoreUsersCalendarList(): Array<MyCalendarListEntry>?
 
-  fun safe(events: Array<MyEvent>, calendarList: Array<MyCalendarListEntry>)
+  fun save(events: Array<MyEvent>, calendarList: Array<MyCalendarListEntry>)
 
   fun removeAllData()
 }
@@ -39,15 +35,15 @@ class JsonUserDataManager : UserDataManager {
   private val gson = Gson()
   private val lock = Any()
 
-  override fun safe(events: Array<MyEvent>, calendarList: Array<MyCalendarListEntry>) {
-    safeEventsList(events)
-    safeUsersCalendarList(calendarList)
+  override fun save(events: Array<MyEvent>, calendarList: Array<MyCalendarListEntry>) {
+    saveEventsList(events)
+    saveUsersCalendarList(calendarList)
   }
 
-  override fun safeEventsList(events: Array<MyEvent>) = safe(events, eventsListFileLocation)
+  private fun saveEventsList(events: Array<MyEvent>) = save(events, eventsListFileLocation)
 
-  override fun safeUsersCalendarList(calendarList: Array<MyCalendarListEntry>) {
-    return safe(calendarList, userCalendarFileLocation)
+  private fun saveUsersCalendarList(calendarList: Array<MyCalendarListEntry>) {
+    return save(calendarList, userCalendarFileLocation)
   }
 
   override fun restoreEventsList(): Array<MyEvent>? {
@@ -62,7 +58,7 @@ class JsonUserDataManager : UserDataManager {
     File(localDataFolderPath).deleteRecursively()
   }
 
-  private fun safe(any: Any, fileName: String) = synchronized(lock) {
+  private fun save(any: Any, fileName: String) = synchronized(lock) {
     try {
       PrintWriter(fileName).use {
         it.println(gson.toJson(any))

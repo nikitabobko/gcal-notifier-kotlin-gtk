@@ -143,7 +143,7 @@ class ControllerImpl private constructor(
     view.refreshButtonState = RefreshButtonState.REFRESHING
     googleCalendarManager.getUpcomingEventsAsync { events, calendarList ->
       if (events != null && calendarList != null) {
-        userDataManager.safe(events.toTypedArray(), calendarList.toTypedArray())
+        userDataManager.save(events.toTypedArray(), calendarList.toTypedArray())
         eventReminderTracker.newDataCame(events, calendarList)
         view.update(events)
         notifyAboutRefreshFailures = true
