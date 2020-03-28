@@ -59,11 +59,8 @@ class JsonUserDataManager : UserDataManager {
   }
 
   private fun save(obj: Any, fileName: String) = synchronized(lock) {
-    try {
-      FileWriter(fileName).use {
-        gson.toJson(obj, it)
-      }
-    } catch (ex: FileNotFoundException) {
+    FileWriter(fileName).use {
+      gson.toJson(obj, it)
     }
   }
 
@@ -71,13 +68,8 @@ class JsonUserDataManager : UserDataManager {
     val file = File(fileName)
     if (!file.exists()) return null
 
-    return try {
-      FileReader(fileName).use {
-        gson.fromJson(it, T::class.java)
-      }
-    } catch (ex: IOException) {
-      File(fileName).delete()
-      null
+    return FileReader(fileName).use {
+      gson.fromJson(it, T::class.java)
     }
   }
 }
