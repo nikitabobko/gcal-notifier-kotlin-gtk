@@ -58,10 +58,10 @@ class JsonUserDataManager : UserDataManager {
     File(localDataFolderPath).deleteRecursively()
   }
 
-  private fun save(any: Any, fileName: String) = synchronized(lock) {
+  private fun save(obj: Any, fileName: String) = synchronized(lock) {
     try {
-      PrintWriter(fileName).use {
-        it.println(gson.toJson(any))
+      FileWriter(fileName).use {
+        gson.toJson(obj, it)
       }
     } catch (ex: FileNotFoundException) {
     }
@@ -72,8 +72,8 @@ class JsonUserDataManager : UserDataManager {
     if (!file.exists()) return null
 
     return try {
-      BufferedReader(FileReader(fileName)).use {
-        gson.fromJson(it.readLine(), T::class.java)
+      FileReader(fileName).use {
+        gson.fromJson(it, T::class.java)
       }
     } catch (ex: IOException) {
       File(fileName).delete()
