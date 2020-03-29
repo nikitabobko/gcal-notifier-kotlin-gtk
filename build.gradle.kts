@@ -162,7 +162,7 @@ var Task.smartDependsOn: Iterable<Any>
       .forEach { inputs.files(it.outputs.files) }
     setDependsOn(dependencies)
   }
-  get() = this.getDependsOn()
+  get() = this.dependsOn
 
 val assembledInstaller = file("build/installer")
 task("assemblyInstallerDir", BashExec::class) {
