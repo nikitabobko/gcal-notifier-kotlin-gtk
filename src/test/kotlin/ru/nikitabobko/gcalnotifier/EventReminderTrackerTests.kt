@@ -1,7 +1,6 @@
 package ru.nikitabobko.gcalnotifier
 
 import junit.framework.TestCase
-import org.mockito.Mockito
 import org.mockito.Mockito.mock
 import ru.nikitabobko.gcalnotifier.model.MyCalendarListEntry
 import ru.nikitabobko.gcalnotifier.model.MyEvent
