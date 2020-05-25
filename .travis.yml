@@ -4,7 +4,7 @@ services:
 - docker
 archlinux:
   packages:
-  - jdk13-openjdk
+  - jdk-openjdk
   - java-gnome-bin
   script:
   # Otherwise get such error: ERROR: JAVA_HOME is set to an invalid directory: /usr/lib/jvm/java-13-oracle
