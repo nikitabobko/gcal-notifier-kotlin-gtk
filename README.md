@@ -1,4 +1,4 @@
-# gcal-notifier-kotlin-gtk [![Build Status](https://travis-ci.org/nikitabobko/gcal-notifier-kotlin-gtk.svg?branch=master)](https://travis-ci.org/nikitabobko/gcal-notifier-kotlin-gtk)
+# gcal-notifier-kotlin-gtk [![Build Status](https://api.travis-ci.com/nikitabobko/gcal-notifier-kotlin-gtk.svg?branch=master)](https://travis-ci.org/nikitabobko/gcal-notifier-kotlin-gtk)
 
 ![icon](src/main/resources/icon.png)
 
