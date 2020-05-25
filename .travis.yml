@@ -9,7 +9,7 @@ archlinux:
   script:
   # Otherwise get such error: ERROR: JAVA_HOME is set to an invalid directory: /usr/lib/jvm/java-13-oracle
   - set -e
-  - export JAVA_HOME="/usr/lib/jvm/java-13-openjdk"
+  - export JAVA_HOME="/usr/lib/jvm/java-14-openjdk"
   - ./gradlew test
 script:
 - curl -s https://raw.githubusercontent.com/mikkeloscar/arch-travis/master/arch-travis.sh | bash;
