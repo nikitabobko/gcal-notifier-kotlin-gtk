@@ -18,7 +18,7 @@ buildscript {
 
 plugins {
   kotlin("jvm") version "1.5.0"
-  id("co.riiid.gradle") version "0.4.2"
+  id("co.riiid.gradle") version "0.4.2" // gradle-github-plugin https://github.com/riiid/gradle-github-plugin
   id("com.adarshr.test-logger") version "1.7.0" // https://github.com/radarsh/gradle-test-logger-plugin
   id("org.jetbrains.kotlin.plugin.allopen") version "1.5.0"
 }
@@ -40,26 +40,27 @@ repositories {
 
 dependencies {
   implementation(kotlin("stdlib-jdk8"))
-  compile(kotlin("reflect"))
-  compile("ru.nikitabobko.kotlin.refdelegation:kotlin-ref-delegation:1.1.2")
-  compile("com.google.oauth-client:google-oauth-client-jetty:1.23.0")
-  compile("com.google.apis:google-api-services-calendar:v3-rev402-1.25.0")
-  compile("com.google.code.gson:gson:2.8.6")
-  compile(group = "", name = "gtk")
+  implementation(kotlin("reflect"))
+  implementation("ru.nikitabobko.kotlin.refdelegation:kotlin-ref-delegation:1.1.2")
+  implementation("com.google.oauth-client:google-oauth-client-jetty:1.23.0")
+  implementation("com.google.apis:google-api-services-calendar:v3-rev402-1.25.0")
+  implementation("com.google.code.gson:gson:2.8.6")
+  implementation(group = "", name = "gtk")
 
   // Test dependencies
-  testCompile("org.jetbrains.kotlin:kotlin-test-junit:1.5.0")
-  testCompile("org.mockito:mockito-core:3.2.4")
+  testImplementation("org.jetbrains.kotlin:kotlin-test-junit:1.5.0")
+  testImplementation("org.mockito:mockito-core:3.2.4")
 }
 
 val jar = tasks.getByName("jar", type = Jar::class) {
   manifest {
     attributes(mapOf("Main-Class" to mainClassName))
   }
-  from(configurations.compile.filter { !it.name.contains("gtk") }.map {
-    @Suppress("IMPLICIT_CAST_TO_ANY")
-    return@map if (it.isDirectory) it else zipTree(it)
-  })
+  from(
+    configurations.runtimeClasspath.get()
+      .filter { !it.name.contains("gtk") } // Don't pack gtk.jar https://github.com/nikitabobko/gcal-notifier-kotlin-gtk/issues/1
+      .map { if (it.isDirectory) it else zipTree(it) }
+  )
 }
 
 testlogger {
@@ -84,7 +85,7 @@ task("runJar", type = Exec::class) {
   group = "Run"
   description = "Run compiled jar."
   setDependsOn(listOf("jar"))
-  commandLine = listOf("java", "-cp", "${jar.archivePath}:/usr/share/java/gtk.jar", mainClassName)
+  commandLine = listOf("java", "-cp", "${jar.archiveFile.get().asFile}:/usr/share/java/gtk.jar", mainClassName)
 }
 
 tasks.withType<KotlinCompile> {
@@ -116,9 +117,7 @@ open class BashExec : DefaultTask() {
       }
       val exitCode: Int = process.waitFor()
       if (exitCode != 0) {
-        throw RuntimeException("""
-          "$command" exited with non-zero exit code: $exitCode
-        """.trimIndent())
+        error("\"$command\" exited with non-zero exit code: $exitCode")
       }
     }
   }
@@ -131,20 +130,12 @@ fun sha256(file: File): String {
   return digest.fold("") { str, it -> str + "%02x".format(it) }
 }
 
-fun check(value: Boolean, message: Any) {
-  if (!value) {
-    throw IllegalStateException(message.toString())
-  }
-}
-
 fun String.exec(): String {
   val process: Process = Runtime.getRuntime().exec(arrayOf("bash", "-c", this))
   val output: String = process.inputStream.bufferedReader().use { it.readText() }
   val exitCode: Int = process.waitFor()
   if (exitCode != 0) {
-    throw RuntimeException("""
-      "$this" exited with non-zero exit code: $exitCode
-    """.trimIndent())
+    error("\"$this\" exited with non-zero exit code: $exitCode")
   }
   return output
 }
@@ -157,7 +148,7 @@ var Task.smartDependsOn: Iterable<Any>
   set(dependencies) {
     dependencies
       .map { if (it is String) tasks.getByName(it) else it }
-      .also { check(it.all { it is Task }, "Only Strings and Tasks are supported") }
+      .also { check(it.all { it is Task }) { "Only Strings and Tasks are supported" } }
       .filterIsInstance<Task>()
       .forEach { inputs.files(it.outputs.files) }
     setDependsOn(dependencies)
@@ -178,7 +169,7 @@ task("assemblyInstallerDir", BashExec::class) {
     mkdir -p $assembledInstaller
     cp $installerResDir/* $assembledInstaller
     cp $icon $assembledInstaller
-    cp ${jar.archivePath} $assembledInstaller
+    cp ${jar.archiveFile.get().asFile} $assembledInstaller
   """.trimIndent()
 }
 
