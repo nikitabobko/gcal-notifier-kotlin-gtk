@@ -68,7 +68,7 @@ class EventReminderTrackerImpl(private val userDataManager: UserDataManager,
         }
         val epsilon: Long = minOf(
           30.seconds,
-          PERCENT_ACCURACY.percentOf(nextEventsToNotify.map { it.startUNIXTime }.min()!! - nextEventsToNotifyUNIXTime!!)
+          PERCENT_ACCURACY.percentOf(nextEventsToNotify.minOf { it.startUNIXTime } - nextEventsToNotifyUNIXTime!!)
             .takeIf { it > 0 }
             ?: Long.MAX_VALUE
         )
@@ -96,14 +96,14 @@ class EventReminderTrackerImpl(private val userDataManager: UserDataManager,
     ?.filter { it.method == MyEventReminderMethod.POPUP }
     ?.mapNotNull { if (it.milliseconds != null) this.startUNIXTime - it.milliseconds else null }
     ?.filter { it > lastNotifiedEventUNIXTime }
-    ?.min()
+    ?.minOrNull()
 
   private fun initNextEventsToNotify() = synchronized(upcomingEventsAndUserCalendarsLock) {
     val candidates = upcomingEvents.mapNotNull { event ->
       event.calculateNextToNotifyTime()?.let { Pair(event, it) }
     }
 
-    nextEventsToNotifyUNIXTime = candidates.minBy { it.second }?.second
+    nextEventsToNotifyUNIXTime = candidates.minByOrNull { it.second }?.second
     nextEventsToNotify = candidates.filter { it.second == nextEventsToNotifyUNIXTime }.map { it.first }
   }
 
