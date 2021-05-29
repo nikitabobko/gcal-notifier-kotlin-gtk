@@ -79,7 +79,7 @@ class YamlLikeSettingsFormatParser : SettingsFormatParser {
   }
 
   private fun SettingsFormatParser.KeyValuePairWithOptionalComment.splitToLexerNodes(): List<LexerNode> {
-    return (this.comment.ifNotNull { it.split("\n").map { LexerNode.Comment(it) } } ?: emptyList()) +
+    return (this.comment.ifNotNull { comment -> comment.split("\n").map { LexerNode.Comment(it) } } ?: emptyList()) +
       listOf(LexerNode.KeyValuePair(this.key, this.value))
   }
 

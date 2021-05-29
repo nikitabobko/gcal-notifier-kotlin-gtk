@@ -148,7 +148,7 @@ var Task.smartDependsOn: Iterable<Any>
   set(dependencies) {
     dependencies
       .map { if (it is String) tasks.getByName(it) else it }
-      .also { check(it.all { it is Task }) { "Only Strings and Tasks are supported" } }
+      .also { deps -> check(deps.all { it is Task }) { "Only Strings and Tasks are supported" } }
       .filterIsInstance<Task>()
       .forEach { inputs.files(it.outputs.files) }
     setDependsOn(dependencies)
