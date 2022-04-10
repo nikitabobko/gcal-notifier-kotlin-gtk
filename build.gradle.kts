@@ -3,7 +3,7 @@ import java.security.MessageDigest
 import java.io.PrintWriter
 import com.adarshr.gradle.testlogger.theme.ThemeType
 
-val mainClassName = "ru.nikitabobko.gcalnotifier.MainKt"
+val mainClassName = "bobko.gcalnotifier.MainKt"
 val appName = "gcal-notifier-kotlin-gtk"
 val appVersion = rootProject.file("src/main/resources/version.txt").readText().trim()
 
@@ -24,7 +24,7 @@ plugins {
 }
 
 allOpen {
-  annotation("ru.nikitabobko.gcalnotifier.injector.InjectorAllOpen")
+  annotation("bobko.gcalnotifier.injector.InjectorAllOpen")
 }
 
 repositories {
