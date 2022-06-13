@@ -3,7 +3,7 @@ package bobko.gcalnotifier
 import junit.framework.TestCase
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.verify
-import bobko.gcalnotifier.controller.ControllerImpl
+import bobko.gcalnotifier.controller.impl.ControllerImpl
 import bobko.gcalnotifier.model.MyEvent
 import bobko.gcalnotifier.settings.Settings
 import bobko.gcalnotifier.support.*
