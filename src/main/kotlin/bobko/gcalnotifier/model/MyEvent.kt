@@ -36,10 +36,10 @@ data class MyEvent(val title: String?, val startUNIXTime: Long, val endUNIXTime:
     return SimpleDateFormat(settings.timeFormat).format(eventStart) + SimpleDateFormat(" - ${settings.timeFormat}").format(eventEnd)
   }
 
-  fun dateString(utils: Utils, settings: Settings): String {
+  fun dateString(timeProvider: TimeProvider, settings: Settings): String {
     return when (val eventStart = Date(startUNIXTime)) {
-      in utils.today until utils.tomorrow -> "Today"
-      in utils.tomorrow until utils.theDayAfterTomorrow -> "Tomorrow"
+      in timeProvider.today until timeProvider.tomorrow -> "Today"
+      in timeProvider.tomorrow until timeProvider.theDayAfterTomorrow -> "Tomorrow"
       else -> SimpleDateFormat(settings.dateFormat).format(eventStart)
     }
   }

@@ -12,7 +12,7 @@ import kotlin.concurrent.thread
 class EventReminderTrackerTest : TestCase() {
   override fun setUp() {
     super.setUp()
-    FakeUtils.resetTime()
+    FakeTimeProvider.resetTime()
   }
 
   fun `test simple`() {
@@ -77,13 +77,13 @@ class EventReminderTrackerTest : TestCase() {
         fail()
       }
     }
-    FakeUtils.currentTimeMillis += 10.seconds
+    FakeTimeProvider.currentTimeMillis += 10.seconds
     val actualLastNotifiedEventUNIXTime = trackerWrapper.tracker.javaClass.declaredFields
       .find { it.name == "lastNotifiedEventUNIXTime" }!!
       .apply { isAccessible = true }
       .get(trackerWrapper.tracker) as Long?
     assertEquals(lastNotifiedUNIXTime, actualLastNotifiedEventUNIXTime)
-    val start = FakeUtils.currentTimeMillis
+    val start = FakeTimeProvider.currentTimeMillis
     doTest(events = listOf(
       createEvent("title", start - 2.seconds, createReminder(0)),
       createEvent("title", start, createReminder(2.seconds)),
@@ -201,7 +201,7 @@ class EventReminderTrackerTest : TestCase() {
       val trackerWrapper = EventReminderTrackerWrapper({
         fail("You shouldn't notify too early for small notifications!")
       }, events, emptyArray())
-      FakeUtils.currentTimeMillis = eventTime - eventNotification -
+      FakeTimeProvider.currentTimeMillis = eventTime - eventNotification -
         EventReminderTrackerImpl.PERCENT_ACCURACY.percentOf(eventNotification) - 1.seconds
       // action
       trackerWrapper.tracker.newDataCame(events.toList(), emptyList())
@@ -212,7 +212,7 @@ class EventReminderTrackerTest : TestCase() {
       // setup
       trackerWrapper.eventReminderTriggeredHandler = { counter.incrementAndGet() }
       // action
-      FakeUtils.currentTimeMillis += 2.seconds
+      FakeTimeProvider.currentTimeMillis += 2.seconds
       trackerWrapper.tracker.daemonThread!!.interrupt()
       Thread.sleep(2.seconds)
       // assert
@@ -232,7 +232,7 @@ class EventReminderTrackerTest : TestCase() {
           whenCalled(this.restoreEventsList()).thenReturn(events)
           whenCalled(this.restoreUsersCalendarList()).thenReturn(calendars)
         },
-        FakeUtils).apply {
+        FakeTimeProvider).apply {
         registerEventReminderTriggeredHandler { eventReminderTriggeredHandler(it) }
       }
     }

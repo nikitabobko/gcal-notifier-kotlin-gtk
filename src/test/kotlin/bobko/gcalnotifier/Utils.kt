@@ -5,7 +5,7 @@ import org.mockito.stubbing.OngoingStubbing
 import bobko.gcalnotifier.model.MyEvent
 import bobko.gcalnotifier.model.MyEventReminder
 import bobko.gcalnotifier.model.MyEventReminderMethod
-import bobko.gcalnotifier.support.Utils
+import bobko.gcalnotifier.support.TimeProvider
 import bobko.gcalnotifier.support.minutes
 
 fun createEvent(title: String, start: Long, reminders: MyEvent.MyReminders, calendarId: String? = null): MyEvent {
@@ -24,7 +24,7 @@ fun createCalendarReminder(): MyEvent.MyReminders {
   return MyEvent.MyReminders(useDefault = true, overrides = null)
 }
 
-object FakeUtils : Utils() {
+object FakeTimeProvider : TimeProvider() {
   @Volatile
   override var currentTimeMillis: Long = 0L
 

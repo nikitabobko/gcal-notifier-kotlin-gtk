@@ -17,7 +17,7 @@ class ControllerTest : TestCase() {
       localDataManager,
       mock(GoogleCalendarManager::class.java),
       mock(EventReminderTracker::class.java),
-      FakeUtils,
+      FakeTimeProvider,
       mock(Settings::class.java))
     controller.logoutButtonClicked()
     verify(localDataManager).removeAllData()
@@ -30,7 +30,7 @@ class ControllerTest : TestCase() {
       mock(UserDataManager::class.java),
       googleCalendarManager,
       mock(EventReminderTracker::class.java),
-      FakeUtils,
+      FakeTimeProvider,
       mock(Settings::class.java))
     controller.refreshButtonClicked()
     verify(googleCalendarManager).getUpcomingEventsAsync(any())
@@ -43,7 +43,7 @@ class ControllerTest : TestCase() {
       mock(UserDataManager::class.java),
       mock(GoogleCalendarManager::class.java),
       mock(EventReminderTracker::class.java),
-      FakeUtils,
+      FakeTimeProvider,
       mock(Settings::class.java))
     val someHtmlLink = "http://some-html-link"
     val event = MyEvent("title", 0L, 10.seconds, null, htmlLink = someHtmlLink)
@@ -58,7 +58,7 @@ class ControllerTest : TestCase() {
       mock(UserDataManager::class.java),
       mock(GoogleCalendarManager::class.java),
       mock(EventReminderTracker::class.java),
-      FakeUtils,
+      FakeTimeProvider,
       mock(Settings::class.java))
     controller.quitClicked()
     verify(view).quit()

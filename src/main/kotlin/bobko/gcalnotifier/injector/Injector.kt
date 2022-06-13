@@ -24,22 +24,22 @@ annotation class InjectorAllOpen
 @InjectorAllOpen
 abstract class Injector {
   val eventReminderTracker: EventReminderTracker by injectedSingleton {
-    EventReminderTrackerImpl(userDataManager, utils)
+    EventReminderTrackerImpl(userDataManager, timeProvider)
   }
 
   val userDataManager: UserDataManager by injectedSingleton { JsonUserDataManager() }
 
   val googleCalendarManager: GoogleCalendarManager by injectedSingleton {
-    GoogleCalendarManagerImpl(view::openUrlInDefaultBrowser, utils, userDataManager)
+    GoogleCalendarManagerImpl(view::openUrlInDefaultBrowser, timeProvider, userDataManager)
   }
 
-  val view: View by injectedSingleton { GtkView(UI_THREAD_ID, utils, settings) }
+  val view: View by injectedSingleton { GtkView(UI_THREAD_ID, timeProvider, settings) }
 
   val controller: Controller by injectedSingleton {
-    ControllerImpl.create(view, userDataManager, googleCalendarManager, eventReminderTracker, utils, settings)
+    ControllerImpl.create(view, userDataManager, googleCalendarManager, eventReminderTracker, timeProvider, settings)
   }
 
-  val utils: Utils by injectedSingleton { UtilsImpl }
+  val timeProvider: TimeProvider by injectedSingleton { TimeProviderImpl }
 
   val settings: Settings by injectedSingleton { SettingsImpl(fileReaderWriter, settingsFormatParser) }
 

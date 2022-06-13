@@ -3,8 +3,7 @@ package bobko.gcalnotifier.view.gtk
 import bobko.gcalnotifier.controller.Controller
 import bobko.gcalnotifier.model.MyEvent
 import bobko.gcalnotifier.settings.Settings
-import bobko.gcalnotifier.support.Utils
-import bobko.gcalnotifier.view.gtk.EventMenuItem
+import bobko.gcalnotifier.support.TimeProvider
 import bobko.gcalnotifier.view.RefreshButtonState
 import bobko.gcalnotifier.view.View
 import com.google.common.io.Resources
@@ -21,7 +20,7 @@ import kotlin.math.min
  */
 class GtkView(
   private val uiThreadId: Long,
-  private val utils: Utils,
+  private val timeProvider: TimeProvider,
   private val settings: Settings
 ) : View {
   private var controller: Controller? = null
@@ -105,7 +104,7 @@ class GtkView(
   }
 
   private fun insertEventsInPopupMenu(events: List<MyEvent>) {
-    val eventsDates = events.map { it.dateString(utils, settings) }
+    val eventsDates = events.map { it.dateString(timeProvider, settings) }
     val eventsTimes = events.map { it.timeString(settings) }
 
     val dateCharWidth: Int = eventsDates.map { it.length }.maxOrNull() ?: 0
