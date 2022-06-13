@@ -7,7 +7,7 @@ import bobko.gcalnotifier.settings.Settings
 import bobko.gcalnotifier.support.EventReminderTracker
 import bobko.gcalnotifier.support.GoogleCalendarManager
 import bobko.gcalnotifier.support.UserDataManager
-import bobko.gcalnotifier.support.Utils
+import bobko.gcalnotifier.support.TimeProvider
 import bobko.gcalnotifier.view.RefreshButtonState
 import bobko.gcalnotifier.view.View
 import org.gnome.notify.Notification
@@ -18,7 +18,7 @@ class ControllerImpl private constructor(
   private val userDataManager: UserDataManager,
   private val googleCalendarManager: GoogleCalendarManager,
   private val eventReminderTracker: EventReminderTracker,
-  private val utils: Utils,
+  private val timeProvider: TimeProvider,
   private val settings: Settings
 ) : Controller {
   private var notifyAboutRefreshFailures = true
@@ -28,10 +28,10 @@ class ControllerImpl private constructor(
                userDataManager: UserDataManager,
                googleCalendarManager: GoogleCalendarManager,
                eventReminderTracker: EventReminderTracker,
-               utils: Utils,
+               timeProvider: TimeProvider,
                settings: Settings
     ): Controller {
-      return ControllerImpl(view, userDataManager, googleCalendarManager, eventReminderTracker, utils, settings).also { controller ->
+      return ControllerImpl(view, userDataManager, googleCalendarManager, eventReminderTracker, timeProvider, settings).also { controller ->
         view.registerController(controller)
         eventReminderTracker.registerEventReminderTriggeredHandler(controller::eventReminderTriggered)
       }
@@ -48,7 +48,7 @@ class ControllerImpl private constructor(
   override fun eventReminderTriggered(event: MyEvent) {
     view.showInfiniteNotification(
       event.title ?: "",
-      concatTimeAndDate(event.timeString(settings), event.dateString(utils, settings)),
+      concatTimeAndDate(event.timeString(settings), event.dateString(timeProvider, settings)),
       "Open in web"
     ) { _: Notification, _: String ->
       view.openUrlInDefaultBrowser(event.htmlLink ?: return@showInfiniteNotification)

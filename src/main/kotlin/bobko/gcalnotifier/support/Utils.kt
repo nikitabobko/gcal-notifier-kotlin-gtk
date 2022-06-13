@@ -41,7 +41,7 @@ infix fun Date.until(exclusive: Date): ClosedRange<Date> {
   return this..Date(exclusive.time - 1.seconds)
 }
 
-abstract class Utils {
+abstract class TimeProvider {
   abstract val currentTimeMillis: Long
 
   val today: Date
@@ -62,7 +62,7 @@ abstract class Utils {
     get() = today.plusDays(2)
 }
 
-object UtilsImpl : Utils() {
+object TimeProviderImpl : TimeProvider() {
   override val currentTimeMillis: Long
     get() = System.currentTimeMillis()
 }

@@ -21,8 +21,8 @@ interface EventReminderTracker {
 }
 
 class EventReminderTrackerImpl(private val userDataManager: UserDataManager,
-                               private val utils: Utils) : EventReminderTracker {
-  private var lastNotifiedEventUNIXTime: Long = utils.currentTimeMillis
+                               private val timeProvider: TimeProvider) : EventReminderTracker {
+  private var lastNotifiedEventUNIXTime: Long = timeProvider.currentTimeMillis
   private var nextEventsToNotify: List<MyEvent> = listOf()
   private var nextEventsToNotifyUNIXTime: Long? = null
   private val upcomingEventsAndUserCalendarsLock = Any()
@@ -60,7 +60,7 @@ class EventReminderTrackerImpl(private val userDataManager: UserDataManager,
     while (true) {
       var doContinue = false
       synchronized(eventTrackerDaemonLock) {
-        val currentTimeMillis = utils.currentTimeMillis
+        val currentTimeMillis = timeProvider.currentTimeMillis
         initNextEventsToNotify()
         if (nextEventsToNotify.isEmpty() || nextEventsToNotifyUNIXTime == null) {
           eventTrackerDaemon = null
@@ -85,7 +85,7 @@ class EventReminderTrackerImpl(private val userDataManager: UserDataManager,
       }
       if (doContinue) continue
       try {
-        val maxOf = maxOf(nextEventsToNotifyUNIXTime!! - utils.currentTimeMillis, 0L)
+        val maxOf = maxOf(nextEventsToNotifyUNIXTime!! - timeProvider.currentTimeMillis, 0L)
         Thread.sleep(maxOf)
       } catch (ignored: InterruptedException) {
       }
