@@ -23,7 +23,7 @@ echo $version > src/main/resources/version.txt
 #####################
 ### Build release ###
 #####################
-./gradlew clean
+bazel clean
 ./gradlew allDistributionArchives
 
 ##############################

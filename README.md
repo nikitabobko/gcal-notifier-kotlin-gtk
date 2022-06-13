@@ -60,14 +60,14 @@ Execute in terminal:
 * Don't forget to uninstall [dependencies](#dependencies) if you don't need them anymore
 
 # Building project from sources
-For building project [Gradle build tool](https://gradle.org/) is used.  
+[Bazel](https://bazel.build/) is used for building the project.
 Before building project ensure that you have [dependencies](#dependencies) installed.
 
 #### Building jar file
-Execute `./gradlew jar` to generate jar file in `build/libs/` directory.
+Execute `bazel build gcal-jar_deploy.jar` to generate jar file in `build/libs/` directory.
 
 #### Run debug gcal-notifier version from sources
-`./gradlew runJar`
+`bazel run gcal-app`
 
 #### Build tar archive only
 `./gradlew tar`
@@ -76,4 +76,4 @@ Execute `./gradlew jar` to generate jar file in `build/libs/` directory.
 `./gradlew deb`
 
 #### Running tests
-`./gradlew test`
+`bazel test //...`
