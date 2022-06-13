@@ -3,7 +3,6 @@ package bobko.gcalnotifier.settings
 import bobko.gcalnotifier.APPLICATION_NAME
 import bobko.gcalnotifier.support.FileReaderWriter
 import bobko.gcalnotifier.support.USER_HOME_FOLDER
-import bobko.gcalnotifier.support.ifNotNull
 import java.nio.file.Paths
 import kotlin.reflect.KProperty
 import kotlin.reflect.KType
@@ -30,7 +29,7 @@ class SettingsImpl(
   private val registeredSettingsItems = HashMap<String, SettingItem<*>>()
   private val memoizedSettings: Map<String, Any> by lazy {
     val userSettingsString = fileReaderWriter.readFromFile(settingsFilePath)
-    val userSettings = userSettingsString.ifNotNull { parser.parse(it) }
+    val userSettings = userSettingsString?.let { parser.parse(it) }
 
     val validatedUserSettings = userSettings
       ?.mapNotNull {

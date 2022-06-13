@@ -1,6 +1,5 @@
 package bobko.gcalnotifier.settings
 
-import bobko.gcalnotifier.support.ifNotNull
 import java.lang.IllegalStateException
 
 /**
@@ -79,7 +78,7 @@ class YamlLikeSettingsFormatParser : SettingsFormatParser {
   }
 
   private fun SettingsFormatParser.KeyValuePairWithOptionalComment.splitToLexerNodes(): List<LexerNode> {
-    return (this.comment.ifNotNull { comment -> comment.split("\n").map { LexerNode.Comment(it) } } ?: emptyList()) +
+    return (this.comment?.let { comment -> comment.split("\n").map { LexerNode.Comment(it) } } ?: emptyList()) +
       listOf(LexerNode.KeyValuePair(this.key, this.value))
   }
 
