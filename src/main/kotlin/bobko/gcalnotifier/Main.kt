@@ -3,15 +3,10 @@ package bobko.gcalnotifier
 import org.gnome.gtk.Gtk
 import org.gnome.notify.Notify
 import bobko.gcalnotifier.injector.Injector
+import bobko.gcalnotifier.util.APPLICATION_NAME
+import bobko.gcalnotifier.util.APPLICATION_VERSION
+import bobko.gcalnotifier.util.UI_THREAD_ID
 import kotlin.system.exitProcess
-
-const val APPLICATION_NAME = "gcal-notifier-kotlin-gtk"
-
-val APPLICATION_VERSION: String = object {}::class.java.getResourceAsStream("/version.txt").bufferedReader().use {
-  it.readLine()!!
-}
-
-val UI_THREAD_ID = Thread.currentThread().id
 
 /**
  * Application entry point

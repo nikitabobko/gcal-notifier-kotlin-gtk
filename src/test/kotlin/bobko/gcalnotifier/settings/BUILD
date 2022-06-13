@@ -5,7 +5,8 @@ kt_jvm_test(
     name = "SettingsFormatParserTest",
     srcs = ["SettingsFormatParserTest.kt"],
     deps = [
-        "//src/main",
+        "//src/main/kotlin/bobko/gcalnotifier/util",
+        "//src/main/kotlin/bobko/gcalnotifier/settings",
         artifact("org.jetbrains.kotlin:kotlin-test-junit"),
         artifact("org.mockito:mockito-core"),
     ],
@@ -15,7 +16,8 @@ kt_jvm_test(
     name = "SettingsTest",
     srcs = ["SettingsTest.kt"],
     deps = [
-        "//src/main",
+        "//src/main/kotlin/bobko/gcalnotifier/util",
+        "//src/main/kotlin/bobko/gcalnotifier/settings",
         artifact("org.jetbrains.kotlin:kotlin-test-junit"),
         artifact("org.mockito:mockito-core"),
     ],

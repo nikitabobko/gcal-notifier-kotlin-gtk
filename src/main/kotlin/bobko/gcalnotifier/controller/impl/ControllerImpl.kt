@@ -4,7 +4,7 @@ import bobko.gcalnotifier.controller.Controller
 import bobko.gcalnotifier.model.MyCalendarListEntry
 import bobko.gcalnotifier.model.MyEvent
 import bobko.gcalnotifier.settings.Settings
-import bobko.gcalnotifier.support.EventReminderTracker
+import bobko.gcalnotifier.controller.EventReminderTracker
 import bobko.gcalnotifier.support.GoogleCalendarManager
 import bobko.gcalnotifier.support.UserDataManager
 import bobko.gcalnotifier.util.TimeProvider

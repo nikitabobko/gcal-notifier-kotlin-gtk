@@ -1,7 +1,7 @@
 package bobko.gcalnotifier.settings
 
-import bobko.gcalnotifier.APPLICATION_NAME
-import bobko.gcalnotifier.support.FileReaderWriter
+import bobko.gcalnotifier.util.APPLICATION_NAME
+import bobko.gcalnotifier.util.FileReaderWriter
 import bobko.gcalnotifier.util.USER_HOME_FOLDER
 import java.nio.file.Paths
 import kotlin.reflect.KProperty

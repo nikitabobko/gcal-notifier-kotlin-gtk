@@ -1,7 +1,7 @@
 package bobko.gcalnotifier.settings
 
 import junit.framework.TestCase
-import bobko.gcalnotifier.support.FileReaderWriter
+import bobko.gcalnotifier.util.FileReaderWriter
 import java.io.File
 import java.util.concurrent.atomic.AtomicInteger
 

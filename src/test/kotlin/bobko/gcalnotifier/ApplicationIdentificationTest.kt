@@ -1,5 +1,6 @@
 package bobko.gcalnotifier
 
+import bobko.gcalnotifier.util.APPLICATION_VERSION
 import junit.framework.TestCase
 
 class ApplicationIdentificationTest : TestCase() {

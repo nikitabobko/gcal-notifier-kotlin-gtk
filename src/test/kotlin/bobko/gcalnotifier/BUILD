@@ -5,7 +5,12 @@ kt_jvm_library(
     name = "test-utils",
     srcs = ["Utils.kt"],
     deps = [
-        "//src/main",
+        "//src/main/kotlin/bobko/gcalnotifier/model",
+        "//src/main/kotlin/bobko/gcalnotifier/support",
+        "//src/main/kotlin/bobko/gcalnotifier/util",
+        "//src/main/kotlin/bobko/gcalnotifier/controller",
+        "//src/main/kotlin/bobko/gcalnotifier/controller/impl",
+        "//src/main/kotlin/bobko/gcalnotifier/view",
         artifact("org.jetbrains.kotlin:kotlin-test-junit"),
         artifact("org.mockito:mockito-core"),
     ],

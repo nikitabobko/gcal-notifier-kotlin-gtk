@@ -1,4 +1,4 @@
-package bobko.gcalnotifier.support
+package bobko.gcalnotifier.util
 
 import java.io.File
 import java.io.PrintWriter

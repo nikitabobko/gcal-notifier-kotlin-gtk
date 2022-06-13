@@ -1,6 +1,6 @@
 package bobko.gcalnotifier.support
 
-import bobko.gcalnotifier.APPLICATION_NAME
+import bobko.gcalnotifier.util.APPLICATION_NAME
 import bobko.gcalnotifier.model.MyCalendarListEntry
 import bobko.gcalnotifier.model.MyEvent
 import bobko.gcalnotifier.model.toInternal
@@ -26,7 +26,7 @@ import java.util.*
 import kotlin.concurrent.thread
 
 private val JSON_FACTORY = JacksonFactory.getDefaultInstance()
-private const val CLIENT_SECRET_DIR = "/client_secret.json"
+private const val CLIENT_SECRET_DIR = "/bobko/gcalnotifier/support/res/client_secret.json"
 private val SCOPES: List<String> = Collections.singletonList(CalendarScopes.CALENDAR_READONLY)
 
 /**

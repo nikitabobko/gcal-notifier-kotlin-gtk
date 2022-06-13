@@ -1,9 +1,10 @@
-package bobko.gcalnotifier.support
+package bobko.gcalnotifier.controller
 
 import bobko.gcalnotifier.controller.Controller
 import bobko.gcalnotifier.model.MyCalendarListEntry
 import bobko.gcalnotifier.model.MyEvent
 import bobko.gcalnotifier.model.MyEventReminderMethod
+import bobko.gcalnotifier.support.UserDataManager
 import bobko.gcalnotifier.util.TimeProvider
 import bobko.gcalnotifier.util.percentOf
 import bobko.gcalnotifier.util.seconds
@@ -97,7 +98,7 @@ class EventReminderTrackerImpl(private val userDataManager: UserDataManager,
 
   private fun MyEvent.calculateNextToNotifyTime(): Long? = this.getReminders(userCalendarList)
     ?.filter { it.method == MyEventReminderMethod.POPUP }
-    ?.mapNotNull { if (it.milliseconds != null) this.startUNIXTime - it.milliseconds else null }
+    ?.mapNotNull { eventReminder -> eventReminder.milliseconds?.let { this.startUNIXTime - it } }
     ?.filter { it > lastNotifiedEventUNIXTime }
     ?.minOrNull()
 

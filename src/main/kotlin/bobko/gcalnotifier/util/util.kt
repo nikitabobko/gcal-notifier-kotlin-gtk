@@ -8,6 +8,17 @@ import java.util.*
 
 val USER_HOME_FOLDER: String = System.getProperty("user.home")!!
 
+const val APPLICATION_NAME = "gcal-notifier-kotlin-gtk"
+
+val APPLICATION_VERSION: String =
+  object {}::class.java.getResourceAsStream("/bobko/gcalnotifier/util/res/version.txt")!!
+    .bufferedReader()
+    .use {
+      it.readLine()!!
+    }
+
+val UI_THREAD_ID = Thread.currentThread().id
+
 private fun Date.plusDays(days: Int): Date {
   val cal = Calendar.getInstance()
   cal.time = this

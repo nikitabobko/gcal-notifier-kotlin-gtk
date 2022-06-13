@@ -1,7 +1,7 @@
 package bobko.gcalnotifier.support
 
 import com.google.gson.Gson
-import bobko.gcalnotifier.APPLICATION_NAME
+import bobko.gcalnotifier.util.APPLICATION_NAME
 import bobko.gcalnotifier.model.MyCalendarListEntry
 import bobko.gcalnotifier.model.MyEvent
 import java.io.File
