@@ -9,7 +9,7 @@ import java.util.concurrent.CyclicBarrier
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.concurrent.thread
 
-class EventReminderTrackerTests : TestCase() {
+class EventReminderTrackerTest : TestCase() {
   override fun setUp() {
     super.setUp()
     FakeUtils.resetTime()

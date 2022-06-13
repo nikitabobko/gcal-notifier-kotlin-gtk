@@ -13,25 +13,25 @@ kt_jvm_library(
 )
 
 kt_jvm_test(
-    name = "ApplicationIdentificationTests",
-    srcs = ["ApplicationIdentificationTests.kt"],
+    name = "ApplicationIdentificationTest",
+    srcs = ["ApplicationIdentificationTest.kt"],
     deps = [":test-utils"],
 )
 
 kt_jvm_test(
-    name = "ControllerTests",
-    srcs = ["ControllerTests.kt"],
+    name = "ControllerTest",
+    srcs = ["ControllerTest.kt"],
     deps = [":test-utils"],
 )
 
 kt_jvm_test(
-    name = "EventReminderTrackerTests",
-    srcs = ["EventReminderTrackerTests.kt"],
+    name = "EventReminderTrackerTest",
+    srcs = ["EventReminderTrackerTest.kt"],
     deps = [":test-utils"],
 )
 
 kt_jvm_test(
-    name = "MyEventTests",
-    srcs = ["MyEventTests.kt"],
+    name = "MyEventTest",
+    srcs = ["MyEventTest.kt"],
     deps = [":test-utils"],
 )

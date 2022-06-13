@@ -9,7 +9,7 @@ import bobko.gcalnotifier.settings.Settings
 import bobko.gcalnotifier.support.*
 import bobko.gcalnotifier.view.View
 
-class ControllerTests : TestCase() {
+class ControllerTest : TestCase() {
   fun `test removeAllData when logoutButtonClicked`() {
     val localDataManager = mock(UserDataManager::class.java)
     val controller = ControllerImpl.create(
