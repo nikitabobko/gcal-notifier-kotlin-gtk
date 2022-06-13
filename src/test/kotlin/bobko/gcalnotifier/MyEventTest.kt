@@ -5,7 +5,7 @@ import org.mockito.Mockito.mock
 import bobko.gcalnotifier.settings.Settings
 import bobko.gcalnotifier.support.UtilsImpl
 
-class MyEventTests : TestCase() {
+class MyEventTest : TestCase() {
 
   fun `test MyEvent_dateTimeString`() {
     doTest("Today", System.currentTimeMillis())
