@@ -26,7 +26,7 @@ load("@rules_jvm_external//:defs.bzl", "maven_install")
 maven_install(
     artifacts = [
         "org.jetbrains.kotlin:kotlin-test-junit:%s" % kotlin_version,
-        "org.jetbrains.kotlin:kotlin-reflect:%s" % kotlin_version, # TODO why do I need it?
+        "org.jetbrains.kotlin:kotlin-reflect:%s" % kotlin_version,
         "org.mockito:mockito-core:3.2.4",
         "ru.nikitabobko.kotlin.refdelegation:kotlin-ref-delegation:1.1.2",
         "com.google.oauth-client:google-oauth-client-jetty:1.23.0",
@@ -35,8 +35,7 @@ maven_install(
     ],
     repositories = [
         "https://repo1.maven.org/maven2",
-        "https://dl.bintray.com/bobko/kotlin-ref-delegation", # TODO
-        "https://jcenter.bintray.com/", # TODO
+        "https://jcenter.bintray.com/",
     ],
 )
 

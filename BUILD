@@ -5,7 +5,7 @@ java_binary(
     name = "gcal-app",
     srcs = [],
     main_class = "bobko.gcalnotifier.MainKt",
-    runtime_deps = ["//src/main", "@usr_share_java//:gtk-runtime"]
+    runtime_deps = ["//src/main/kotlin/bobko/gcalnotifier", "@usr_share_java//:gtk-runtime"]
 )
 
 # GTK isn't in the classpath. Used to create release artifacts
@@ -14,5 +14,5 @@ java_binary(
     srcs = [],
     create_executable = False,
     main_class = "bobko.gcalnotifier.MainKt",
-    runtime_deps = ["//src/main"]
+    runtime_deps = ["//src/main/kotlin/bobko/gcalnotifier"]
 )

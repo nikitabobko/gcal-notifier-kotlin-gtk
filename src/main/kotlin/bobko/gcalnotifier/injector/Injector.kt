@@ -1,7 +1,8 @@
 package bobko.gcalnotifier.injector
 
-import bobko.gcalnotifier.UI_THREAD_ID
 import bobko.gcalnotifier.controller.Controller
+import bobko.gcalnotifier.controller.EventReminderTracker
+import bobko.gcalnotifier.controller.EventReminderTrackerImpl
 import bobko.gcalnotifier.controller.impl.ControllerImpl
 import bobko.gcalnotifier.injected.injectedSingleton
 import bobko.gcalnotifier.injected.getValue
@@ -10,8 +11,7 @@ import bobko.gcalnotifier.settings.SettingsFormatParser
 import bobko.gcalnotifier.settings.SettingsImpl
 import bobko.gcalnotifier.settings.YamlLikeSettingsFormatParser
 import bobko.gcalnotifier.support.*
-import bobko.gcalnotifier.util.TimeProvider
-import bobko.gcalnotifier.util.TimeProviderImpl
+import bobko.gcalnotifier.util.*
 import bobko.gcalnotifier.view.View
 import bobko.gcalnotifier.view.gtk.GtkView
 
