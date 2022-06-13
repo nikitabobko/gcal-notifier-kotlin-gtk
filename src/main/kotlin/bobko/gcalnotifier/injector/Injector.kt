@@ -11,7 +11,7 @@ import bobko.gcalnotifier.settings.SettingsImpl
 import bobko.gcalnotifier.settings.YamlLikeSettingsFormatParser
 import bobko.gcalnotifier.support.*
 import bobko.gcalnotifier.view.View
-import bobko.gcalnotifier.view.ViewJavaGnome
+import bobko.gcalnotifier.view.GtkView
 
 /**
  * Makes all members of [Injector] open by default
@@ -33,7 +33,7 @@ abstract class Injector {
     GoogleCalendarManagerImpl(view::openUrlInDefaultBrowser, utils, userDataManager)
   }
 
-  val view: View by injectedSingleton { ViewJavaGnome(UI_THREAD_ID, utils, settings) }
+  val view: View by injectedSingleton { GtkView(UI_THREAD_ID, utils, settings) }
 
   val controller: Controller by injectedSingleton {
     ControllerImpl.create(view, userDataManager, googleCalendarManager, eventReminderTracker, utils, settings)
