@@ -2,7 +2,7 @@ package bobko.gcalnotifier.injector
 
 import bobko.gcalnotifier.UI_THREAD_ID
 import bobko.gcalnotifier.controller.Controller
-import bobko.gcalnotifier.controller.ControllerImpl
+import bobko.gcalnotifier.controller.impl.ControllerImpl
 import bobko.gcalnotifier.injected.injectedSingleton
 import bobko.gcalnotifier.injected.getValue
 import bobko.gcalnotifier.settings.Settings
