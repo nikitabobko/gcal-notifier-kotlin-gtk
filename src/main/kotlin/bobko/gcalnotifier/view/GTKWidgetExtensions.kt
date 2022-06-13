@@ -15,7 +15,5 @@ fun <T : Widget> Container.addAndGetChild(child: T): T {
 inline fun Container.box(orientation: Orientation, spacing: Int,
                          block: Box.() -> Unit) = add(Box(orientation, spacing), block)
 
-fun Container.box(orientation: Orientation, spacing: Int) = addAndGetChild(Box(orientation, spacing))
-
 inline fun Container.label(text: String, block: Label.() -> Unit) = add(Label(text), block)
 fun Container.label(text: String) = addAndGetChild(Label(text))
