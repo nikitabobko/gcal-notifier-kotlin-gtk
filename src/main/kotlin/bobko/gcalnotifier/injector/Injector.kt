@@ -11,7 +11,7 @@ import bobko.gcalnotifier.settings.SettingsImpl
 import bobko.gcalnotifier.settings.YamlLikeSettingsFormatParser
 import bobko.gcalnotifier.support.*
 import bobko.gcalnotifier.view.View
-import bobko.gcalnotifier.view.GtkView
+import bobko.gcalnotifier.view.gtk.GtkView
 
 /**
  * Makes all members of [Injector] open by default
