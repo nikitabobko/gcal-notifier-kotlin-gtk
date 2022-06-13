@@ -4,7 +4,7 @@ import bobko.gcalnotifier.controller.Controller
 import bobko.gcalnotifier.model.MyEvent
 import bobko.gcalnotifier.settings.Settings
 import bobko.gcalnotifier.support.Utils
-import bobko.gcalnotifier.view.EventMenuItem
+import bobko.gcalnotifier.view.gtk.EventMenuItem
 import bobko.gcalnotifier.view.RefreshButtonState
 import bobko.gcalnotifier.view.View
 import com.google.common.io.Resources
