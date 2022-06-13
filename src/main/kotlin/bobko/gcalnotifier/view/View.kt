@@ -43,9 +43,11 @@ enum class RefreshButtonState {
 /**
  * Implementation based on java-gnome lib
  */
-class ViewJavaGnome(private val uiThreadId: Long,
-                    private val utils: Utils,
-                    private val settings: Settings) : View {
+class GtkView(
+  private val uiThreadId: Long,
+  private val utils: Utils,
+  private val settings: Settings
+) : View {
   private var controller: Controller? = null
   private var popupMenu: Menu = buildEmptySystemTrayPopupMenu()
   /**
