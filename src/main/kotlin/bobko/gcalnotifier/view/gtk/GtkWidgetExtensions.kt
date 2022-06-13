@@ -1,4 +1,4 @@
-package bobko.gcalnotifier.view
+package bobko.gcalnotifier.view.gtk
 
 import org.gnome.gtk.*
 
