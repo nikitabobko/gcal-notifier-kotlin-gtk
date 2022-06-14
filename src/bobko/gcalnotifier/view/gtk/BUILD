@@ -2,10 +2,12 @@ load("@io_bazel_rules_kotlin//kotlin:jvm.bzl", "kt_jvm_library")
 load("@rules_jvm_external//:defs.bzl", "artifact")
 
 kt_jvm_library(
-    name = "gcalnotifier",
+    name = "gtk",
     srcs = glob(["*.kt"], exclude = ["*Test.kt"]),
     deps = [
-        "//src/main/kotlin/bobko/gcalnotifier/injector",
+        "@usr_share_java//:gtk",
+        "//src/bobko/gcalnotifier/view",
     ],
     visibility = ["//visibility:public"],
+    resources = glob(["res/*"]),
 )

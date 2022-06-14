@@ -5,9 +5,9 @@ kt_jvm_library(
     name = "impl",
     srcs = glob(["*.kt"], exclude = ["*Test.kt"]),
     deps = [
-        "//src/main/kotlin/bobko/gcalnotifier/controller",
-        "//src/main/kotlin/bobko/gcalnotifier/model",
-        "//src/main/kotlin/bobko/gcalnotifier/view",
+        "//src/bobko/gcalnotifier/controller",
+        "//src/bobko/gcalnotifier/model",
+        "//src/bobko/gcalnotifier/view",
     ],
     visibility = ["//visibility:public"],
 )
@@ -17,6 +17,6 @@ kt_jvm_test(
     srcs = ["ControllerTest.kt"],
     deps = [
         ":impl",
-        "//src/main/kotlin/bobko/gcalnotifier/test",
+        "//src/bobko/gcalnotifier/test",
     ],
 )

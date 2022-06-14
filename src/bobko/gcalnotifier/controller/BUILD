@@ -5,8 +5,8 @@ kt_jvm_library(
     name = "controller",
     srcs = glob(["*.kt"], exclude = ["*Test.kt"]),
     deps = [
-        "//src/main/kotlin/bobko/gcalnotifier/model",
-        "//src/main/kotlin/bobko/gcalnotifier/support",
+        "//src/bobko/gcalnotifier/model",
+        "//src/bobko/gcalnotifier/support",
         artifact("ru.nikitabobko.kotlin.refdelegation:kotlin-ref-delegation"),
     ],
     visibility = ["//visibility:public"],
@@ -17,6 +17,6 @@ kt_jvm_test(
     srcs = ["EventReminderTrackerTest.kt"],
     deps = [
         ":controller",
-        "//src/main/kotlin/bobko/gcalnotifier/test",
+        "//src/bobko/gcalnotifier/test",
     ],
 )

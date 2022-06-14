@@ -18,5 +18,5 @@ java_binary(
     name = "_gcal-jar",
     srcs = [],
     main_class = "bobko.gcalnotifier.MainKt",
-    runtime_deps = ["//src/main/kotlin/bobko/gcalnotifier"]
+    runtime_deps = ["//src/bobko/gcalnotifier"]
 )

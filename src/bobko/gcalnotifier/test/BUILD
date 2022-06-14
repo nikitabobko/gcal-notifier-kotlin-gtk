@@ -5,8 +5,8 @@ kt_jvm_library(
     name = "test",
     srcs = glob(["*.kt"]),
     deps = [
-        "//src/main/kotlin/bobko/gcalnotifier/model",
-        "//src/main/kotlin/bobko/gcalnotifier/util",
+        "//src/bobko/gcalnotifier/model",
+        "//src/bobko/gcalnotifier/util",
         artifact("org.mockito:mockito-core"),
     ],
     visibility = ["//visibility:public"],
