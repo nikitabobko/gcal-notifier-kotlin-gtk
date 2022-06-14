@@ -188,7 +188,7 @@ class EventReminderTrackerTest : TestCase() {
     }
   }
 
-  fun `test don't notify sooner than EventReminderTrackerImpl#PERCENT_ACCURACY% of notification "pretime"`() {
+  fun `test don't notify sooner than EventReminderTrackerImpl#PERCENT_ACCURACY of notification pretime`() {
     val eventTime = 1.minutes
     val eventNotification = 40.seconds
 
