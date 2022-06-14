@@ -35,8 +35,13 @@ maven_install(
     repositories = [
         "https://repo1.maven.org/maven2",
     ],
+    maven_install_json = "//:maven_install.json",
     fetch_sources = True,
+    fail_if_repin_required = True,
 )
+
+load("@maven//:defs.bzl", "pinned_maven_install")
+pinned_maven_install()
 
 # /usr/share/java
 new_local_repository(
