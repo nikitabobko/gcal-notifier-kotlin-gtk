@@ -64,7 +64,7 @@ Execute in terminal:
 Before building project ensure that you have [dependencies](#dependencies) installed.
 
 #### Building jar file
-Execute `bazel build gcal-jar_deploy.jar` to generate jar file in `build/libs/` directory.
+Execute `bazel build gcal-jar` to generate jar file in `bazel-bin` directory.
 
 #### Run debug gcal-notifier version from sources
 `bazel run gcal-app`
