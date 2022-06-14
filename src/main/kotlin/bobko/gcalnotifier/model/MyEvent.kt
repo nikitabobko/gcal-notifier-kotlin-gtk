@@ -1,8 +1,9 @@
 package bobko.gcalnotifier.model
 
-import com.google.api.services.calendar.model.Event
 import bobko.gcalnotifier.settings.Settings
-import bobko.gcalnotifier.support.*
+import bobko.gcalnotifier.util.TimeProvider
+import bobko.gcalnotifier.util.until
+import com.google.api.services.calendar.model.Event
 import java.text.SimpleDateFormat
 import java.util.*
 

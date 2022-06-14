@@ -7,7 +7,7 @@ import bobko.gcalnotifier.settings.Settings
 import bobko.gcalnotifier.support.EventReminderTracker
 import bobko.gcalnotifier.support.GoogleCalendarManager
 import bobko.gcalnotifier.support.UserDataManager
-import bobko.gcalnotifier.support.TimeProvider
+import bobko.gcalnotifier.util.TimeProvider
 import bobko.gcalnotifier.view.RefreshButtonState
 import bobko.gcalnotifier.view.View
 import org.gnome.notify.Notification

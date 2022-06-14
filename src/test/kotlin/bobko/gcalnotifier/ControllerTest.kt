@@ -7,6 +7,7 @@ import bobko.gcalnotifier.controller.impl.ControllerImpl
 import bobko.gcalnotifier.model.MyEvent
 import bobko.gcalnotifier.settings.Settings
 import bobko.gcalnotifier.support.*
+import bobko.gcalnotifier.util.seconds
 import bobko.gcalnotifier.view.View
 
 class ControllerTest : TestCase() {

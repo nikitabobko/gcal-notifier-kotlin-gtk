@@ -1,4 +1,4 @@
-package bobko.gcalnotifier.support
+package bobko.gcalnotifier.util
 
 import com.google.api.client.auth.oauth2.AuthorizationCodeFlow
 import com.google.api.client.auth.oauth2.AuthorizationCodeRequestUrl

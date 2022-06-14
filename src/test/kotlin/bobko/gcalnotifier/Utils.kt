@@ -1,12 +1,12 @@
 package bobko.gcalnotifier
 
-import org.mockito.Mockito
-import org.mockito.stubbing.OngoingStubbing
 import bobko.gcalnotifier.model.MyEvent
 import bobko.gcalnotifier.model.MyEventReminder
 import bobko.gcalnotifier.model.MyEventReminderMethod
-import bobko.gcalnotifier.support.TimeProvider
-import bobko.gcalnotifier.support.minutes
+import bobko.gcalnotifier.util.TimeProvider
+import bobko.gcalnotifier.util.minutes
+import org.mockito.Mockito
+import org.mockito.stubbing.OngoingStubbing
 
 fun createEvent(title: String, start: Long, reminders: MyEvent.MyReminders, calendarId: String? = null): MyEvent {
   return MyEvent(title, start, start + 60.minutes, reminders, calendarId = calendarId)
