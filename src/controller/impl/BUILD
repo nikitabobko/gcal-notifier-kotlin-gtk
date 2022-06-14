@@ -13,9 +13,9 @@ kt_jvm_library(
 )
 
 kt_jvm_test(
-    name = "ControllerTest",
-    test_class = "bobko.gcalnotifier.controller.impl.ControllerTest",
-    srcs = ["ControllerTest.kt"],
+    name = "ControllerImplTest",
+    test_class = "bobko.gcalnotifier.controller.impl.ControllerImplTest",
+    srcs = ["ControllerImplTest.kt"],
     deps = [
         ":impl",
         "//test-util",

@@ -12,7 +12,7 @@ import bobko.gcalnotifier.test.FakeTimeProvider
 import bobko.gcalnotifier.util.seconds
 import bobko.gcalnotifier.view.View
 
-class ControllerTest : TestCase() {
+class ControllerImplTest : TestCase() {
   fun `test removeAllData when logoutButtonClicked`() {
     val localDataManager = mock(UserDataManager::class.java)
     val controller = ControllerImpl.create(
