@@ -37,6 +37,7 @@ maven_install(
         "https://repo1.maven.org/maven2",
         "https://jcenter.bintray.com/",
     ],
+    fetch_sources = True,
 )
 
 # /usr/share/java
