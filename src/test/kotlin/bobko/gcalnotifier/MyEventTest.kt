@@ -3,7 +3,7 @@ package bobko.gcalnotifier
 import junit.framework.TestCase
 import org.mockito.Mockito.mock
 import bobko.gcalnotifier.settings.Settings
-import bobko.gcalnotifier.support.TimeProviderImpl
+import bobko.gcalnotifier.util.TimeProviderImpl
 
 class MyEventTest : TestCase() {
 

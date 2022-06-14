@@ -5,6 +5,9 @@ import org.mockito.Mockito.mock
 import bobko.gcalnotifier.model.MyCalendarListEntry
 import bobko.gcalnotifier.model.MyEvent
 import bobko.gcalnotifier.support.*
+import bobko.gcalnotifier.util.minutes
+import bobko.gcalnotifier.util.percentOf
+import bobko.gcalnotifier.util.seconds
 import java.util.concurrent.CyclicBarrier
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.concurrent.thread

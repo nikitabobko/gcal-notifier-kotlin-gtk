@@ -3,7 +3,7 @@ package bobko.gcalnotifier.view.gtk
 import bobko.gcalnotifier.controller.Controller
 import bobko.gcalnotifier.model.MyEvent
 import bobko.gcalnotifier.settings.Settings
-import bobko.gcalnotifier.support.TimeProvider
+import bobko.gcalnotifier.util.TimeProvider
 import bobko.gcalnotifier.view.RefreshButtonState
 import bobko.gcalnotifier.view.View
 import com.google.common.io.Resources

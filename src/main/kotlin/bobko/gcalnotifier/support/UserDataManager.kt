@@ -7,6 +7,7 @@ import bobko.gcalnotifier.model.MyEvent
 import java.io.File
 import java.io.FileReader
 import java.io.FileWriter
+import bobko.gcalnotifier.util.USER_HOME_FOLDER
 
 /**
  * Manages user's local data (Such as list of events and calendars to be able work in offline)

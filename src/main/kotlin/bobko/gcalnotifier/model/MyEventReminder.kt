@@ -1,7 +1,7 @@
 package bobko.gcalnotifier.model
 
 import com.google.api.services.calendar.model.EventReminder
-import bobko.gcalnotifier.support.minutes
+import bobko.gcalnotifier.util.minutes
 
 enum class MyEventReminderMethod {
   EMAIL, SMS, POPUP
