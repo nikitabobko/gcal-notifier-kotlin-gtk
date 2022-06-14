@@ -17,6 +17,6 @@ kt_jvm_test(
     srcs = ["EventReminderTrackerTest.kt"],
     deps = [
         ":controller",
-        "//src/bobko/gcalnotifier/test",
+        "//test-util",
     ],
 )

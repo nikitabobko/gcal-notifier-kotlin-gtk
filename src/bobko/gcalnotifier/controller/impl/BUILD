@@ -17,6 +17,6 @@ kt_jvm_test(
     srcs = ["ControllerTest.kt"],
     deps = [
         ":impl",
-        "//src/bobko/gcalnotifier/test",
+        "//test-util",
     ],
 )

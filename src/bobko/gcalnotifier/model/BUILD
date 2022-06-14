@@ -15,6 +15,6 @@ kt_jvm_test(
     srcs = ["MyEventTest.kt"],
     deps = [
         ":model",
-        "//src/bobko/gcalnotifier/test",
+        "//test-util",
     ],
 )

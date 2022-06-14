@@ -18,6 +18,6 @@ kt_jvm_test(
     srcs = ["ApplicationVersionTest.kt"],
     deps = [
         ":util",
-        "//src/bobko/gcalnotifier/test"
+        "//test-util"
     ],
 )

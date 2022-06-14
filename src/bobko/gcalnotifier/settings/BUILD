@@ -16,7 +16,7 @@ kt_jvm_test(
     srcs = ["SettingsFormatParserTest.kt"],
     deps = [
         ":settings",
-        "//src/bobko/gcalnotifier/test",
+        "//test-util",
     ],
 )
 
@@ -26,6 +26,6 @@ kt_jvm_test(
     deps = [
         ":settings",
         "//src/bobko/gcalnotifier/util",
-        "//src/bobko/gcalnotifier/test",
+        "//test-util",
     ],
 )
