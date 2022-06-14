@@ -12,4 +12,6 @@ kt_jvm_library(
         artifact("com.google.code.gson:gson"),
     ],
     visibility = ["//visibility:public"],
+    resources = ["res/*"],
+    resource_strip_prefix = "src/support/res/",
 )
