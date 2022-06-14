@@ -5,7 +5,7 @@ kt_jvm_library(
     name = "settings",
     srcs = glob(["*.kt"], exclude = ["*Test.kt"]),
     deps = [
-        "//src/bobko/gcalnotifier/util",
+        "//src/util",
         artifact("org.jetbrains.kotlin:kotlin-reflect")
     ],
     visibility = ["//visibility:public"],
@@ -13,6 +13,7 @@ kt_jvm_library(
 
 kt_jvm_test(
     name = "SettingsFormatParserTest",
+    test_class = "bobko.gcalnotifier.settings.SettingsFormatParserTest",
     srcs = ["SettingsFormatParserTest.kt"],
     deps = [
         ":settings",
@@ -22,10 +23,11 @@ kt_jvm_test(
 
 kt_jvm_test(
     name = "SettingsTest",
+    test_class = "bobko.gcalnotifier.settings.SettingsTest",
     srcs = ["SettingsTest.kt"],
     deps = [
         ":settings",
-        "//src/bobko/gcalnotifier/util",
+        "//src/util",
         "//test-util",
     ],
 )

@@ -11,10 +11,12 @@ kt_jvm_library(
     ],
     resources = glob(["res/*"]),
     visibility = ["//visibility:public"],
+    resource_strip_prefix = "src/util/res/",
 )
 
 kt_jvm_test(
     name = "ApplicationVersionTest",
+    test_class = "bobko.gcalnotifier.util.ApplicationVersionTest",
     srcs = ["ApplicationVersionTest.kt"],
     deps = [
         ":util",

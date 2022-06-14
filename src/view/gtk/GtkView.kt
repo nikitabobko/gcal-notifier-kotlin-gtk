@@ -37,7 +37,7 @@ class GtkView(
   private var firstEventItemIndexInPopupMenu = 0
   private var statusIcon: StatusIcon? = null
   private val appIcon: Pixbuf = Pixbuf(
-    Resources.toByteArray(View::class.java.getResource("/bobko/gcalnotifier/view/gtk/res/icon.png")))
+    Resources.toByteArray(View::class.java.getResource("/icon.png")))
   override var refreshButtonState: RefreshButtonState = RefreshButtonState.NORMAL
     set(value) = runOnUiThread {
       field = value

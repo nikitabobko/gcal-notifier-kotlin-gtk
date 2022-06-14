@@ -5,13 +5,14 @@ kt_jvm_library(
     name = "model",
     srcs = glob(["*.kt"], exclude = ["*Test.kt"]),
     deps = [
-        "//src/bobko/gcalnotifier/settings",
+        "//src/settings",
     ],
     visibility = ["//visibility:public"],
 )
 
 kt_jvm_test(
     name = "MyEventTest",
+    test_class = "bobko.gcalnotifier.model.MyEventTest",
     srcs = ["MyEventTest.kt"],
     deps = [
         ":model",
