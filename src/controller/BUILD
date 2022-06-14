@@ -7,7 +7,7 @@ kt_jvm_library(
     deps = [
         "//src/model",
         "//src/support",
-        artifact("ru.nikitabobko.kotlin.refdelegation:kotlin-ref-delegation"),
+        "//src/util",
     ],
     visibility = ["//visibility:public"],
 )

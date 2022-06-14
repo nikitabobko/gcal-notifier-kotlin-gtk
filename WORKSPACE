@@ -28,14 +28,12 @@ maven_install(
         "org.jetbrains.kotlin:kotlin-test-junit:%s" % kotlin_version,
         "org.jetbrains.kotlin:kotlin-reflect:%s" % kotlin_version,
         "org.mockito:mockito-core:3.2.4",
-        "ru.nikitabobko.kotlin.refdelegation:kotlin-ref-delegation:1.1.2",
         "com.google.oauth-client:google-oauth-client-jetty:1.23.0",
         "com.google.apis:google-api-services-calendar:v3-rev402-1.25.0",
         "com.google.code.gson:gson:2.8.6",
     ],
     repositories = [
         "https://repo1.maven.org/maven2",
-        "https://jcenter.bintray.com/",
     ],
     fetch_sources = True,
 )
