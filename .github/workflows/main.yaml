@@ -1,4 +1,4 @@
-name: Tests
+name: Build & Tests
 
 on:
   push:
@@ -19,5 +19,7 @@ jobs:
           distribution: 'adopt'
       - name: Install libjava-gnome-java
         run: sudo apt-get install libjava-gnome-java
+      - name: Build
+        run: bazel build //...
       - name: Run Tests
         run: bazel test //...
