@@ -21,10 +21,10 @@ class EventReminderTrackerTest : TestCase() {
 
   fun `test simple`() {
     doTest(events = listOf(
-      createEvent("10", 10.seconds, createReminder(0)),
-      createEvent("10", 10.seconds, createReminder(0)),
-      createEvent("10", 10.seconds, createReminder(0)),
-      createEvent("20", 20.seconds, createReminder(0))
+      createOneHourEvent("10", 10.seconds, createReminder(0)),
+      createOneHourEvent("10", 10.seconds, createReminder(0)),
+      createOneHourEvent("10", 10.seconds, createReminder(0)),
+      createOneHourEvent("20", 20.seconds, createReminder(0))
     ), numberOfTriggers = 4) { event: MyEvent, count: Int ->
       when (count) {
         in 0..2 -> assertEquals("10", event.title)
@@ -36,9 +36,9 @@ class EventReminderTrackerTest : TestCase() {
 
   fun `test simple 2`() {
     doTest(events = listOf(
-      createEvent("10", 10.seconds, createReminder(0)),
-      createEvent("-20", 10.seconds, createReminder(30.seconds)),
-      createEvent("10, 0.5", 10.seconds, createReminder(0), createReminder(9.seconds + 500))
+      createOneHourEvent("10", 10.seconds, createReminder(0)),
+      createOneHourEvent("-20", 10.seconds, createReminder(30.seconds)),
+      createOneHourEvent("10, 0.5", 10.seconds, createReminder(0), createReminder(9.seconds + 500))
     ), numberOfTriggers = 3) { event: MyEvent, count: Int ->
       when (count) {
         0 -> assertEquals("10, 0.5", event.title)
@@ -50,7 +50,7 @@ class EventReminderTrackerTest : TestCase() {
 
   fun `test assert trigger when notify in 29 seconds`() {
     doTest(events = listOf(
-      createEvent("29", 30.minutes, createReminder(30.minutes - 29.seconds))
+      createOneHourEvent("29", 30.minutes, createReminder(30.minutes - 29.seconds))
     ), numberOfTriggers = 1) { event: MyEvent, count: Int ->
       if (count == 0) {
         assertEquals("29", event.title)
@@ -62,7 +62,7 @@ class EventReminderTrackerTest : TestCase() {
 
   fun `test EventReminderTracker daemon is sleeping and waiting for upcoming 30 seconds event`(): Unit = repeat(4) {
     val trackerWrapper: EventReminderTrackerWrapper = doTest(events = listOf(
-      createEvent("title", 30.seconds, createReminder(0.minutes))
+      createOneHourEvent("title", 30.seconds, createReminder(0.minutes))
     ), numberOfTriggers = 0)
     val eventTrackerDaemon = trackerWrapper.tracker.daemonThread
     assertNotNull(eventTrackerDaemon)
@@ -72,7 +72,7 @@ class EventReminderTrackerTest : TestCase() {
   fun `test last notified is considered`() {
     val lastNotifiedUNIXTime = 3.seconds
     val trackerWrapper: EventReminderTrackerWrapper = doTest(events = listOf(
-      createEvent("title0", lastNotifiedUNIXTime, createReminder(0))
+      createOneHourEvent("title0", lastNotifiedUNIXTime, createReminder(0))
     ), numberOfTriggers = 1) { event: MyEvent, count: Int ->
       if (count == 0) {
         assertEquals("title0", event.title)
@@ -89,12 +89,12 @@ class EventReminderTrackerTest : TestCase() {
     assertEquals(lastNotifiedUNIXTime, actualLastNotifiedEventUNIXTime)
     val start = FakeTimeProvider.currentTimeMillis
     doTest(events = listOf(
-      createEvent("title", start - 2.seconds, createReminder(0)),
-      createEvent("title", start, createReminder(2.seconds)),
-      createEvent("title2", start - 1.seconds, createReminder(0)),
-      createEvent("title2", start, createReminder(1.seconds)),
-      createEvent("ignore", start - 10.seconds, createReminder(0)),
-      createEvent("ignore", start, createReminder(10.seconds))
+      createOneHourEvent("title", start - 2.seconds, createReminder(0)),
+      createOneHourEvent("title", start, createReminder(2.seconds)),
+      createOneHourEvent("title2", start - 1.seconds, createReminder(0)),
+      createOneHourEvent("title2", start, createReminder(1.seconds)),
+      createOneHourEvent("ignore", start - 10.seconds, createReminder(0)),
+      createOneHourEvent("ignore", start, createReminder(10.seconds))
     ), numberOfTriggers = 4, initTrackerWrapper = trackerWrapper) { event: MyEvent, count: Int ->
       when {
         count <= 1 -> assertEquals("title", event.title)
@@ -106,8 +106,8 @@ class EventReminderTrackerTest : TestCase() {
 
   fun `test newDataCame race condition`() = repeat(10) {
     val events = listOf(
-      createEvent("0", 1.seconds, createReminder(0)),
-      createEvent("1", 10.seconds, createReminder(0))
+      createOneHourEvent("0", 1.seconds, createReminder(0)),
+      createOneHourEvent("1", 10.seconds, createReminder(0))
     )
     val count = AtomicInteger(0)
 
@@ -137,7 +137,7 @@ class EventReminderTrackerTest : TestCase() {
   fun `test calendar reminder simple`() {
     val calendarId = "calendarId"
     doTest(events = listOf(
-      createEvent("10", 20.minutes, createCalendarReminder(), calendarId)
+      createOneHourEvent("10", 20.minutes, createCalendarReminder(), calendarId)
     ), calendars = listOf(
       MyCalendarListEntry(calendarId, listOf(createReminder(20.minutes - 10.seconds)))
     ), numberOfTriggers = 1) { event: MyEvent, count: Int ->
@@ -151,7 +151,7 @@ class EventReminderTrackerTest : TestCase() {
   fun `test calendar multiple reminders`() {
     val calendarId = "calendarId"
     doTest(events = listOf(
-      createEvent("10, 15", 20.minutes, createCalendarReminder(), calendarId)
+      createOneHourEvent("10, 15", 20.minutes, createCalendarReminder(), calendarId)
     ), calendars = listOf(
       MyCalendarListEntry(calendarId,
         listOf(createReminder(20.minutes - 10.seconds), createReminder(20.minutes - 5.seconds)))
@@ -168,11 +168,11 @@ class EventReminderTrackerTest : TestCase() {
     val calendarId1 = "calendarId1"
     val calendarId2 = "calendarId2"
     doTest(events = listOf(
-      createEvent("5", 10.minutes, createReminder(10.minutes - 5.seconds)),
-      createEvent("10, -15", 20.minutes, createCalendarReminder(), calendarId1),
-      createEvent("10, 25", 20.minutes + 15.seconds, createCalendarReminder(), calendarId1),
-      createEvent("15", 10.minutes + 20.seconds, createCalendarReminder(), calendarId2),
-      createEvent("-5", 10.minutes, createCalendarReminder(), calendarId2)
+      createOneHourEvent("5", 10.minutes, createReminder(10.minutes - 5.seconds)),
+      createOneHourEvent("10, -15", 20.minutes, createCalendarReminder(), calendarId1),
+      createOneHourEvent("10, 25", 20.minutes + 15.seconds, createCalendarReminder(), calendarId1),
+      createOneHourEvent("15", 10.minutes + 20.seconds, createCalendarReminder(), calendarId2),
+      createOneHourEvent("-5", 10.minutes, createCalendarReminder(), calendarId2)
     ), calendars = listOf(
       MyCalendarListEntry(calendarId1,
         listOf(createReminder(20.minutes - 10.seconds), createReminder(20.minutes + 5.seconds))),
@@ -193,11 +193,11 @@ class EventReminderTrackerTest : TestCase() {
     val eventNotification = 40.seconds
 
     val events1 = arrayOf(
-      createEvent("doesn't matter title", eventTime, createReminder(eventNotification))
+      createOneHourEvent("doesn't matter title", eventTime, createReminder(eventNotification))
     )
     val events2 = arrayOf(
-      createEvent("doesn't matter title 1", eventTime, createReminder(eventNotification)),
-      createEvent("doesn't matter title 2", eventTime + 30.minutes, createReminder(eventNotification + 30.minutes))
+      createOneHourEvent("doesn't matter title 1", eventTime, createReminder(eventNotification)),
+      createOneHourEvent("doesn't matter title 2", eventTime + 30.minutes, createReminder(eventNotification + 30.minutes))
     )
 
     for (events in listOf(events1, events2)) {

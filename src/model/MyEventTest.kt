@@ -3,7 +3,7 @@ package bobko.gcalnotifier.model
 import junit.framework.TestCase
 import org.mockito.Mockito.mock
 import bobko.gcalnotifier.settings.Settings
-import bobko.gcalnotifier.test.createEvent
+import bobko.gcalnotifier.test.createOneHourEvent
 import bobko.gcalnotifier.util.TimeProviderImpl
 
 class MyEventTest : TestCase() {
@@ -15,6 +15,6 @@ class MyEventTest : TestCase() {
   }
 
   private fun doTest(expected: String, actualTimeInMillis: Long) {
-    assertEquals(expected, createEvent("title", actualTimeInMillis).dateString(TimeProviderImpl, mock(Settings::class.java)))
+    assertEquals(expected, createOneHourEvent("title", actualTimeInMillis).dateString(TimeProviderImpl, mock(Settings::class.java)))
   }
 }

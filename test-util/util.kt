@@ -1,6 +1,7 @@
 package bobko.gcalnotifier.test
 
 import bobko.gcalnotifier.model.MyEvent
+import bobko.gcalnotifier.model.MyEvent.MyReminders
 import bobko.gcalnotifier.model.MyEventReminder
 import bobko.gcalnotifier.model.MyEventReminderMethod
 import bobko.gcalnotifier.util.TimeProvider
@@ -8,20 +9,18 @@ import bobko.gcalnotifier.util.minutes
 import org.mockito.Mockito
 import org.mockito.stubbing.OngoingStubbing
 
-fun createEvent(title: String, start: Long, reminders: MyEvent.MyReminders, calendarId: String? = null): MyEvent {
-  return MyEvent(title, start, start + 60.minutes, reminders, calendarId = calendarId)
-}
+fun createOneHourEvent(title: String, start: Long, reminders: MyReminders, calendarId: String? = null) =
+  MyEvent(title, start, start + 60.minutes, reminders, calendarId = calendarId)
 
-fun createEvent(title: String, start: Long, vararg reminders: MyEventReminder, calendarId: String? = null): MyEvent {
-  return createEvent(title, start, MyEvent.MyReminders(useDefault = false, overrides = reminders.toList()), calendarId)
-}
+fun createOneHourEvent(title: String, start: Long, vararg reminders: MyEventReminder, calendarId: String? = null) =
+  createOneHourEvent(title, start, MyReminders(useDefault = false, overrides = reminders.toList()), calendarId)
 
 fun createReminder(milliseconds: Long): MyEventReminder {
   return MyEventReminder(MyEventReminderMethod.POPUP, milliseconds)
 }
 
-fun createCalendarReminder(): MyEvent.MyReminders {
-  return MyEvent.MyReminders(useDefault = true, overrides = null)
+fun createCalendarReminder(): MyReminders {
+  return MyReminders(useDefault = true, overrides = null)
 }
 
 object FakeTimeProvider : TimeProvider() {
