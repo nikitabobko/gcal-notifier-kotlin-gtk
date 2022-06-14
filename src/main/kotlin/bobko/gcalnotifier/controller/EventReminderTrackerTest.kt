@@ -1,12 +1,11 @@
-package bobko.gcalnotifier
+package bobko.gcalnotifier.controller
 
-import bobko.gcalnotifier.controller.EventReminderTracker
-import bobko.gcalnotifier.controller.EventReminderTrackerImpl
 import junit.framework.TestCase
 import org.mockito.Mockito.mock
 import bobko.gcalnotifier.model.MyCalendarListEntry
 import bobko.gcalnotifier.model.MyEvent
 import bobko.gcalnotifier.support.*
+import bobko.gcalnotifier.test.*
 import bobko.gcalnotifier.util.minutes
 import bobko.gcalnotifier.util.percentOf
 import bobko.gcalnotifier.util.seconds

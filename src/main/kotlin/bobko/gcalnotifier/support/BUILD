@@ -3,7 +3,7 @@ load("@rules_jvm_external//:defs.bzl", "artifact")
 
 kt_jvm_library(
     name = "support",
-    srcs = glob(["*.kt"]),
+    srcs = glob(["*.kt"], exclude = ["*Test.kt"]),
     deps = [
         "//src/main/kotlin/bobko/gcalnotifier/util",
         "//src/main/kotlin/bobko/gcalnotifier/model",

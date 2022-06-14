@@ -1,9 +1,8 @@
-package bobko.gcalnotifier
+package bobko.gcalnotifier.util
 
-import bobko.gcalnotifier.util.APPLICATION_VERSION
 import junit.framework.TestCase
 
-class ApplicationIdentificationTest : TestCase() {
+class ApplicationVersionTest : TestCase() {
   fun `test fetching APPLICATION_VERSION doesn't throw exception and version is not empty`() {
     assertTrue(APPLICATION_VERSION.isNotEmpty())
   }

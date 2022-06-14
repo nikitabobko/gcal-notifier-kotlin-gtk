@@ -1,4 +1,4 @@
-package bobko.gcalnotifier
+package bobko.gcalnotifier.test
 
 import bobko.gcalnotifier.model.MyEvent
 import bobko.gcalnotifier.model.MyEventReminder

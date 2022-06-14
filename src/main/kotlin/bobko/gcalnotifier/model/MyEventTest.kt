@@ -1,8 +1,9 @@
-package bobko.gcalnotifier
+package bobko.gcalnotifier.model
 
 import junit.framework.TestCase
 import org.mockito.Mockito.mock
 import bobko.gcalnotifier.settings.Settings
+import bobko.gcalnotifier.test.createEvent
 import bobko.gcalnotifier.util.TimeProviderImpl
 
 class MyEventTest : TestCase() {

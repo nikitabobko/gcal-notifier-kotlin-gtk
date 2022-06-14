@@ -3,7 +3,7 @@ load("@rules_jvm_external//:defs.bzl", "artifact")
 
 kt_jvm_library(
     name = "gcalnotifier",
-    srcs = glob(["*.kt"]),
+    srcs = glob(["*.kt"], exclude = ["*Test.kt"]),
     deps = [
         "//src/main/kotlin/bobko/gcalnotifier/injector",
     ],
