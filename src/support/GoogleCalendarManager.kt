@@ -26,7 +26,7 @@ import java.util.*
 import kotlin.concurrent.thread
 
 private val JSON_FACTORY = JacksonFactory.getDefaultInstance()
-const val CLIENT_SECRET_JSON = "/client_secret.json"
+const val CLIENT_SECRET_JSON = "/gcal-client-secret.json"
 private val SCOPES: List<String> = Collections.singletonList(CalendarScopes.CALENDAR_READONLY)
 
 /**

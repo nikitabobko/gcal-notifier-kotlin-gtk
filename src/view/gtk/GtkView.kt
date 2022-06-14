@@ -15,7 +15,7 @@ import java.io.File
 import java.net.URI
 import kotlin.math.min
 
-const val ICON_RESOURCE = "/icon.png"
+const val ICON_RESOURCE = "/gcal-icon.png"
 
 /**
  * Implementation based on java-gnome lib

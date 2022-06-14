@@ -11,7 +11,7 @@ val USER_HOME_FOLDER: String = System.getProperty("user.home")!!
 const val APPLICATION_NAME = "gcal-notifier-kotlin-gtk"
 
 val APPLICATION_VERSION: String =
-  object {}::class.java.getResourceAsStream("/version.txt")!!
+  object {}::class.java.getResourceAsStream("/gcal-version.txt")!!
     .bufferedReader()
     .use {
       it.readLine()!!
