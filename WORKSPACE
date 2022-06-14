@@ -6,7 +6,8 @@ rules_kotlin_sha = "12d22a3d9cbcf00f2e2d8f0683ba87d3823cb8c7f6837568dd7e48846e02
 rules_jvm_external_tag = "4.2"
 rules_jvm_external_sha = "cd1a77b7b02e8e008439ca76fd34f5b07aecb8c752961f9640dea15e9e5ba1ca"
 
-kotlin_version = rules_kotlin_version
+kotlin_version = "1.7.0"
+kotlin_sha = "f5216644ad81571e5db62ec2322fe07468927bda40f51147ed626a2884b55f9a"
 
 # rules_jvm_external
 http_archive(
@@ -57,8 +58,13 @@ http_archive(
     sha256 = rules_kotlin_sha,
 )
 
-load("@io_bazel_rules_kotlin//kotlin:repositories.bzl", "kotlin_repositories")
-kotlin_repositories()
+load("@io_bazel_rules_kotlin//kotlin:repositories.bzl", "kotlin_repositories", "kotlinc_version")
+kotlin_repositories(
+    compiler_release = kotlinc_version(
+        release = kotlin_version,
+        sha256 = kotlin_sha
+    )
+)
 
 load("@io_bazel_rules_kotlin//kotlin:core.bzl", "kt_register_toolchains")
 kt_register_toolchains()
