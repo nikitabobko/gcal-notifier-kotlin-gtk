@@ -15,6 +15,8 @@ import java.io.File
 import java.net.URI
 import kotlin.math.min
 
+const val ICON_RESOURCE = "/icon.png"
+
 /**
  * Implementation based on java-gnome lib
  */
@@ -37,7 +39,7 @@ class GtkView(
   private var firstEventItemIndexInPopupMenu = 0
   private var statusIcon: StatusIcon? = null
   private val appIcon: Pixbuf = Pixbuf(
-    Resources.toByteArray(View::class.java.getResource("/icon.png")))
+    Resources.toByteArray(View::class.java.getResource(ICON_RESOURCE)))
   override var refreshButtonState: RefreshButtonState = RefreshButtonState.NORMAL
     set(value) = runOnUiThread {
       field = value
