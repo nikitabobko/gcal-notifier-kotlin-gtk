@@ -1,4 +1,4 @@
-load("@io_bazel_rules_kotlin//kotlin:jvm.bzl", "kt_jvm_library")
+load("@io_bazel_rules_kotlin//kotlin:jvm.bzl", "kt_jvm_library", "kt_jvm_test")
 load("@rules_jvm_external//:defs.bzl", "artifact")
 
 kt_jvm_library(
@@ -12,6 +12,16 @@ kt_jvm_library(
         artifact("com.google.code.gson:gson"),
     ],
     visibility = ["//visibility:public"],
-    resources = ["res/*"],
+    resources = glob(["res/*"]),
     resource_strip_prefix = "src/support/res/",
+)
+
+kt_jvm_test(
+    name = "ClientSecretResourceTest",
+    test_class = "bobko.gcalnotifier.support.ClientSecretResourceTest",
+    srcs = ["ClientSecretResourceTest.kt"],
+    deps = [
+        ":support",
+        "//test-util",
+    ],
 )
