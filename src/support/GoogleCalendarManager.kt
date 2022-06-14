@@ -26,7 +26,7 @@ import java.util.*
 import kotlin.concurrent.thread
 
 private val JSON_FACTORY = JacksonFactory.getDefaultInstance()
-private const val CLIENT_SECRET_DIR = "/client_secret.json"
+private const val CLIENT_SECRET_JSON = "/client_secret.json"
 private val SCOPES: List<String> = Collections.singletonList(CalendarScopes.CALENDAR_READONLY)
 
 /**
@@ -110,7 +110,7 @@ class GoogleCalendarManagerImpl(private val openURLInDefaultBrowser: (url: Strin
   @Throws(IOException::class)
   private fun getCredentials(HTTP_TRANSPORT: NetHttpTransport): Credential {
     // Load client secrets.
-    val `in`: InputStream = GoogleCalendarManager::class.java.getResourceAsStream(CLIENT_SECRET_DIR)
+    val `in`: InputStream = GoogleCalendarManager::class.java.getResourceAsStream(CLIENT_SECRET_JSON)
     val clientSecrets = GoogleClientSecrets.load(JSON_FACTORY, InputStreamReader(`in`))
 
     // Build flow and trigger user authorization request.
