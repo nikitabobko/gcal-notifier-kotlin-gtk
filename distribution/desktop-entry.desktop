@@ -5,5 +5,5 @@ Name=gcal-notifier
 Comment=Simple Google Calendar notifier
 Exec=gcal-notifier-kotlin-gtk
 Terminal=false
-Icon=/opt/gcal-notifier-kotlin-gtk/icon.png
+Icon=/opt/gcal-notifier-kotlin-gtk/gcal-icon.png
 Categories=Office;Internet;

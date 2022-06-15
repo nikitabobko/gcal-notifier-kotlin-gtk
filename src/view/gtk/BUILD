@@ -22,3 +22,5 @@ kt_jvm_test(
         "//test-util"
     ],
 )
+
+exports_files(["res/gcal-icon.png"])

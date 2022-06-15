@@ -70,10 +70,10 @@ Execute `bazel build gcal-jar` to generate jar file in `bazel-bin` directory.
 `bazel run gcal-app`
 
 #### Build tar archive only
-`./gradlew tar`
+`bazel build gcal-tar`
 
 #### Build deb archive only
-`./gradlew deb`
+`bazel build gcal-deb`
 
 #### Running tests
 `bazel test //...`

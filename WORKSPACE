@@ -11,6 +11,21 @@ rules_jvm_external_sha = "cd1a77b7b02e8e008439ca76fd34f5b07aecb8c752961f9640dea1
 kotlin_version = "1.7.0"
 kotlin_sha = "f5216644ad81571e5db62ec2322fe07468927bda40f51147ed626a2884b55f9a"
 
+rules_pkg_version = "0.7.0"
+rules_pkg_sha = "8a298e832762eda1830597d64fe7db58178aa84cd5926d76d5b744d6558941c2"
+
+# rules_pkg
+http_archive(
+    name = "rules_pkg",
+    urls = [
+        "https://mirror.bazel.build/github.com/bazelbuild/rules_pkg/releases/download/%s/rules_pkg-%s.tar.gz" % (rules_pkg_version, rules_pkg_version),
+        "https://github.com/bazelbuild/rules_pkg/releases/download/%s/rules_pkg-%s.tar.gz" % (rules_pkg_version, rules_pkg_version),
+    ],
+    sha256 = rules_pkg_sha
+)
+load("@rules_pkg//:deps.bzl", "rules_pkg_dependencies")
+rules_pkg_dependencies()
+
 # rules_jvm_external
 http_archive(
     name = "rules_jvm_external",
