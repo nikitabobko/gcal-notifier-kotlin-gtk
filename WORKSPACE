@@ -53,7 +53,7 @@ maven_install(
     repositories = [
         "https://repo1.maven.org/maven2",
     ],
-    maven_install_json = "//:maven_install.json",
+    maven_install_json = "//:third_party/maven_install.json",
     fetch_sources = True,
     fail_if_repin_required = True,
 )
